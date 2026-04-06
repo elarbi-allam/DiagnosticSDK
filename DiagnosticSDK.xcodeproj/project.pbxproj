@@ -8,6 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		20F102E22F8014470096C884 /* DiagnosticSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20F102D62F8014470096C884 /* DiagnosticSDK.framework */; };
+		20F102FF2F8026E50096C884 /* DiagnosticSDK.docc in Sources */ = {isa = PBXBuildFile; fileRef = 20F102FA2F8026E50096C884 /* DiagnosticSDK.docc */; };
+		20F103082F8027150096C884 /* .lock in Resources */ = {isa = PBXBuildFile; fileRef = 20F103032F8027150096C884 /* .lock */; };
+		20F103092F8027150096C884 /* DiagnosticSDKTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20F103052F8027150096C884 /* DiagnosticSDKTests.swift */; };
+		20F1030B2F8027F60096C884 /* TracerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20F1030A2F8027F60096C884 /* TracerModels.swift */; };
+		20F103102F83EFA90096C884 /* DiagnosticSDKObjC.h in Headers */ = {isa = PBXBuildFile; fileRef = 20F1030E2F83EFA90096C884 /* DiagnosticSDKObjC.h */; };
+		20F103112F83EFA90096C884 /* DiagnosticSDKObjC.m in Sources */ = {isa = PBXBuildFile; fileRef = 20F1030C2F83EFA90096C884 /* DiagnosticSDKObjC.m */; };
+		20F103122F83EFA90096C884 /* .gitkeep in Resources */ = {isa = PBXBuildFile; fileRef = 20F1030D2F83EFA90096C884 /* .gitkeep */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -23,20 +30,14 @@
 /* Begin PBXFileReference section */
 		20F102D62F8014470096C884 /* DiagnosticSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DiagnosticSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		20F102E12F8014470096C884 /* DiagnosticSDKTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DiagnosticSDKTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		20F102FA2F8026E50096C884 /* DiagnosticSDK.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = DiagnosticSDK.docc; sourceTree = "<group>"; };
+		20F103032F8027150096C884 /* .lock */ = {isa = PBXFileReference; lastKnownFileType = text; path = .lock; sourceTree = "<group>"; };
+		20F103052F8027150096C884 /* DiagnosticSDKTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticSDKTests.swift; sourceTree = "<group>"; };
+		20F1030A2F8027F60096C884 /* TracerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracerModels.swift; sourceTree = "<group>"; };
+		20F1030C2F83EFA90096C884 /* DiagnosticSDKObjC.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DiagnosticSDKObjC.m; sourceTree = "<group>"; };
+		20F1030D2F83EFA90096C884 /* .gitkeep */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitkeep; sourceTree = "<group>"; };
+		20F1030E2F83EFA90096C884 /* DiagnosticSDKObjC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticSDKObjC.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		20F102D82F8014470096C884 /* DiagnosticSDK */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = DiagnosticSDK;
-			sourceTree = "<group>";
-		};
-		20F102E52F8014470096C884 /* DiagnosticSDKTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = DiagnosticSDKTests;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		20F102D32F8014470096C884 /* Frameworks */ = {
@@ -60,8 +61,8 @@
 		20F102CC2F8014470096C884 = {
 			isa = PBXGroup;
 			children = (
-				20F102D82F8014470096C884 /* DiagnosticSDK */,
-				20F102E52F8014470096C884 /* DiagnosticSDKTests */,
+				20F102FE2F8026E50096C884 /* Sources */,
+				20F103072F8027150096C884 /* Tests */,
 				20F102D72F8014470096C884 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -75,6 +76,123 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		20F102F62F8026E50096C884 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		20F102F72F8026E50096C884 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				20F1030A2F8027F60096C884 /* TracerModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		20F102F82F8026E50096C884 /* Replay */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Replay;
+			sourceTree = "<group>";
+		};
+		20F102F92F8026E50096C884 /* Tracer */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Tracer;
+			sourceTree = "<group>";
+		};
+		20F102FB2F8026E50096C884 /* DiagnosticSDK */ = {
+			isa = PBXGroup;
+			children = (
+				20F102F62F8026E50096C884 /* Core */,
+				20F102F72F8026E50096C884 /* Models */,
+				20F102F82F8026E50096C884 /* Replay */,
+				20F102F92F8026E50096C884 /* Tracer */,
+				20F102FA2F8026E50096C884 /* DiagnosticSDK.docc */,
+			);
+			path = DiagnosticSDK;
+			sourceTree = "<group>";
+		};
+		20F102FD2F8026E50096C884 /* DiagnosticSDKObjC */ = {
+			isa = PBXGroup;
+			children = (
+				20F1030C2F83EFA90096C884 /* DiagnosticSDKObjC.m */,
+				20F1030F2F83EFA90096C884 /* include */,
+			);
+			path = DiagnosticSDKObjC;
+			sourceTree = "<group>";
+		};
+		20F102FE2F8026E50096C884 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				20F102FB2F8026E50096C884 /* DiagnosticSDK */,
+				20F102FD2F8026E50096C884 /* DiagnosticSDKObjC */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		20F103002F8027150096C884 /* artifacts */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = artifacts;
+			sourceTree = "<group>";
+		};
+		20F103012F8027150096C884 /* checkouts */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = checkouts;
+			sourceTree = "<group>";
+		};
+		20F103022F8027150096C884 /* repositories */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = repositories;
+			sourceTree = "<group>";
+		};
+		20F103042F8027150096C884 /* .build */ = {
+			isa = PBXGroup;
+			children = (
+				20F103002F8027150096C884 /* artifacts */,
+				20F103012F8027150096C884 /* checkouts */,
+				20F103022F8027150096C884 /* repositories */,
+				20F103032F8027150096C884 /* .lock */,
+			);
+			path = .build;
+			sourceTree = "<group>";
+		};
+		20F103062F8027150096C884 /* DiagnosticSDKTests */ = {
+			isa = PBXGroup;
+			children = (
+				20F103052F8027150096C884 /* DiagnosticSDKTests.swift */,
+			);
+			path = DiagnosticSDKTests;
+			sourceTree = "<group>";
+		};
+		20F103072F8027150096C884 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				20F103042F8027150096C884 /* .build */,
+				20F103062F8027150096C884 /* DiagnosticSDKTests */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		20F1030F2F83EFA90096C884 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				20F1030D2F83EFA90096C884 /* .gitkeep */,
+				20F1030E2F83EFA90096C884 /* DiagnosticSDKObjC.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -82,6 +200,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				20F103102F83EFA90096C884 /* DiagnosticSDKObjC.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -100,9 +219,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				20F102D82F8014470096C884 /* DiagnosticSDK */,
 			);
 			name = DiagnosticSDK;
 			packageProductDependencies = (
@@ -124,9 +240,6 @@
 			dependencies = (
 				20F102E42F8014470096C884 /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				20F102E52F8014470096C884 /* DiagnosticSDKTests */,
-			);
 			name = DiagnosticSDKTests;
 			packageProductDependencies = (
 			);
@@ -146,6 +259,7 @@
 				TargetAttributes = {
 					20F102D52F8014470096C884 = {
 						CreatedOnToolsVersion = 26.2;
+						LastSwiftMigration = 2620;
 					};
 					20F102E02F8014470096C884 = {
 						CreatedOnToolsVersion = 26.2;
@@ -177,6 +291,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				20F103122F83EFA90096C884 /* .gitkeep in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -184,6 +299,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				20F103082F8027150096C884 /* .lock in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -194,6 +310,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				20F1030B2F8027F60096C884 /* TracerModels.swift in Sources */,
+				20F102FF2F8026E50096C884 /* DiagnosticSDK.docc in Sources */,
+				20F103112F83EFA90096C884 /* DiagnosticSDKObjC.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -201,6 +320,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				20F103092F8027150096C884 /* DiagnosticSDKTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -344,8 +464,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -353,6 +475,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -363,12 +486,13 @@
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = com.adrial.DiagnosticSDK;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				SKIP_INSTALL = YES;
+				SKIP_INSTALL = NO;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INSTALL_MODULE = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -379,8 +503,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -388,6 +514,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -398,7 +525,7 @@
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = com.adrial.DiagnosticSDK;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				SKIP_INSTALL = YES;
+				SKIP_INSTALL = NO;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
