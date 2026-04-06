@@ -1,5 +1,12 @@
 # Xcode
 build/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
 *.pbxuser
 !default.pbxuser
 *.mode1v3
@@ -8,19 +15,27 @@ build/
 !default.mode2v3
 *.perspectivev3
 !default.perspectivev3
-xcuserdata/
-*.xccheckout
-*.moved-aside
-DerivedData
-*.hmap
-*.ipa
-*.xcuserstate
 
 # Swift Package Manager
 .build/
 .swiftpm/
 Packages/
 Package.resolved
+
+# CocoaPods
+Pods/
+Podfile.lock
+*.xcworkspace/
+!default.xcworkspace/
+
+# Environment & Secrets
+.env
+*.env
+secrets.json
+
+# Logs & Crashes
+*.log
+*.crash
 
 # macOS
 .DS_Store
