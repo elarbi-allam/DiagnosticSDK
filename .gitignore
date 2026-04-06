@@ -39,3 +39,4 @@ secrets.json
 
 # macOS
 .DS_Store
+Tests/.build/

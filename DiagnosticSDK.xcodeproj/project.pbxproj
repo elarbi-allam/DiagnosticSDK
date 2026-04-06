@@ -12,6 +12,9 @@
 		20F103082F8027150096C884 /* .lock in Resources */ = {isa = PBXBuildFile; fileRef = 20F103032F8027150096C884 /* .lock */; };
 		20F103092F8027150096C884 /* DiagnosticSDKTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20F103052F8027150096C884 /* DiagnosticSDKTests.swift */; };
 		20F1030B2F8027F60096C884 /* TracerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20F1030A2F8027F60096C884 /* TracerModels.swift */; };
+		20F103102F83EFA90096C884 /* DiagnosticSDKObjC.h in Headers */ = {isa = PBXBuildFile; fileRef = 20F1030E2F83EFA90096C884 /* DiagnosticSDKObjC.h */; };
+		20F103112F83EFA90096C884 /* DiagnosticSDKObjC.m in Sources */ = {isa = PBXBuildFile; fileRef = 20F1030C2F83EFA90096C884 /* DiagnosticSDKObjC.m */; };
+		20F103122F83EFA90096C884 /* .gitkeep in Resources */ = {isa = PBXBuildFile; fileRef = 20F1030D2F83EFA90096C884 /* .gitkeep */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -31,6 +34,9 @@
 		20F103032F8027150096C884 /* .lock */ = {isa = PBXFileReference; lastKnownFileType = text; path = .lock; sourceTree = "<group>"; };
 		20F103052F8027150096C884 /* DiagnosticSDKTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticSDKTests.swift; sourceTree = "<group>"; };
 		20F1030A2F8027F60096C884 /* TracerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracerModels.swift; sourceTree = "<group>"; };
+		20F1030C2F83EFA90096C884 /* DiagnosticSDKObjC.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DiagnosticSDKObjC.m; sourceTree = "<group>"; };
+		20F1030D2F83EFA90096C884 /* .gitkeep */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitkeep; sourceTree = "<group>"; };
+		20F1030E2F83EFA90096C884 /* DiagnosticSDKObjC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticSDKObjC.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -111,17 +117,11 @@
 			path = DiagnosticSDK;
 			sourceTree = "<group>";
 		};
-		20F102FC2F8026E50096C884 /* include */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = include;
-			sourceTree = "<group>";
-		};
 		20F102FD2F8026E50096C884 /* DiagnosticSDKObjC */ = {
 			isa = PBXGroup;
 			children = (
-				20F102FC2F8026E50096C884 /* include */,
+				20F1030C2F83EFA90096C884 /* DiagnosticSDKObjC.m */,
+				20F1030F2F83EFA90096C884 /* include */,
 			);
 			path = DiagnosticSDKObjC;
 			sourceTree = "<group>";
@@ -184,6 +184,15 @@
 			path = Tests;
 			sourceTree = "<group>";
 		};
+		20F1030F2F83EFA90096C884 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				20F1030D2F83EFA90096C884 /* .gitkeep */,
+				20F1030E2F83EFA90096C884 /* DiagnosticSDKObjC.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -191,6 +200,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				20F103102F83EFA90096C884 /* DiagnosticSDKObjC.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -249,6 +259,7 @@
 				TargetAttributes = {
 					20F102D52F8014470096C884 = {
 						CreatedOnToolsVersion = 26.2;
+						LastSwiftMigration = 2620;
 					};
 					20F102E02F8014470096C884 = {
 						CreatedOnToolsVersion = 26.2;
@@ -280,6 +291,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				20F103122F83EFA90096C884 /* .gitkeep in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -300,6 +312,7 @@
 			files = (
 				20F1030B2F8027F60096C884 /* TracerModels.swift in Sources */,
 				20F102FF2F8026E50096C884 /* DiagnosticSDK.docc in Sources */,
+				20F103112F83EFA90096C884 /* DiagnosticSDKObjC.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -451,8 +464,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -477,6 +492,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INSTALL_MODULE = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -487,8 +503,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
