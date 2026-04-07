@@ -15,6 +15,8 @@
 		20F103102F83EFA90096C884 /* DiagnosticSDKObjC.h in Headers */ = {isa = PBXBuildFile; fileRef = 20F1030E2F83EFA90096C884 /* DiagnosticSDKObjC.h */; };
 		20F103112F83EFA90096C884 /* DiagnosticSDKObjC.m in Sources */ = {isa = PBXBuildFile; fileRef = 20F1030C2F83EFA90096C884 /* DiagnosticSDKObjC.m */; };
 		20F103122F83EFA90096C884 /* .gitkeep in Resources */ = {isa = PBXBuildFile; fileRef = 20F1030D2F83EFA90096C884 /* .gitkeep */; };
+		20F103142F851DDC0096C884 /* DiagnosticSDKMethodSwizzling.h in Headers */ = {isa = PBXBuildFile; fileRef = 20F103132F851DDC0096C884 /* DiagnosticSDKMethodSwizzling.h */; };
+		20F103162F851E5C0096C884 /* DiagnosticSDKMethodSwizzling.m in Sources */ = {isa = PBXBuildFile; fileRef = 20F103152F851E5C0096C884 /* DiagnosticSDKMethodSwizzling.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -37,6 +39,8 @@
 		20F1030C2F83EFA90096C884 /* DiagnosticSDKObjC.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DiagnosticSDKObjC.m; sourceTree = "<group>"; };
 		20F1030D2F83EFA90096C884 /* .gitkeep */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitkeep; sourceTree = "<group>"; };
 		20F1030E2F83EFA90096C884 /* DiagnosticSDKObjC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticSDKObjC.h; sourceTree = "<group>"; };
+		20F103132F851DDC0096C884 /* DiagnosticSDKMethodSwizzling.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticSDKMethodSwizzling.h; sourceTree = "<group>"; };
+		20F103152F851E5C0096C884 /* DiagnosticSDKMethodSwizzling.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DiagnosticSDKMethodSwizzling.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +126,7 @@
 			children = (
 				20F1030C2F83EFA90096C884 /* DiagnosticSDKObjC.m */,
 				20F1030F2F83EFA90096C884 /* include */,
+				20F103152F851E5C0096C884 /* DiagnosticSDKMethodSwizzling.m */,
 			);
 			path = DiagnosticSDKObjC;
 			sourceTree = "<group>";
@@ -189,6 +194,7 @@
 			children = (
 				20F1030D2F83EFA90096C884 /* .gitkeep */,
 				20F1030E2F83EFA90096C884 /* DiagnosticSDKObjC.h */,
+				20F103132F851DDC0096C884 /* DiagnosticSDKMethodSwizzling.h */,
 			);
 			path = include;
 			sourceTree = "<group>";
@@ -201,6 +207,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				20F103102F83EFA90096C884 /* DiagnosticSDKObjC.h in Headers */,
+				20F103142F851DDC0096C884 /* DiagnosticSDKMethodSwizzling.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -312,6 +319,7 @@
 			files = (
 				20F1030B2F8027F60096C884 /* TracerModels.swift in Sources */,
 				20F102FF2F8026E50096C884 /* DiagnosticSDK.docc in Sources */,
+				20F103162F851E5C0096C884 /* DiagnosticSDKMethodSwizzling.m in Sources */,
 				20F103112F83EFA90096C884 /* DiagnosticSDKObjC.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
