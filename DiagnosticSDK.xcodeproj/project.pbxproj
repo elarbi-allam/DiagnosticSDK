@@ -19,6 +19,8 @@
 		20F103162F851E5C0096C884 /* DiagnosticSDKMethodSwizzling.m in Sources */ = {isa = PBXBuildFile; fileRef = 20F103152F851E5C0096C884 /* DiagnosticSDKMethodSwizzling.m */; };
 		20F103182F854EDA0096C884 /* NSURLSessionConfiguration+DiagnosticSDK.h in Headers */ = {isa = PBXBuildFile; fileRef = 20F103172F854EDA0096C884 /* NSURLSessionConfiguration+DiagnosticSDK.h */; };
 		20F1031C2F854F850096C884 /* NSURLSessionConfiguration+DiagnosticSDK.m in Sources */ = {isa = PBXBuildFile; fileRef = 20F1031B2F854F850096C884 /* NSURLSessionConfiguration+DiagnosticSDK.m */; };
+		20F1031E2F855FB00096C884 /* DiagnosticSDKBootstrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 20F1031D2F855FB00096C884 /* DiagnosticSDKBootstrapper.h */; };
+		20F103202F855FDD0096C884 /* DiagnosticSDKBootstrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 20F1031F2F855FDD0096C884 /* DiagnosticSDKBootstrapper.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +47,8 @@
 		20F103152F851E5C0096C884 /* DiagnosticSDKMethodSwizzling.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DiagnosticSDKMethodSwizzling.m; sourceTree = "<group>"; };
 		20F103172F854EDA0096C884 /* NSURLSessionConfiguration+DiagnosticSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSURLSessionConfiguration+DiagnosticSDK.h"; sourceTree = "<group>"; };
 		20F1031B2F854F850096C884 /* NSURLSessionConfiguration+DiagnosticSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSURLSessionConfiguration+DiagnosticSDK.m"; sourceTree = "<group>"; };
+		20F1031D2F855FB00096C884 /* DiagnosticSDKBootstrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticSDKBootstrapper.h; sourceTree = "<group>"; };
+		20F1031F2F855FDD0096C884 /* DiagnosticSDKBootstrapper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DiagnosticSDKBootstrapper.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -132,6 +136,7 @@
 				20F1030F2F83EFA90096C884 /* include */,
 				20F103152F851E5C0096C884 /* DiagnosticSDKMethodSwizzling.m */,
 				20F1031B2F854F850096C884 /* NSURLSessionConfiguration+DiagnosticSDK.m */,
+				20F1031F2F855FDD0096C884 /* DiagnosticSDKBootstrapper.m */,
 			);
 			path = DiagnosticSDKObjC;
 			sourceTree = "<group>";
@@ -201,6 +206,7 @@
 				20F1030E2F83EFA90096C884 /* DiagnosticSDKObjC.h */,
 				20F103132F851DDC0096C884 /* DiagnosticSDKMethodSwizzling.h */,
 				20F103172F854EDA0096C884 /* NSURLSessionConfiguration+DiagnosticSDK.h */,
+				20F1031D2F855FB00096C884 /* DiagnosticSDKBootstrapper.h */,
 			);
 			path = include;
 			sourceTree = "<group>";
@@ -213,6 +219,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				20F103102F83EFA90096C884 /* DiagnosticSDKObjC.h in Headers */,
+				20F1031E2F855FB00096C884 /* DiagnosticSDKBootstrapper.h in Headers */,
 				20F103182F854EDA0096C884 /* NSURLSessionConfiguration+DiagnosticSDK.h in Headers */,
 				20F103142F851DDC0096C884 /* DiagnosticSDKMethodSwizzling.h in Headers */,
 			);
@@ -324,6 +331,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				20F103202F855FDD0096C884 /* DiagnosticSDKBootstrapper.m in Sources */,
 				20F1030B2F8027F60096C884 /* TracerModels.swift in Sources */,
 				20F102FF2F8026E50096C884 /* DiagnosticSDK.docc in Sources */,
 				20F1031C2F854F850096C884 /* NSURLSessionConfiguration+DiagnosticSDK.m in Sources */,
