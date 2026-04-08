@@ -2,8 +2,11 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-/// Bootstrapper responsible for automatically initializing the SDK's Objective-C runtime injections.
 @interface DiagnosticSDKBootstrapper : NSObject
+
+/// Safely initializes the DiagnosticSDK and applies necessary runtime modifications.
+/// Should be called manually by the host application at startup.
++ (void)start;
 
 @end
 
