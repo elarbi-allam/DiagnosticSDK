@@ -4,19 +4,19 @@
 @implementation NSURLSessionConfiguration (DiagnosticSDK)
 
 + (void)diagnosticSDK_swizzleNSURLSessionClasses {
-    [DiagnosticSDKMethodSwizzling swizzleMethod:@selector(defaultSessionConfiguration)
-                                     withMethod:@selector(diagnosticSDK_defaultSessionConfiguration)
-                                       forClass:[NSURLSessionConfiguration class]];
+    [DiagnosticSDKMethodSwizzling swizzleClassMethod:@selector(defaultSessionConfiguration)
+                                          withMethod:@selector(diagnosticSDK_defaultSessionConfiguration)
+                                            forClass:[NSURLSessionConfiguration class]];
     
-    [DiagnosticSDKMethodSwizzling swizzleMethod:@selector(ephemeralSessionConfiguration)
-                                     withMethod:@selector(diagnosticSDK_ephemeralSessionConfiguration)
-                                       forClass:[NSURLSessionConfiguration class]];
+    [DiagnosticSDKMethodSwizzling swizzleClassMethod:@selector(ephemeralSessionConfiguration)
+                                          withMethod:@selector(diagnosticSDK_ephemeralSessionConfiguration)
+                                            forClass:[NSURLSessionConfiguration class]];
 }
 
 #pragma mark - Swizzled Methods
 
 + (NSURLSessionConfiguration *)diagnosticSDK_defaultSessionConfiguration {
-    // Calls the original Apple method due to runtime pointer exchange.
+    // This calls Apple's original implementation due to the method exchange.
     NSURLSessionConfiguration *config = [self diagnosticSDK_defaultSessionConfiguration];
     [self diagnosticSDK_injectProtocol:config];
     return config;
@@ -31,19 +31,17 @@
 #pragma mark - Protocol Injection
 
 + (void)diagnosticSDK_injectProtocol:(NSURLSessionConfiguration *)config {
-    // Dynamically load the Swift protocol class to maintain loose coupling between Obj-C and Swift modules.
-    Class interceptorClass = NSClassFromString(@"DiagnosticSDK.NetworkInterceptor");
+    // Dynamically resolve the Swift interceptor class.
+    Class interceptorClass = NSClassFromString(@"DiagnosticSDK.NetworkInterceptor") ?: NSClassFromString(@"NetworkInterceptor");
     
     if (interceptorClass) {
         NSMutableArray *protocols = [NSMutableArray arrayWithArray:config.protocolClasses];
         
-        // Insert at index 0 to ensure our protocol evaluates network requests first.
+        // Insert at index 0 to ensure the interceptor evaluates requests before Apple's default protocols.
         if (![protocols containsObject:interceptorClass]) {
             [protocols insertObject:interceptorClass atIndex:0];
             config.protocolClasses = protocols;
         }
-    } else {
-        NSLog(@"[DiagnosticSDK] Warning: Swift NetworkInterceptor class not found. Interception is disabled.");
     }
 }
 
