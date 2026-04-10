@@ -40,7 +40,6 @@
 
 /* Begin PBXFileReference section */
 		206E61492F8958970011E974 /* AsyncTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncTracker.swift; sourceTree = "<group>"; };
-		206E614B2F8958970011E974 /* .gitkeep */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitkeep; sourceTree = "<group>"; };
 		206E614C2F8958970011E974 /* NetworkInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInterceptor.swift; sourceTree = "<group>"; };
 		206E614D2F8958970011E974 /* NetworkInterceptorProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInterceptorProtocol.swift; sourceTree = "<group>"; };
 		206E614F2F8958970011E974 /* CustomURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomURLProtocol.swift; sourceTree = "<group>"; };
@@ -94,7 +93,6 @@
 		206E614E2F8958970011E974 /* Core */ = {
 			isa = PBXGroup;
 			children = (
-				206E614B2F8958970011E974 /* .gitkeep */,
 				206E614C2F8958970011E974 /* NetworkInterceptor.swift */,
 				206E614D2F8958970011E974 /* NetworkInterceptorProtocol.swift */,
 			);
