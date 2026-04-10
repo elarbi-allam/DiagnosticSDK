@@ -7,11 +7,23 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		206E61662F8958970011E974 /* JSONFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E61572F8958970011E974 /* JSONFormatter.swift */; };
+		206E61672F8958970011E974 /* NetworkEventBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E61582F8958970011E974 /* NetworkEventBuilder.swift */; };
+		206E61682F8958970011E974 /* NetworkInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E614C2F8958970011E974 /* NetworkInterceptor.swift */; };
+		206E61692F8958970011E974 /* NetworkInterceptorProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E614D2F8958970011E974 /* NetworkInterceptorProtocol.swift */; };
+		206E616A2F8958970011E974 /* NetworkStoreProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E615D2F8958970011E974 /* NetworkStoreProtocol.swift */; };
+		206E616B2F8958970011E974 /* CustomURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E614F2F8958970011E974 /* CustomURLProtocol.swift */; };
+		206E616C2F8958970011E974 /* AsyncTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E61492F8958970011E974 /* AsyncTracker.swift */; };
+		206E616D2F8958970011E974 /* URLSessionInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E61502F8958970011E974 /* URLSessionInterceptor.swift */; };
+		206E616E2F8958970011E974 /* NetworkEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E61522F8958970011E974 /* NetworkEvent.swift */; };
+		206E616F2F8958970011E974 /* RequestModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E61532F8958970011E974 /* RequestModel.swift */; };
+		206E61702F8958970011E974 /* ResponseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E61542F8958970011E974 /* ResponseModel.swift */; };
+		206E61712F8958970011E974 /* SensitiveDataFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E61592F8958970011E974 /* SensitiveDataFilter.swift */; };
+		206E61722F8958970011E974 /* TracerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E61552F8958970011E974 /* TracerModels.swift */; };
+		206E61732F8958970011E974 /* DiagnosticSDK.docc in Sources */ = {isa = PBXBuildFile; fileRef = 206E61612F8958970011E974 /* DiagnosticSDK.docc */; };
 		20F102E22F8014470096C884 /* DiagnosticSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20F102D62F8014470096C884 /* DiagnosticSDK.framework */; };
-		20F102FF2F8026E50096C884 /* DiagnosticSDK.docc in Sources */ = {isa = PBXBuildFile; fileRef = 20F102FA2F8026E50096C884 /* DiagnosticSDK.docc */; };
 		20F103082F8027150096C884 /* .lock in Resources */ = {isa = PBXBuildFile; fileRef = 20F103032F8027150096C884 /* .lock */; };
 		20F103092F8027150096C884 /* DiagnosticSDKTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20F103052F8027150096C884 /* DiagnosticSDKTests.swift */; };
-		20F1030B2F8027F60096C884 /* TracerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20F1030A2F8027F60096C884 /* TracerModels.swift */; };
 		20F103102F83EFA90096C884 /* DiagnosticSDKObjC.h in Headers */ = {isa = PBXBuildFile; fileRef = 20F1030E2F83EFA90096C884 /* DiagnosticSDKObjC.h */; };
 		20F103112F83EFA90096C884 /* DiagnosticSDKObjC.m in Sources */ = {isa = PBXBuildFile; fileRef = 20F1030C2F83EFA90096C884 /* DiagnosticSDKObjC.m */; };
 /* End PBXBuildFile section */
@@ -27,12 +39,27 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		206E61492F8958970011E974 /* AsyncTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncTracker.swift; sourceTree = "<group>"; };
+		206E614B2F8958970011E974 /* .gitkeep */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitkeep; sourceTree = "<group>"; };
+		206E614C2F8958970011E974 /* NetworkInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInterceptor.swift; sourceTree = "<group>"; };
+		206E614D2F8958970011E974 /* NetworkInterceptorProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInterceptorProtocol.swift; sourceTree = "<group>"; };
+		206E614F2F8958970011E974 /* CustomURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomURLProtocol.swift; sourceTree = "<group>"; };
+		206E61502F8958970011E974 /* URLSessionInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSessionInterceptor.swift; sourceTree = "<group>"; };
+		206E61522F8958970011E974 /* NetworkEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkEvent.swift; sourceTree = "<group>"; };
+		206E61532F8958970011E974 /* RequestModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestModel.swift; sourceTree = "<group>"; };
+		206E61542F8958970011E974 /* ResponseModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResponseModel.swift; sourceTree = "<group>"; };
+		206E61552F8958970011E974 /* TracerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracerModels.swift; sourceTree = "<group>"; };
+		206E61572F8958970011E974 /* JSONFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONFormatter.swift; sourceTree = "<group>"; };
+		206E61582F8958970011E974 /* NetworkEventBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkEventBuilder.swift; sourceTree = "<group>"; };
+		206E61592F8958970011E974 /* SensitiveDataFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensitiveDataFilter.swift; sourceTree = "<group>"; };
+		206E615B2F8958970011E974 /* .gitkeep */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitkeep; sourceTree = "<group>"; };
+		206E615D2F8958970011E974 /* NetworkStoreProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkStoreProtocol.swift; sourceTree = "<group>"; };
+		206E615F2F8958970011E974 /* .gitkeep */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitkeep; sourceTree = "<group>"; };
+		206E61612F8958970011E974 /* DiagnosticSDK.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = DiagnosticSDK.docc; sourceTree = "<group>"; };
 		20F102D62F8014470096C884 /* DiagnosticSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DiagnosticSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		20F102E12F8014470096C884 /* DiagnosticSDKTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DiagnosticSDKTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		20F102FA2F8026E50096C884 /* DiagnosticSDK.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = DiagnosticSDK.docc; sourceTree = "<group>"; };
 		20F103032F8027150096C884 /* .lock */ = {isa = PBXFileReference; lastKnownFileType = text; path = .lock; sourceTree = "<group>"; };
 		20F103052F8027150096C884 /* DiagnosticSDKTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticSDKTests.swift; sourceTree = "<group>"; };
-		20F1030A2F8027F60096C884 /* TracerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracerModels.swift; sourceTree = "<group>"; };
 		20F1030C2F83EFA90096C884 /* DiagnosticSDKObjC.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DiagnosticSDKObjC.m; sourceTree = "<group>"; };
 		20F1030E2F83EFA90096C884 /* DiagnosticSDKObjC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticSDKObjC.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -56,6 +83,94 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		206E614A2F8958970011E974 /* Async */ = {
+			isa = PBXGroup;
+			children = (
+				206E61492F8958970011E974 /* AsyncTracker.swift */,
+			);
+			path = Async;
+			sourceTree = "<group>";
+		};
+		206E614E2F8958970011E974 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				206E614B2F8958970011E974 /* .gitkeep */,
+				206E614C2F8958970011E974 /* NetworkInterceptor.swift */,
+				206E614D2F8958970011E974 /* NetworkInterceptorProtocol.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		206E61512F8958970011E974 /* Interception */ = {
+			isa = PBXGroup;
+			children = (
+				206E614F2F8958970011E974 /* CustomURLProtocol.swift */,
+				206E61502F8958970011E974 /* URLSessionInterceptor.swift */,
+			);
+			path = Interception;
+			sourceTree = "<group>";
+		};
+		206E61562F8958970011E974 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				206E61522F8958970011E974 /* NetworkEvent.swift */,
+				206E61532F8958970011E974 /* RequestModel.swift */,
+				206E61542F8958970011E974 /* ResponseModel.swift */,
+				206E61552F8958970011E974 /* TracerModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		206E615A2F8958970011E974 /* Processing */ = {
+			isa = PBXGroup;
+			children = (
+				206E61572F8958970011E974 /* JSONFormatter.swift */,
+				206E61582F8958970011E974 /* NetworkEventBuilder.swift */,
+				206E61592F8958970011E974 /* SensitiveDataFilter.swift */,
+			);
+			path = Processing;
+			sourceTree = "<group>";
+		};
+		206E615C2F8958970011E974 /* Replay */ = {
+			isa = PBXGroup;
+			children = (
+				206E615B2F8958970011E974 /* .gitkeep */,
+			);
+			path = Replay;
+			sourceTree = "<group>";
+		};
+		206E615E2F8958970011E974 /* Store */ = {
+			isa = PBXGroup;
+			children = (
+				206E615D2F8958970011E974 /* NetworkStoreProtocol.swift */,
+			);
+			path = Store;
+			sourceTree = "<group>";
+		};
+		206E61602F8958970011E974 /* Tracer */ = {
+			isa = PBXGroup;
+			children = (
+				206E615F2F8958970011E974 /* .gitkeep */,
+			);
+			path = Tracer;
+			sourceTree = "<group>";
+		};
+		206E61622F8958970011E974 /* DiagnosticSDK */ = {
+			isa = PBXGroup;
+			children = (
+				206E614A2F8958970011E974 /* Async */,
+				206E614E2F8958970011E974 /* Core */,
+				206E61512F8958970011E974 /* Interception */,
+				206E61562F8958970011E974 /* Models */,
+				206E615A2F8958970011E974 /* Processing */,
+				206E615C2F8958970011E974 /* Replay */,
+				206E615E2F8958970011E974 /* Store */,
+				206E61602F8958970011E974 /* Tracer */,
+				206E61612F8958970011E974 /* DiagnosticSDK.docc */,
+			);
+			path = DiagnosticSDK;
+			sourceTree = "<group>";
+		};
 		20F102CC2F8014470096C884 = {
 			isa = PBXGroup;
 			children = (
@@ -74,47 +189,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		20F102F62F8026E50096C884 /* Core */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Core;
-			sourceTree = "<group>";
-		};
-		20F102F72F8026E50096C884 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				20F1030A2F8027F60096C884 /* TracerModels.swift */,
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
-		20F102F82F8026E50096C884 /* Replay */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Replay;
-			sourceTree = "<group>";
-		};
-		20F102F92F8026E50096C884 /* Tracer */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Tracer;
-			sourceTree = "<group>";
-		};
-		20F102FB2F8026E50096C884 /* DiagnosticSDK */ = {
-			isa = PBXGroup;
-			children = (
-				20F102F62F8026E50096C884 /* Core */,
-				20F102F72F8026E50096C884 /* Models */,
-				20F102F82F8026E50096C884 /* Replay */,
-				20F102F92F8026E50096C884 /* Tracer */,
-				20F102FA2F8026E50096C884 /* DiagnosticSDK.docc */,
-			);
-			path = DiagnosticSDK;
-			sourceTree = "<group>";
-		};
 		20F102FD2F8026E50096C884 /* DiagnosticSDKObjC */ = {
 			isa = PBXGroup;
 			children = (
@@ -127,7 +201,7 @@
 		20F102FE2F8026E50096C884 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				20F102FB2F8026E50096C884 /* DiagnosticSDK */,
+				206E61622F8958970011E974 /* DiagnosticSDK */,
 				20F102FD2F8026E50096C884 /* DiagnosticSDKObjC */,
 			);
 			path = Sources;
@@ -306,8 +380,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				20F1030B2F8027F60096C884 /* TracerModels.swift in Sources */,
-				20F102FF2F8026E50096C884 /* DiagnosticSDK.docc in Sources */,
+				206E61662F8958970011E974 /* JSONFormatter.swift in Sources */,
+				206E61672F8958970011E974 /* NetworkEventBuilder.swift in Sources */,
+				206E61682F8958970011E974 /* NetworkInterceptor.swift in Sources */,
+				206E61692F8958970011E974 /* NetworkInterceptorProtocol.swift in Sources */,
+				206E616A2F8958970011E974 /* NetworkStoreProtocol.swift in Sources */,
+				206E616B2F8958970011E974 /* CustomURLProtocol.swift in Sources */,
+				206E616C2F8958970011E974 /* AsyncTracker.swift in Sources */,
+				206E616D2F8958970011E974 /* URLSessionInterceptor.swift in Sources */,
+				206E616E2F8958970011E974 /* NetworkEvent.swift in Sources */,
+				206E616F2F8958970011E974 /* RequestModel.swift in Sources */,
+				206E61702F8958970011E974 /* ResponseModel.swift in Sources */,
+				206E61712F8958970011E974 /* SensitiveDataFilter.swift in Sources */,
+				206E61722F8958970011E974 /* TracerModels.swift in Sources */,
+				206E61732F8958970011E974 /* DiagnosticSDK.docc in Sources */,
 				20F103112F83EFA90096C884 /* DiagnosticSDKObjC.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
