@@ -1,15 +1,16 @@
-//
-//  RequestModel.swift
-//  DiagnosticSDK
-//
-//  Created by ADRIA on 7/4/2026.
-//
 import Foundation
 
-/// Représente une requête HTTP
+/// Represents an HTTP request
 public struct RequestModel: Codable {
-    let url: String
-    let method: String
-    let headers: [String: String]
-    let body: String?
+    public let url: String
+    public let method: String
+    public let headers: [String: String]
+    public let body: String?
+    
+    public init(url: String, method: String, headers: [String: String], body: String?) {
+            self.url = url
+            self.method = method
+            self.headers = headers
+            self.body = body
+        }
 }

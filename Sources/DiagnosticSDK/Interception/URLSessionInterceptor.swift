@@ -1,10 +1,3 @@
-//
-//  URLSessionInterceptor.swift
-//  DiagnosticSDK
-//
-//  Created by wiame on 7/4/2026.
-//
-
 import Foundation
 
 /// Gère l’interception des requêtes via URLProtocol

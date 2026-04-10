@@ -1,10 +1,3 @@
-//
-//  NetworkInterceptor.swift
-//  DiagnosticSDK
-//
-//  Created by ADRIA on 7/4/2026.
-//
-
 import Foundation
 
 /// Point d'entrée principal du SDK

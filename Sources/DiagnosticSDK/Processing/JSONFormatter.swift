@@ -1,10 +1,3 @@
-//
-//  JSONFormatter.swift
-//  DiagnosticSDK
-//
-//  Created by ADRIA on 7/4/2026.
-//
-
 import Foundation
 
 enum JSONFormatter {

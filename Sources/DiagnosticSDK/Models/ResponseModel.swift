@@ -1,13 +1,6 @@
-//
-//  ResponseModel.swift
-//  DiagnosticSDK
-//
-//  Created by ADRIA on 8/4/2026.
-//
-
 import Foundation
 
-struct ResponseModel: Codable {
+public struct ResponseModel: Codable {
     public let statusCode: Int
         public let headers: [String: String]?
         public let bodyBase64: String?

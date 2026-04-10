@@ -1,15 +1,15 @@
-//
-//  NetworkEvent.swift
-//  DiagnosticSDK
-//
-//  Created by ADRIA on 7/4/2026.
-//
-
 import Foundation
 
-/// Événement complet (requête + réponse)
+/// Complete event (request + response)
 public struct NetworkEvent: Codable {
-    let request: RequestModel
-    let response: ResponseModel?
-    let timestamp: Date
+    public let request: RequestModel
+    public let response: ResponseModel?
+    public let timestamp: Date
+    
+    public init(request: RequestModel, response: ResponseModel?, timestamp: Date) {
+            self.request = request
+            self.response = response
+            self.timestamp = timestamp
+    }
 }
+
