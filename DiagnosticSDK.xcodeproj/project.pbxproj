@@ -12,9 +12,14 @@
 		20F103082F8027150096C884 /* .lock in Resources */ = {isa = PBXBuildFile; fileRef = 20F103032F8027150096C884 /* .lock */; };
 		20F103092F8027150096C884 /* DiagnosticSDKTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20F103052F8027150096C884 /* DiagnosticSDKTests.swift */; };
 		20F1030B2F8027F60096C884 /* TracerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20F1030A2F8027F60096C884 /* TracerModels.swift */; };
-		20F103102F83EFA90096C884 /* DiagnosticSDKObjC.h in Headers */ = {isa = PBXBuildFile; fileRef = 20F1030E2F83EFA90096C884 /* DiagnosticSDKObjC.h */; };
-		20F103112F83EFA90096C884 /* DiagnosticSDKObjC.m in Sources */ = {isa = PBXBuildFile; fileRef = 20F1030C2F83EFA90096C884 /* DiagnosticSDKObjC.m */; };
-		20F103122F83EFA90096C884 /* .gitkeep in Resources */ = {isa = PBXBuildFile; fileRef = 20F1030D2F83EFA90096C884 /* .gitkeep */; };
+		20F103102F83EFA90096C884 /* DiagnosticSDK.h in Headers */ = {isa = PBXBuildFile; fileRef = 20F1030E2F83EFA90096C884 /* DiagnosticSDK.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		20F103112F83EFA90096C884 /* DiagnosticSDK.m in Sources */ = {isa = PBXBuildFile; fileRef = 20F1030C2F83EFA90096C884 /* DiagnosticSDK.m */; };
+		20F103142F851DDC0096C884 /* DiagnosticSDKMethodSwizzling.h in Headers */ = {isa = PBXBuildFile; fileRef = 20F103132F851DDC0096C884 /* DiagnosticSDKMethodSwizzling.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		20F103162F851E5C0096C884 /* DiagnosticSDKMethodSwizzling.m in Sources */ = {isa = PBXBuildFile; fileRef = 20F103152F851E5C0096C884 /* DiagnosticSDKMethodSwizzling.m */; };
+		20F103182F854EDA0096C884 /* NSURLSessionConfiguration+DiagnosticSDK.h in Headers */ = {isa = PBXBuildFile; fileRef = 20F103172F854EDA0096C884 /* NSURLSessionConfiguration+DiagnosticSDK.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		20F1031C2F854F850096C884 /* NSURLSessionConfiguration+DiagnosticSDK.m in Sources */ = {isa = PBXBuildFile; fileRef = 20F1031B2F854F850096C884 /* NSURLSessionConfiguration+DiagnosticSDK.m */; };
+		20F1031E2F855FB00096C884 /* DiagnosticSDKBootstrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 20F1031D2F855FB00096C884 /* DiagnosticSDKBootstrapper.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		20F103202F855FDD0096C884 /* DiagnosticSDKBootstrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 20F1031F2F855FDD0096C884 /* DiagnosticSDKBootstrapper.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,9 +39,14 @@
 		20F103032F8027150096C884 /* .lock */ = {isa = PBXFileReference; lastKnownFileType = text; path = .lock; sourceTree = "<group>"; };
 		20F103052F8027150096C884 /* DiagnosticSDKTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticSDKTests.swift; sourceTree = "<group>"; };
 		20F1030A2F8027F60096C884 /* TracerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracerModels.swift; sourceTree = "<group>"; };
-		20F1030C2F83EFA90096C884 /* DiagnosticSDKObjC.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DiagnosticSDKObjC.m; sourceTree = "<group>"; };
-		20F1030D2F83EFA90096C884 /* .gitkeep */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitkeep; sourceTree = "<group>"; };
-		20F1030E2F83EFA90096C884 /* DiagnosticSDKObjC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticSDKObjC.h; sourceTree = "<group>"; };
+		20F1030C2F83EFA90096C884 /* DiagnosticSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DiagnosticSDK.m; sourceTree = "<group>"; };
+		20F1030E2F83EFA90096C884 /* DiagnosticSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticSDK.h; sourceTree = "<group>"; };
+		20F103132F851DDC0096C884 /* DiagnosticSDKMethodSwizzling.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticSDKMethodSwizzling.h; sourceTree = "<group>"; };
+		20F103152F851E5C0096C884 /* DiagnosticSDKMethodSwizzling.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DiagnosticSDKMethodSwizzling.m; sourceTree = "<group>"; };
+		20F103172F854EDA0096C884 /* NSURLSessionConfiguration+DiagnosticSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSURLSessionConfiguration+DiagnosticSDK.h"; sourceTree = "<group>"; };
+		20F1031B2F854F850096C884 /* NSURLSessionConfiguration+DiagnosticSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSURLSessionConfiguration+DiagnosticSDK.m"; sourceTree = "<group>"; };
+		20F1031D2F855FB00096C884 /* DiagnosticSDKBootstrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticSDKBootstrapper.h; sourceTree = "<group>"; };
+		20F1031F2F855FDD0096C884 /* DiagnosticSDKBootstrapper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DiagnosticSDKBootstrapper.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -120,8 +130,11 @@
 		20F102FD2F8026E50096C884 /* DiagnosticSDKObjC */ = {
 			isa = PBXGroup;
 			children = (
-				20F1030C2F83EFA90096C884 /* DiagnosticSDKObjC.m */,
+				20F1030C2F83EFA90096C884 /* DiagnosticSDK.m */,
 				20F1030F2F83EFA90096C884 /* include */,
+				20F103152F851E5C0096C884 /* DiagnosticSDKMethodSwizzling.m */,
+				20F1031B2F854F850096C884 /* NSURLSessionConfiguration+DiagnosticSDK.m */,
+				20F1031F2F855FDD0096C884 /* DiagnosticSDKBootstrapper.m */,
 			);
 			path = DiagnosticSDKObjC;
 			sourceTree = "<group>";
@@ -187,8 +200,10 @@
 		20F1030F2F83EFA90096C884 /* include */ = {
 			isa = PBXGroup;
 			children = (
-				20F1030D2F83EFA90096C884 /* .gitkeep */,
-				20F1030E2F83EFA90096C884 /* DiagnosticSDKObjC.h */,
+				20F1030E2F83EFA90096C884 /* DiagnosticSDK.h */,
+				20F103132F851DDC0096C884 /* DiagnosticSDKMethodSwizzling.h */,
+				20F103172F854EDA0096C884 /* NSURLSessionConfiguration+DiagnosticSDK.h */,
+				20F1031D2F855FB00096C884 /* DiagnosticSDKBootstrapper.h */,
 			);
 			path = include;
 			sourceTree = "<group>";
@@ -200,7 +215,10 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				20F103102F83EFA90096C884 /* DiagnosticSDKObjC.h in Headers */,
+				20F103102F83EFA90096C884 /* DiagnosticSDK.h in Headers */,
+				20F103142F851DDC0096C884 /* DiagnosticSDKMethodSwizzling.h in Headers */,
+				20F1031E2F855FB00096C884 /* DiagnosticSDKBootstrapper.h in Headers */,
+				20F103182F854EDA0096C884 /* NSURLSessionConfiguration+DiagnosticSDK.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -291,7 +309,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				20F103122F83EFA90096C884 /* .gitkeep in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -310,9 +327,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				20F103202F855FDD0096C884 /* DiagnosticSDKBootstrapper.m in Sources */,
 				20F1030B2F8027F60096C884 /* TracerModels.swift in Sources */,
 				20F102FF2F8026E50096C884 /* DiagnosticSDK.docc in Sources */,
-				20F103112F83EFA90096C884 /* DiagnosticSDKObjC.m in Sources */,
+				20F1031C2F854F850096C884 /* NSURLSessionConfiguration+DiagnosticSDK.m in Sources */,
+				20F103162F851E5C0096C884 /* DiagnosticSDKMethodSwizzling.m in Sources */,
+				20F103112F83EFA90096C884 /* DiagnosticSDK.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
