@@ -7,34 +7,31 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		206E61662F8958970011E974 /* JSONFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E61572F8958970011E974 /* JSONFormatter.swift */; };
-		206E61672F8958970011E974 /* NetworkEventBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E61582F8958970011E974 /* NetworkEventBuilder.swift */; };
-		206E61682F8958970011E974 /* NetworkInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E614C2F8958970011E974 /* NetworkInterceptor.swift */; };
-		206E61692F8958970011E974 /* NetworkInterceptorProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E614D2F8958970011E974 /* NetworkInterceptorProtocol.swift */; };
-		206E616A2F8958970011E974 /* NetworkStoreProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E615D2F8958970011E974 /* NetworkStoreProtocol.swift */; };
-		206E616B2F8958970011E974 /* CustomURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E614F2F8958970011E974 /* CustomURLProtocol.swift */; };
-		206E616C2F8958970011E974 /* AsyncTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E61492F8958970011E974 /* AsyncTracker.swift */; };
-		206E616D2F8958970011E974 /* URLSessionInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E61502F8958970011E974 /* URLSessionInterceptor.swift */; };
-		206E616E2F8958970011E974 /* NetworkEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E61522F8958970011E974 /* NetworkEvent.swift */; };
-		206E616F2F8958970011E974 /* RequestModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E61532F8958970011E974 /* RequestModel.swift */; };
-		206E61702F8958970011E974 /* ResponseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E61542F8958970011E974 /* ResponseModel.swift */; };
-		206E61712F8958970011E974 /* SensitiveDataFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E61592F8958970011E974 /* SensitiveDataFilter.swift */; };
-		206E61722F8958970011E974 /* TracerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E61552F8958970011E974 /* TracerModels.swift */; };
-		206E61732F8958970011E974 /* DiagnosticSDK.docc in Sources */ = {isa = PBXBuildFile; fileRef = 206E61612F8958970011E974 /* DiagnosticSDK.docc */; };
+		206E62862F8AD1A10011E974 /* DiagnosticSDKBootstrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 206E627C2F8AD1A10011E974 /* DiagnosticSDKBootstrapper.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		206E62872F8AD1A10011E974 /* DiagnosticSDKMethodSwizzling.h in Headers */ = {isa = PBXBuildFile; fileRef = 206E627D2F8AD1A10011E974 /* DiagnosticSDKMethodSwizzling.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		206E62882F8AD1A10011E974 /* NSURLSessionConfiguration+DiagnosticSDK.h in Headers */ = {isa = PBXBuildFile; fileRef = 206E627E2F8AD1A10011E974 /* NSURLSessionConfiguration+DiagnosticSDK.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		206E62892F8AD1A10011E974 /* DiagnosticSDK.h in Headers */ = {isa = PBXBuildFile; fileRef = 206E627B2F8AD1A10011E974 /* DiagnosticSDK.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		206E628A2F8AD1A10011E974 /* DiagnosticSDKMethodSwizzling.m in Sources */ = {isa = PBXBuildFile; fileRef = 206E62822F8AD1A10011E974 /* DiagnosticSDKMethodSwizzling.m */; };
+		206E628B2F8AD1A10011E974 /* DiagnosticSDK.docc in Sources */ = {isa = PBXBuildFile; fileRef = 206E62792F8AD1A10011E974 /* DiagnosticSDK.docc */; };
+		206E628C2F8AD1A10011E974 /* NetworkInterceptorProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62652F8AD1A10011E974 /* NetworkInterceptorProtocol.swift */; };
+		206E628D2F8AD1A10011E974 /* URLSessionInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62682F8AD1A10011E974 /* URLSessionInterceptor.swift */; };
+		206E628E2F8AD1A10011E974 /* JSONFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E626F2F8AD1A10011E974 /* JSONFormatter.swift */; };
+		206E628F2F8AD1A10011E974 /* NetworkInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62642F8AD1A10011E974 /* NetworkInterceptor.swift */; };
+		206E62902F8AD1A10011E974 /* DiagnosticSDK.m in Sources */ = {isa = PBXBuildFile; fileRef = 206E62802F8AD1A10011E974 /* DiagnosticSDK.m */; };
+		206E62912F8AD1A10011E974 /* DiagnosticSDKBootstrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 206E62812F8AD1A10011E974 /* DiagnosticSDKBootstrapper.m */; };
+		206E62922F8AD1A10011E974 /* RequestModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E626B2F8AD1A10011E974 /* RequestModel.swift */; };
+		206E62932F8AD1A10011E974 /* NSURLSessionConfiguration+DiagnosticSDK.m in Sources */ = {isa = PBXBuildFile; fileRef = 206E62832F8AD1A10011E974 /* NSURLSessionConfiguration+DiagnosticSDK.m */; };
+		206E62942F8AD1A10011E974 /* NetworkEventBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62702F8AD1A10011E974 /* NetworkEventBuilder.swift */; };
+		206E62952F8AD1A10011E974 /* TracerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E626D2F8AD1A10011E974 /* TracerModels.swift */; };
+		206E62962F8AD1A10011E974 /* AsyncTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62622F8AD1A10011E974 /* AsyncTracker.swift */; };
+		206E62972F8AD1A10011E974 /* CustomURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62672F8AD1A10011E974 /* CustomURLProtocol.swift */; };
+		206E62982F8AD1A10011E974 /* SensitiveDataFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62712F8AD1A10011E974 /* SensitiveDataFilter.swift */; };
+		206E62992F8AD1A10011E974 /* NetworkStoreProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62752F8AD1A10011E974 /* NetworkStoreProtocol.swift */; };
+		206E629A2F8AD1A10011E974 /* NetworkEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E626A2F8AD1A10011E974 /* NetworkEvent.swift */; };
+		206E629B2F8AD1A10011E974 /* ResponseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E626C2F8AD1A10011E974 /* ResponseModel.swift */; };
+		206E62A62F8AD2160011E974 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62A42F8AD2160011E974 /* Extensions.swift */; };
+		206E62AB2F8AD2340011E974 /* DiagnosticSDKTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62A82F8AD2340011E974 /* DiagnosticSDKTests.swift */; };
 		20F102E22F8014470096C884 /* DiagnosticSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20F102D62F8014470096C884 /* DiagnosticSDK.framework */; };
-		20F103082F8027150096C884 /* .lock in Resources */ = {isa = PBXBuildFile; fileRef = 20F103032F8027150096C884 /* .lock */; };
-		20F103092F8027150096C884 /* DiagnosticSDKTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20F103052F8027150096C884 /* DiagnosticSDKTests.swift */; };
-		20F103102F83EFA90096C884 /* DiagnosticSDKObjC.h in Headers */ = {isa = PBXBuildFile; fileRef = 20F1030E2F83EFA90096C884 /* DiagnosticSDKObjC.h */; };
-		20F103112F83EFA90096C884 /* DiagnosticSDKObjC.m in Sources */ = {isa = PBXBuildFile; fileRef = 20F1030C2F83EFA90096C884 /* DiagnosticSDKObjC.m */; };
-		20F1030B2F8027F60096C884 /* TracerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20F1030A2F8027F60096C884 /* TracerModels.swift */; };
-		20F103102F83EFA90096C884 /* DiagnosticSDK.h in Headers */ = {isa = PBXBuildFile; fileRef = 20F1030E2F83EFA90096C884 /* DiagnosticSDK.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		20F103112F83EFA90096C884 /* DiagnosticSDK.m in Sources */ = {isa = PBXBuildFile; fileRef = 20F1030C2F83EFA90096C884 /* DiagnosticSDK.m */; };
-		20F103142F851DDC0096C884 /* DiagnosticSDKMethodSwizzling.h in Headers */ = {isa = PBXBuildFile; fileRef = 20F103132F851DDC0096C884 /* DiagnosticSDKMethodSwizzling.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		20F103162F851E5C0096C884 /* DiagnosticSDKMethodSwizzling.m in Sources */ = {isa = PBXBuildFile; fileRef = 20F103152F851E5C0096C884 /* DiagnosticSDKMethodSwizzling.m */; };
-		20F103182F854EDA0096C884 /* NSURLSessionConfiguration+DiagnosticSDK.h in Headers */ = {isa = PBXBuildFile; fileRef = 20F103172F854EDA0096C884 /* NSURLSessionConfiguration+DiagnosticSDK.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		20F1031C2F854F850096C884 /* NSURLSessionConfiguration+DiagnosticSDK.m in Sources */ = {isa = PBXBuildFile; fileRef = 20F1031B2F854F850096C884 /* NSURLSessionConfiguration+DiagnosticSDK.m */; };
-		20F1031E2F855FB00096C884 /* DiagnosticSDKBootstrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 20F1031D2F855FB00096C884 /* DiagnosticSDKBootstrapper.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		20F103202F855FDD0096C884 /* DiagnosticSDKBootstrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 20F1031F2F855FDD0096C884 /* DiagnosticSDKBootstrapper.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,37 +45,34 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		206E61492F8958970011E974 /* AsyncTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncTracker.swift; sourceTree = "<group>"; };
-		206E614C2F8958970011E974 /* NetworkInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInterceptor.swift; sourceTree = "<group>"; };
-		206E614D2F8958970011E974 /* NetworkInterceptorProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInterceptorProtocol.swift; sourceTree = "<group>"; };
-		206E614F2F8958970011E974 /* CustomURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomURLProtocol.swift; sourceTree = "<group>"; };
-		206E61502F8958970011E974 /* URLSessionInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSessionInterceptor.swift; sourceTree = "<group>"; };
-		206E61522F8958970011E974 /* NetworkEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkEvent.swift; sourceTree = "<group>"; };
-		206E61532F8958970011E974 /* RequestModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestModel.swift; sourceTree = "<group>"; };
-		206E61542F8958970011E974 /* ResponseModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResponseModel.swift; sourceTree = "<group>"; };
-		206E61552F8958970011E974 /* TracerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracerModels.swift; sourceTree = "<group>"; };
-		206E61572F8958970011E974 /* JSONFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONFormatter.swift; sourceTree = "<group>"; };
-		206E61582F8958970011E974 /* NetworkEventBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkEventBuilder.swift; sourceTree = "<group>"; };
-		206E61592F8958970011E974 /* SensitiveDataFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensitiveDataFilter.swift; sourceTree = "<group>"; };
-		206E615B2F8958970011E974 /* .gitkeep */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitkeep; sourceTree = "<group>"; };
-		206E615D2F8958970011E974 /* NetworkStoreProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkStoreProtocol.swift; sourceTree = "<group>"; };
-		206E615F2F8958970011E974 /* .gitkeep */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitkeep; sourceTree = "<group>"; };
-		206E61612F8958970011E974 /* DiagnosticSDK.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = DiagnosticSDK.docc; sourceTree = "<group>"; };
+		206E62622F8AD1A10011E974 /* AsyncTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncTracker.swift; sourceTree = "<group>"; };
+		206E62642F8AD1A10011E974 /* NetworkInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInterceptor.swift; sourceTree = "<group>"; };
+		206E62652F8AD1A10011E974 /* NetworkInterceptorProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInterceptorProtocol.swift; sourceTree = "<group>"; };
+		206E62672F8AD1A10011E974 /* CustomURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomURLProtocol.swift; sourceTree = "<group>"; };
+		206E62682F8AD1A10011E974 /* URLSessionInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSessionInterceptor.swift; sourceTree = "<group>"; };
+		206E626A2F8AD1A10011E974 /* NetworkEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkEvent.swift; sourceTree = "<group>"; };
+		206E626B2F8AD1A10011E974 /* RequestModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestModel.swift; sourceTree = "<group>"; };
+		206E626C2F8AD1A10011E974 /* ResponseModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResponseModel.swift; sourceTree = "<group>"; };
+		206E626D2F8AD1A10011E974 /* TracerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracerModels.swift; sourceTree = "<group>"; };
+		206E626F2F8AD1A10011E974 /* JSONFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONFormatter.swift; sourceTree = "<group>"; };
+		206E62702F8AD1A10011E974 /* NetworkEventBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkEventBuilder.swift; sourceTree = "<group>"; };
+		206E62712F8AD1A10011E974 /* SensitiveDataFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensitiveDataFilter.swift; sourceTree = "<group>"; };
+		206E62732F8AD1A10011E974 /* .gitkeep */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitkeep; sourceTree = "<group>"; };
+		206E62752F8AD1A10011E974 /* NetworkStoreProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkStoreProtocol.swift; sourceTree = "<group>"; };
+		206E62772F8AD1A10011E974 /* .gitkeep */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitkeep; sourceTree = "<group>"; };
+		206E62792F8AD1A10011E974 /* DiagnosticSDK.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = DiagnosticSDK.docc; sourceTree = "<group>"; };
+		206E627B2F8AD1A10011E974 /* DiagnosticSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticSDK.h; sourceTree = "<group>"; };
+		206E627C2F8AD1A10011E974 /* DiagnosticSDKBootstrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticSDKBootstrapper.h; sourceTree = "<group>"; };
+		206E627D2F8AD1A10011E974 /* DiagnosticSDKMethodSwizzling.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticSDKMethodSwizzling.h; sourceTree = "<group>"; };
+		206E627E2F8AD1A10011E974 /* NSURLSessionConfiguration+DiagnosticSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSURLSessionConfiguration+DiagnosticSDK.h"; sourceTree = "<group>"; };
+		206E62802F8AD1A10011E974 /* DiagnosticSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DiagnosticSDK.m; sourceTree = "<group>"; };
+		206E62812F8AD1A10011E974 /* DiagnosticSDKBootstrapper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DiagnosticSDKBootstrapper.m; sourceTree = "<group>"; };
+		206E62822F8AD1A10011E974 /* DiagnosticSDKMethodSwizzling.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DiagnosticSDKMethodSwizzling.m; sourceTree = "<group>"; };
+		206E62832F8AD1A10011E974 /* NSURLSessionConfiguration+DiagnosticSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSURLSessionConfiguration+DiagnosticSDK.m"; sourceTree = "<group>"; };
+		206E62A42F8AD2160011E974 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		206E62A82F8AD2340011E974 /* DiagnosticSDKTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticSDKTests.swift; sourceTree = "<group>"; };
 		20F102D62F8014470096C884 /* DiagnosticSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DiagnosticSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		20F102E12F8014470096C884 /* DiagnosticSDKTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DiagnosticSDKTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		20F103032F8027150096C884 /* .lock */ = {isa = PBXFileReference; lastKnownFileType = text; path = .lock; sourceTree = "<group>"; };
-		20F103052F8027150096C884 /* DiagnosticSDKTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticSDKTests.swift; sourceTree = "<group>"; };
-		20F1030C2F83EFA90096C884 /* DiagnosticSDKObjC.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DiagnosticSDKObjC.m; sourceTree = "<group>"; };
-		20F1030E2F83EFA90096C884 /* DiagnosticSDKObjC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticSDKObjC.h; sourceTree = "<group>"; };
-		20F1030A2F8027F60096C884 /* TracerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracerModels.swift; sourceTree = "<group>"; };
-		20F1030C2F83EFA90096C884 /* DiagnosticSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DiagnosticSDK.m; sourceTree = "<group>"; };
-		20F1030E2F83EFA90096C884 /* DiagnosticSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticSDK.h; sourceTree = "<group>"; };
-		20F103132F851DDC0096C884 /* DiagnosticSDKMethodSwizzling.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticSDKMethodSwizzling.h; sourceTree = "<group>"; };
-		20F103152F851E5C0096C884 /* DiagnosticSDKMethodSwizzling.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DiagnosticSDKMethodSwizzling.m; sourceTree = "<group>"; };
-		20F103172F854EDA0096C884 /* NSURLSessionConfiguration+DiagnosticSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSURLSessionConfiguration+DiagnosticSDK.h"; sourceTree = "<group>"; };
-		20F1031B2F854F850096C884 /* NSURLSessionConfiguration+DiagnosticSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSURLSessionConfiguration+DiagnosticSDK.m"; sourceTree = "<group>"; };
-		20F1031D2F855FB00096C884 /* DiagnosticSDKBootstrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticSDKBootstrapper.h; sourceTree = "<group>"; };
-		20F1031F2F855FDD0096C884 /* DiagnosticSDKBootstrapper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DiagnosticSDKBootstrapper.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,98 +94,155 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		206E614A2F8958970011E974 /* Async */ = {
+		206E62632F8AD1A10011E974 /* Async */ = {
 			isa = PBXGroup;
 			children = (
-				206E61492F8958970011E974 /* AsyncTracker.swift */,
+				206E62622F8AD1A10011E974 /* AsyncTracker.swift */,
 			);
 			path = Async;
 			sourceTree = "<group>";
 		};
-		206E614E2F8958970011E974 /* Core */ = {
+		206E62662F8AD1A10011E974 /* Core */ = {
 			isa = PBXGroup;
 			children = (
-				206E614C2F8958970011E974 /* NetworkInterceptor.swift */,
-				206E614D2F8958970011E974 /* NetworkInterceptorProtocol.swift */,
+				206E62642F8AD1A10011E974 /* NetworkInterceptor.swift */,
+				206E62652F8AD1A10011E974 /* NetworkInterceptorProtocol.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
 		};
-		206E61512F8958970011E974 /* Interception */ = {
+		206E62692F8AD1A10011E974 /* Interception */ = {
 			isa = PBXGroup;
 			children = (
-				206E614F2F8958970011E974 /* CustomURLProtocol.swift */,
-				206E61502F8958970011E974 /* URLSessionInterceptor.swift */,
+				206E62672F8AD1A10011E974 /* CustomURLProtocol.swift */,
+				206E62682F8AD1A10011E974 /* URLSessionInterceptor.swift */,
 			);
 			path = Interception;
 			sourceTree = "<group>";
 		};
-		206E61562F8958970011E974 /* Models */ = {
+		206E626E2F8AD1A10011E974 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				206E61522F8958970011E974 /* NetworkEvent.swift */,
-				206E61532F8958970011E974 /* RequestModel.swift */,
-				206E61542F8958970011E974 /* ResponseModel.swift */,
-				206E61552F8958970011E974 /* TracerModels.swift */,
+				206E626A2F8AD1A10011E974 /* NetworkEvent.swift */,
+				206E626B2F8AD1A10011E974 /* RequestModel.swift */,
+				206E626C2F8AD1A10011E974 /* ResponseModel.swift */,
+				206E626D2F8AD1A10011E974 /* TracerModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
 		};
-		206E615A2F8958970011E974 /* Processing */ = {
+		206E62722F8AD1A10011E974 /* Processing */ = {
 			isa = PBXGroup;
 			children = (
-				206E61572F8958970011E974 /* JSONFormatter.swift */,
-				206E61582F8958970011E974 /* NetworkEventBuilder.swift */,
-				206E61592F8958970011E974 /* SensitiveDataFilter.swift */,
+				206E626F2F8AD1A10011E974 /* JSONFormatter.swift */,
+				206E62702F8AD1A10011E974 /* NetworkEventBuilder.swift */,
+				206E62712F8AD1A10011E974 /* SensitiveDataFilter.swift */,
 			);
 			path = Processing;
 			sourceTree = "<group>";
 		};
-		206E615C2F8958970011E974 /* Replay */ = {
+		206E62742F8AD1A10011E974 /* Replay */ = {
 			isa = PBXGroup;
 			children = (
-				206E615B2F8958970011E974 /* .gitkeep */,
+				206E62732F8AD1A10011E974 /* .gitkeep */,
 			);
 			path = Replay;
 			sourceTree = "<group>";
 		};
-		206E615E2F8958970011E974 /* Store */ = {
+		206E62762F8AD1A10011E974 /* Store */ = {
 			isa = PBXGroup;
 			children = (
-				206E615D2F8958970011E974 /* NetworkStoreProtocol.swift */,
+				206E62752F8AD1A10011E974 /* NetworkStoreProtocol.swift */,
 			);
 			path = Store;
 			sourceTree = "<group>";
 		};
-		206E61602F8958970011E974 /* Tracer */ = {
+		206E62782F8AD1A10011E974 /* Tracer */ = {
 			isa = PBXGroup;
 			children = (
-				206E615F2F8958970011E974 /* .gitkeep */,
+				206E62772F8AD1A10011E974 /* .gitkeep */,
 			);
 			path = Tracer;
 			sourceTree = "<group>";
 		};
-		206E61622F8958970011E974 /* DiagnosticSDK */ = {
+		206E627A2F8AD1A10011E974 /* DiagnosticSDK */ = {
 			isa = PBXGroup;
 			children = (
-				206E614A2F8958970011E974 /* Async */,
-				206E614E2F8958970011E974 /* Core */,
-				206E61512F8958970011E974 /* Interception */,
-				206E61562F8958970011E974 /* Models */,
-				206E615A2F8958970011E974 /* Processing */,
-				206E615C2F8958970011E974 /* Replay */,
-				206E615E2F8958970011E974 /* Store */,
-				206E61602F8958970011E974 /* Tracer */,
-				206E61612F8958970011E974 /* DiagnosticSDK.docc */,
+				206E62632F8AD1A10011E974 /* Async */,
+				206E62662F8AD1A10011E974 /* Core */,
+				206E62692F8AD1A10011E974 /* Interception */,
+				206E626E2F8AD1A10011E974 /* Models */,
+				206E62722F8AD1A10011E974 /* Processing */,
+				206E62742F8AD1A10011E974 /* Replay */,
+				206E62762F8AD1A10011E974 /* Store */,
+				206E62782F8AD1A10011E974 /* Tracer */,
+				206E62792F8AD1A10011E974 /* DiagnosticSDK.docc */,
 			);
 			path = DiagnosticSDK;
+			sourceTree = "<group>";
+		};
+		206E627F2F8AD1A10011E974 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				206E627B2F8AD1A10011E974 /* DiagnosticSDK.h */,
+				206E627C2F8AD1A10011E974 /* DiagnosticSDKBootstrapper.h */,
+				206E627D2F8AD1A10011E974 /* DiagnosticSDKMethodSwizzling.h */,
+				206E627E2F8AD1A10011E974 /* NSURLSessionConfiguration+DiagnosticSDK.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		206E62842F8AD1A10011E974 /* DiagnosticSDKObjC */ = {
+			isa = PBXGroup;
+			children = (
+				206E627F2F8AD1A10011E974 /* include */,
+				206E62802F8AD1A10011E974 /* DiagnosticSDK.m */,
+				206E62812F8AD1A10011E974 /* DiagnosticSDKBootstrapper.m */,
+				206E62822F8AD1A10011E974 /* DiagnosticSDKMethodSwizzling.m */,
+				206E62832F8AD1A10011E974 /* NSURLSessionConfiguration+DiagnosticSDK.m */,
+			);
+			path = DiagnosticSDKObjC;
+			sourceTree = "<group>";
+		};
+		206E62852F8AD1A10011E974 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				206E627A2F8AD1A10011E974 /* DiagnosticSDK */,
+				206E62842F8AD1A10011E974 /* DiagnosticSDKObjC */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		206E62A52F8AD2160011E974 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				206E62A42F8AD2160011E974 /* Extensions.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		206E62A92F8AD2340011E974 /* DiagnosticSDKTests */ = {
+			isa = PBXGroup;
+			children = (
+				206E62A82F8AD2340011E974 /* DiagnosticSDKTests.swift */,
+			);
+			path = DiagnosticSDKTests;
+			sourceTree = "<group>";
+		};
+		206E62AA2F8AD2340011E974 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				206E62A92F8AD2340011E974 /* DiagnosticSDKTests */,
+			);
+			path = Tests;
 			sourceTree = "<group>";
 		};
 		20F102CC2F8014470096C884 = {
 			isa = PBXGroup;
 			children = (
-				20F102FE2F8026E50096C884 /* Sources */,
-				20F103072F8027150096C884 /* Tests */,
+				206E62852F8AD1A10011E974 /* Sources */,
+				206E62A52F8AD2160011E974 /* Utils */,
+				206E62AA2F8AD2340011E974 /* Tests */,
 				20F102D72F8014470096C884 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -205,87 +256,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		20F102FD2F8026E50096C884 /* DiagnosticSDKObjC */ = {
-			isa = PBXGroup;
-			children = (
-				20F1030C2F83EFA90096C884 /* DiagnosticSDK.m */,
-				20F1030F2F83EFA90096C884 /* include */,
-				20F103152F851E5C0096C884 /* DiagnosticSDKMethodSwizzling.m */,
-				20F1031B2F854F850096C884 /* NSURLSessionConfiguration+DiagnosticSDK.m */,
-				20F1031F2F855FDD0096C884 /* DiagnosticSDKBootstrapper.m */,
-			);
-			path = DiagnosticSDKObjC;
-			sourceTree = "<group>";
-		};
-		20F102FE2F8026E50096C884 /* Sources */ = {
-			isa = PBXGroup;
-			children = (
-				206E61622F8958970011E974 /* DiagnosticSDK */,
-				20F102FD2F8026E50096C884 /* DiagnosticSDKObjC */,
-			);
-			path = Sources;
-			sourceTree = "<group>";
-		};
-		20F103002F8027150096C884 /* artifacts */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = artifacts;
-			sourceTree = "<group>";
-		};
-		20F103012F8027150096C884 /* checkouts */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = checkouts;
-			sourceTree = "<group>";
-		};
-		20F103022F8027150096C884 /* repositories */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = repositories;
-			sourceTree = "<group>";
-		};
-		20F103042F8027150096C884 /* .build */ = {
-			isa = PBXGroup;
-			children = (
-				20F103002F8027150096C884 /* artifacts */,
-				20F103012F8027150096C884 /* checkouts */,
-				20F103022F8027150096C884 /* repositories */,
-				20F103032F8027150096C884 /* .lock */,
-			);
-			path = .build;
-			sourceTree = "<group>";
-		};
-		20F103062F8027150096C884 /* DiagnosticSDKTests */ = {
-			isa = PBXGroup;
-			children = (
-				20F103052F8027150096C884 /* DiagnosticSDKTests.swift */,
-			);
-			path = DiagnosticSDKTests;
-			sourceTree = "<group>";
-		};
-		20F103072F8027150096C884 /* Tests */ = {
-			isa = PBXGroup;
-			children = (
-				20F103042F8027150096C884 /* .build */,
-				20F103062F8027150096C884 /* DiagnosticSDKTests */,
-			);
-			path = Tests;
-			sourceTree = "<group>";
-		};
-		20F1030F2F83EFA90096C884 /* include */ = {
-			isa = PBXGroup;
-			children = (
-				20F1030E2F83EFA90096C884 /* DiagnosticSDK.h */,
-				20F103132F851DDC0096C884 /* DiagnosticSDKMethodSwizzling.h */,
-				20F103172F854EDA0096C884 /* NSURLSessionConfiguration+DiagnosticSDK.h */,
-				20F1031D2F855FB00096C884 /* DiagnosticSDKBootstrapper.h */,
-			);
-			path = include;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -293,10 +263,10 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				20F103102F83EFA90096C884 /* DiagnosticSDK.h in Headers */,
-				20F103142F851DDC0096C884 /* DiagnosticSDKMethodSwizzling.h in Headers */,
-				20F1031E2F855FB00096C884 /* DiagnosticSDKBootstrapper.h in Headers */,
-				20F103182F854EDA0096C884 /* NSURLSessionConfiguration+DiagnosticSDK.h in Headers */,
+				206E62862F8AD1A10011E974 /* DiagnosticSDKBootstrapper.h in Headers */,
+				206E62872F8AD1A10011E974 /* DiagnosticSDKMethodSwizzling.h in Headers */,
+				206E62882F8AD1A10011E974 /* NSURLSessionConfiguration+DiagnosticSDK.h in Headers */,
+				206E62892F8AD1A10011E974 /* DiagnosticSDK.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -394,7 +364,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				20F103082F8027150096C884 /* .lock in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -405,27 +374,25 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				206E61662F8958970011E974 /* JSONFormatter.swift in Sources */,
-				206E61672F8958970011E974 /* NetworkEventBuilder.swift in Sources */,
-				206E61682F8958970011E974 /* NetworkInterceptor.swift in Sources */,
-				206E61692F8958970011E974 /* NetworkInterceptorProtocol.swift in Sources */,
-				206E616A2F8958970011E974 /* NetworkStoreProtocol.swift in Sources */,
-				206E616B2F8958970011E974 /* CustomURLProtocol.swift in Sources */,
-				206E616C2F8958970011E974 /* AsyncTracker.swift in Sources */,
-				206E616D2F8958970011E974 /* URLSessionInterceptor.swift in Sources */,
-				206E616E2F8958970011E974 /* NetworkEvent.swift in Sources */,
-				206E616F2F8958970011E974 /* RequestModel.swift in Sources */,
-				206E61702F8958970011E974 /* ResponseModel.swift in Sources */,
-				206E61712F8958970011E974 /* SensitiveDataFilter.swift in Sources */,
-				206E61722F8958970011E974 /* TracerModels.swift in Sources */,
-				206E61732F8958970011E974 /* DiagnosticSDK.docc in Sources */,
-				20F103112F83EFA90096C884 /* DiagnosticSDKObjC.m in Sources */,
-				20F103202F855FDD0096C884 /* DiagnosticSDKBootstrapper.m in Sources */,
-				20F1030B2F8027F60096C884 /* TracerModels.swift in Sources */,
-				20F102FF2F8026E50096C884 /* DiagnosticSDK.docc in Sources */,
-				20F1031C2F854F850096C884 /* NSURLSessionConfiguration+DiagnosticSDK.m in Sources */,
-				20F103162F851E5C0096C884 /* DiagnosticSDKMethodSwizzling.m in Sources */,
-				20F103112F83EFA90096C884 /* DiagnosticSDK.m in Sources */,
+				206E628A2F8AD1A10011E974 /* DiagnosticSDKMethodSwizzling.m in Sources */,
+				206E628B2F8AD1A10011E974 /* DiagnosticSDK.docc in Sources */,
+				206E628C2F8AD1A10011E974 /* NetworkInterceptorProtocol.swift in Sources */,
+				206E628D2F8AD1A10011E974 /* URLSessionInterceptor.swift in Sources */,
+				206E628E2F8AD1A10011E974 /* JSONFormatter.swift in Sources */,
+				206E628F2F8AD1A10011E974 /* NetworkInterceptor.swift in Sources */,
+				206E62902F8AD1A10011E974 /* DiagnosticSDK.m in Sources */,
+				206E62912F8AD1A10011E974 /* DiagnosticSDKBootstrapper.m in Sources */,
+				206E62922F8AD1A10011E974 /* RequestModel.swift in Sources */,
+				206E62932F8AD1A10011E974 /* NSURLSessionConfiguration+DiagnosticSDK.m in Sources */,
+				206E62942F8AD1A10011E974 /* NetworkEventBuilder.swift in Sources */,
+				206E62952F8AD1A10011E974 /* TracerModels.swift in Sources */,
+				206E62962F8AD1A10011E974 /* AsyncTracker.swift in Sources */,
+				206E62972F8AD1A10011E974 /* CustomURLProtocol.swift in Sources */,
+				206E62A62F8AD2160011E974 /* Extensions.swift in Sources */,
+				206E62982F8AD1A10011E974 /* SensitiveDataFilter.swift in Sources */,
+				206E62992F8AD1A10011E974 /* NetworkStoreProtocol.swift in Sources */,
+				206E629A2F8AD1A10011E974 /* NetworkEvent.swift in Sources */,
+				206E629B2F8AD1A10011E974 /* ResponseModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -433,7 +400,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				20F103092F8027150096C884 /* DiagnosticSDKTests.swift in Sources */,
+				206E62AB2F8AD2340011E974 /* DiagnosticSDKTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
