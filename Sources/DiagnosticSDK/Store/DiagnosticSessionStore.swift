@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 /// A high-performance, thread-safe store that manages the diagnostic session in memory.
 /// It builds a hierarchical tree of screens and network interactions on the fly
@@ -20,6 +21,7 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
     
     private init() {
         self.currentSession = SessionTrace()
+        self.setupAutoSave()
     }
     
     // MARK: - NetworkStoreProtocol Implementation
@@ -86,5 +88,59 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
         }
         
         return interaction
+    }
+}
+
+// MARK: - File System Export
+
+extension DiagnosticSessionStore {
+    
+    /// Serializes the current session to JSON and saves it in the application's Document directory.
+    /// - Returns: The URL of the saved file, useful for sharing via UIActivityViewController.
+    @discardableResult
+    public func exportSessionToDisk() -> URL? {
+        var exportedURL: URL?
+        
+        // Sync read to guarantee data consistency during serialization.
+        // It freezes the queue for a millisecond to take a snapshot of the tree.
+        isolationQueue.sync {
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .prettyPrinted // Makes the JSON readable for humans
+            encoder.dateEncodingStrategy = .iso8601
+            
+            do {
+                let jsonData = try encoder.encode(self.currentSession)
+                
+                // Format the filename with the exact export date: "DiagnosticTrace_2026-04-14_12-30-00.json"
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
+                let dateString = formatter.string(from: Date())
+                let fileName = "DiagnosticTrace_\(dateString).json"
+                
+                // Get the path to the app's secure Documents folder
+                let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                let filePath = documentsPath.appendingPathComponent(fileName)
+                
+                // Instant write to disk
+                try jsonData.write(to: filePath)
+                exportedURL = filePath
+                print("✅ [DiagnosticSDK] Session exported successfully to: \(filePath.path)")
+            } catch {
+                print("❌ [DiagnosticSDK] Failed to export session to disk: \(error.localizedDescription)")
+            }
+        }
+        
+        return exportedURL
+    }
+    
+    /// Listens for the app going into the background to trigger a safety save.
+    private func setupAutoSave() {
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.didEnterBackgroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.exportSessionToDisk()
+        }
     }
 }
