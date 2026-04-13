@@ -2,12 +2,12 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-/// I created this category to safely swizzle UIViewController lifecycle methods.
-/// This allows us to track screen navigation without requiring the host app to write any code.
 @interface UIViewController (DiagnosticSDK)
 
-/// Injects our custom navigation tracking logic into the app's view controllers.
-+ (void)diagnostic_swizzleViewDidAppear;
+/// I implemented this method to inject our screen tracking logic into the application's lifecycle.
+/// It targets both 'viewDidLoad' and 'viewWillAppear:' to ensure we capture early network requests
+/// as well as reverse navigation (e.g., popping a view controller).
++ (void)diagnostic_swizzleLifecycle;
 
 @end
 

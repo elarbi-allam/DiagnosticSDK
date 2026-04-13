@@ -1,25 +1,22 @@
 #import "DiagnosticSDKBootstrapper.h"
 #import "NSURLSessionConfiguration+DiagnosticSDK.h"
-// 1. I import the new UIViewController category to enable navigation tracking
 #import "UIViewController+DiagnosticSDK.h"
 
 @implementation DiagnosticSDKBootstrapper
 
 + (void)start {
-    // Using dispatch_once guarantees thread-safety and ensures
-    // the swizzling is applied exactly once per app lifecycle.
+    // I use dispatch_once to guarantee thread safety and ensure that
+    // method swizzling is applied strictly once during the app's lifecycle.
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         
-        // --- Network Interception ---
-        // I use your original method which perfectly handles the NSURLSession swizzling
+        // Initialize the network interception engine
         [NSURLSessionConfiguration diagnosticSDK_swizzleNSURLSessionClasses];
         
-        // --- Navigation Interception ---
-        // I trigger the view controller swizzling here to start tracking screen changes
-        [UIViewController diagnostic_swizzleViewDidAppear];
+        // Initialize the UI navigation tracker
+        [UIViewController diagnostic_swizzleLifecycle];
         
-        NSLog(@"✅ [DIAGNOSTIC SDK] Network and Navigation interceptors are now active.");
+        NSLog(@"✅ [DiagnosticSDK] Network and Navigation interceptors successfully activated.");
     });
 }
 
