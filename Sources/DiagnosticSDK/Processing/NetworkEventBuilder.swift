@@ -7,7 +7,7 @@ enum NetworkEventBuilder {
         response: URLResponse?,
         data: Data?,
         latency: Double,
-        error: Error? = nil  // Optional: capture any error during request
+        error: Error? = nil
     ) -> NetworkEvent {
         
         // Sanitize sensitive headers
@@ -15,12 +15,17 @@ enum NetworkEventBuilder {
             headers: request.allHTTPHeaderFields ?? [:]
         )
         
+        // I fetch the current screen from our Context Manager right when the request is built.
+        // This permanently links the active screen to this specific network call.
+        let activeScreen = DiagnosticContext.shared.currentScreen
+        
         // Build request model
         let requestModel = RequestModel(
             url: request.url?.absoluteString ?? "",
             method: request.httpMethod ?? "UNKNOWN",
             headers: filteredHeaders,
-            body: request.httpBody.flatMap { String(data: $0, encoding: .utf8) }
+            body: request.httpBody.flatMap { String(data: $0, encoding: .utf8) },
+            screenName: activeScreen
         )
         
         // Cast response to HTTPURLResponse

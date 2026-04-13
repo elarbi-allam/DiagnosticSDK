@@ -8,31 +8,23 @@ let package = Package(
         .iOS(.v15)
     ],
     products: [
-        // Le produit final livré aux développeurs
         .library(
             name: "DiagnosticSDK",
-            targets: ["DiagnosticSDK", "DiagnosticSDKObjC"]),
+            targets: ["DiagnosticSDK"]
+        )
     ],
     dependencies: [],
     targets: [
-        // Target Objective-C (Pour le Swizzling bas niveau)
-        .target(
-            name: "DiagnosticSDKObjC",
-            dependencies: [],
-            path: "Sources/DiagnosticSDKObjC",
-            publicHeadersPath: "include"
-        ),
-        // Target Swift Principale
-        .target(
-            name: "DiagnosticSDK",
-            dependencies: ["DiagnosticSDKObjC"],
-            path: "Sources/DiagnosticSDK"
-        ),
-        // Target de Tests
-        .testTarget(
-            name: "DiagnosticSDKTests",
-            dependencies: ["DiagnosticSDK"],
-            path: "Tests/DiagnosticSDKTests"
-        )
-    ]
+            // 1. The Objective-C module
+            .target(
+                name: "DiagnosticSDKObjC",
+                dependencies: [],
+                publicHeadersPath: "include" // ⚠️ ESSENTIAL: exposes the .h files to Swift
+            ),
+            // 2. The Swift module
+            .target(
+                name: "DiagnosticSDK",
+                dependencies: ["DiagnosticSDKObjC"] // ⚠️ THE MAGIC LINE: links the Swift target to the Obj-C target
+            )
+        ]
 )
