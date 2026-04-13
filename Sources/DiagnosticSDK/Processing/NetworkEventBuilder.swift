@@ -38,7 +38,7 @@ enum NetworkEventBuilder {
         // Build response model
         let responseModel = ResponseModel(
             statusCode: httpResponse?.statusCode ?? 0,
-            headers: httpResponse?.allHeaderFields.toStringDictionary() ?? [:],
+            headers: httpResponse?.allHeaderFields as? [String: String] ?? [:],
             bodyBase64: bodyBase64,
             bodySizeBytes: bodySize,
             errorDescription: error?.localizedDescription

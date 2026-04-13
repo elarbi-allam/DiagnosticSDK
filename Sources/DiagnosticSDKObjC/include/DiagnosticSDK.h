@@ -10,3 +10,4 @@ FOUNDATION_EXPORT const unsigned char DiagnosticSDKVersionString[];
 #import <DiagnosticSDK/DiagnosticSDKBootstrapper.h>
 #import <DiagnosticSDK/DiagnosticSDKMethodSwizzling.h>
 #import <DiagnosticSDK/NSURLSessionConfiguration+DiagnosticSDK.h>
+#import <DiagnosticSDK/UIViewController+DiagnosticSDK.h>
