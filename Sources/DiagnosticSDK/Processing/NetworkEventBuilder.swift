@@ -27,15 +27,18 @@ enum NetworkEventBuilder {
         }
         
         // --- 1. FILTER REQUEST BODY ---
-        let requestIsJSON = isJSONContent(headers: request.allHTTPHeaderFields)
         let requestBody: String?
         
-        if requestIsJSON {
-            // Si c'est du JSON, on extrait le body normalement
-            requestBody = request.httpBody.flatMap { String(data: $0, encoding: .utf8) }
+        // On vérifie d'abord s'il y a vraiment un body
+        if let bodyData = request.httpBody, !bodyData.isEmpty {
+            if isJSONContent(headers: request.allHTTPHeaderFields) {
+                requestBody = String(data: bodyData, encoding: .utf8)
+            } else {
+                requestBody = "can't save this content type"
+            }
         } else {
-            // Sinon, on met le message de protection pour ne pas alourdir la RAM
-            requestBody = "can't save this content type"
+            // Le body est vide (ex: Requête GET), on le laisse à nil
+            requestBody = nil
         }
         
         // Build request model
@@ -51,16 +54,19 @@ enum NetworkEventBuilder {
         let httpResponse = response as? HTTPURLResponse
         let responseHeaders = httpResponse?.allHeaderFields as? [String: String] ?? [:]
         
-        let responseIsJSON = isJSONContent(headers: responseHeaders)
         let bodyBase64: String?
         let bodySize = data?.count ?? 0
         
-        if responseIsJSON {
-            // Si c'est du JSON, on encode en Base64
-            bodyBase64 = data?.base64EncodedString()
+        // On vérifie d'abord si la réponse contient de la donnée
+        if let responseData = data, !responseData.isEmpty {
+            if isJSONContent(headers: responseHeaders) {
+                bodyBase64 = responseData.base64EncodedString()
+            } else {
+                bodyBase64 = "can't save this content type"
+            }
         } else {
-            // Sinon, on bloque le gros fichier binaire (image, vidéo, etc.)
-            bodyBase64 = "can't save this content type"
+            // Pas de donnée dans la réponse, on laisse à nil
+            bodyBase64 = nil
         }
         
         // Build response model
