@@ -34,6 +34,7 @@
 		206E630B2F8CE8DA0011E974 /* DiagnosticContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E630A2F8CE8DA0011E974 /* DiagnosticContext.swift */; };
 		206E630D2F8CEB3B0011E974 /* UIViewController+DiagnosticSDK.h in Headers */ = {isa = PBXBuildFile; fileRef = 206E630C2F8CEB3B0011E974 /* UIViewController+DiagnosticSDK.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		206E630F2F8CEB690011E974 /* UIViewController+DiagnosticSDK.m in Sources */ = {isa = PBXBuildFile; fileRef = 206E630E2F8CEB690011E974 /* UIViewController+DiagnosticSDK.m */; };
+		206E63A62F8DB44F0011E974 /* DiagnosticSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E63A52F8DB44F0011E974 /* DiagnosticSessionStore.swift */; };
 		20F102E22F8014470096C884 /* DiagnosticSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20F102D62F8014470096C884 /* DiagnosticSDK.framework */; };
 /* End PBXBuildFile section */
 
@@ -77,6 +78,7 @@
 		206E630A2F8CE8DA0011E974 /* DiagnosticContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticContext.swift; sourceTree = "<group>"; };
 		206E630C2F8CEB3B0011E974 /* UIViewController+DiagnosticSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIViewController+DiagnosticSDK.h"; sourceTree = "<group>"; };
 		206E630E2F8CEB690011E974 /* UIViewController+DiagnosticSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIViewController+DiagnosticSDK.m"; sourceTree = "<group>"; };
+		206E63A52F8DB44F0011E974 /* DiagnosticSessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticSessionStore.swift; sourceTree = "<group>"; };
 		20F102D62F8014470096C884 /* DiagnosticSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DiagnosticSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		20F102E12F8014470096C884 /* DiagnosticSDKTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DiagnosticSDKTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -160,6 +162,7 @@
 			isa = PBXGroup;
 			children = (
 				206E62752F8AD1A10011E974 /* NetworkStoreProtocol.swift */,
+				206E63A52F8DB44F0011E974 /* DiagnosticSessionStore.swift */,
 			);
 			path = Store;
 			sourceTree = "<group>";
@@ -387,6 +390,7 @@
 				206E628A2F8AD1A10011E974 /* DiagnosticSDKMethodSwizzling.m in Sources */,
 				206E628B2F8AD1A10011E974 /* DiagnosticSDK.docc in Sources */,
 				206E628C2F8AD1A10011E974 /* NetworkInterceptorProtocol.swift in Sources */,
+				206E63A62F8DB44F0011E974 /* DiagnosticSessionStore.swift in Sources */,
 				206E628D2F8AD1A10011E974 /* URLSessionInterceptor.swift in Sources */,
 				206E630B2F8CE8DA0011E974 /* DiagnosticContext.swift in Sources */,
 				206E628E2F8AD1A10011E974 /* JSONFormatter.swift in Sources */,
