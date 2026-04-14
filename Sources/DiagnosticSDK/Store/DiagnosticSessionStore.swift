@@ -66,19 +66,18 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
             url: event.request.url,
             method: event.request.method,
             headers: event.request.headers,
-            bodyBase64: nil, // Body capturing is omitted here for memory performance
-            bodySizeBytes: 0
+            bodyBase64: event.request.body,
+            bodySizeBytes: event.request.body?.utf8.count ?? 0
         )
         
-        // Création de l'interaction (l'ID sera généré automatiquement par l'init de NetworkInteraction)
         var interaction = NetworkInteraction(request: requestDetails)
         
         if let response = event.response {
             interaction.response = ResponseDetails(
                 status: response.statusCode,
                 headers: response.headers,
-                bodyBase64: nil,
-                bodySizeBytes: response.bodySizeBytes, // Ajout de la taille du body si disponible
+                bodyBase64: response.bodyBase64,
+                bodySizeBytes: response.bodySizeBytes,
                 errorDescription: response.errorDescription
             )
             
