@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 // MARK: - Session Root
 
@@ -9,13 +10,15 @@ public struct SessionTrace: Codable {
     public let metadata: TraceMetadata
     public var screens: [ScreenNode]
     
-    public init(metadata: TraceMetadata) {
+    public init() {
         self.sessionId = UUID().uuidString
         self.startedAt = Date()
-        self.metadata = metadata
+        self.metadata = TraceMetadata.current()
         self.screens = []
     }
 }
+
+// MARK: - Device Metadata
 
 /// Device and application context for the captured session.
 public struct TraceMetadata: Codable {
@@ -23,19 +26,29 @@ public struct TraceMetadata: Codable {
     public let osVersion: String
     public let deviceModel: String
     
-    public init(appVersion: String, osVersion: String, deviceModel: String) {
-        self.appVersion = appVersion
-        self.osVersion = osVersion
-        self.deviceModel = deviceModel
+    /// Generates metadata based on current device and bundle information.
+    public static func current() -> TraceMetadata {
+        let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let osVersion = UIDevice.current.systemVersion
+        
+        // Fetch hardware identifier (e.g., "iPhone14,2")
+        var systemInfo = utsname()
+        uname(&systemInfo)
+        let modelCode = withUnsafePointer(to: &systemInfo.machine) {
+            $0.withMemoryRebound(to: CChar.self, capacity: 1) { ptr in String(validatingUTF8: ptr) }
+        } ?? UIDevice.current.model
+        
+        return TraceMetadata(appVersion: appVersion, osVersion: osVersion, deviceModel: modelCode)
     }
 }
 
 // MARK: - Screen Tracking
 
 /// Represents an active screen.
-/// Implemented as a class (reference type) to allow appending network interactions
+/// Implemented as a final class (reference type) to allow appending network interactions
 /// to the `networkInteractions` array while the screen is currently visible.
-public class ScreenNode: Codable {
+/// The `final` keyword ensures Codable compliance in Swift.
+public final class ScreenNode: Codable {
     public let id: String
     public let name: String
     public let enteredAt: Date
@@ -60,8 +73,8 @@ public struct NetworkInteraction: Codable {
     public let request: RequestDetails
     public var response: ResponseDetails?
     
-    public init(request: RequestDetails) {
-        self.id = UUID().uuidString
+    public init(id: String = UUID().uuidString, request: RequestDetails) {
+        self.id = id
         self.startedAt = Date()
         self.request = request
     }

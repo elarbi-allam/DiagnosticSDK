@@ -41,5 +41,6 @@ final class URLSessionInterceptor {
         )
         
         store.save(event: event)
+        DiagnosticSessionStore.shared.save(event: event)
     }
 }
