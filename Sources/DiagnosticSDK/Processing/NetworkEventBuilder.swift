@@ -15,32 +15,60 @@ enum NetworkEventBuilder {
             headers: request.allHTTPHeaderFields ?? [:]
         )
         
-        // I fetch the current screen from our Context Manager right when the request is built.
-        // This permanently links the active screen to this specific network call.
+        // Fetch the current screen
         let activeScreen = DiagnosticContext.shared.currentScreen
+        
+        // Helper function to check if headers contain "application/json"
+        func isJSONContent(headers: [String: String]?) -> Bool {
+            guard let headers = headers else { return false }
+            let contentTypeKey = headers.keys.first { $0.caseInsensitiveCompare("Content-Type") == .orderedSame }
+            guard let key = contentTypeKey, let contentTypeValue = headers[key] else { return false }
+            return contentTypeValue.lowercased().contains("application/json")
+        }
+        
+        // --- 1. FILTER REQUEST BODY ---
+        let requestIsJSON = isJSONContent(headers: request.allHTTPHeaderFields)
+        let requestBody: String?
+        
+        if requestIsJSON {
+            // Si c'est du JSON, on extrait le body normalement
+            requestBody = request.httpBody.flatMap { String(data: $0, encoding: .utf8) }
+        } else {
+            // Sinon, on met le message de protection pour ne pas alourdir la RAM
+            requestBody = "can't save this content type"
+        }
         
         // Build request model
         let requestModel = RequestModel(
             url: request.url?.absoluteString ?? "",
             method: request.httpMethod ?? "UNKNOWN",
             headers: filteredHeaders,
-            body: request.httpBody.flatMap { String(data: $0, encoding: .utf8) },
+            body: requestBody,
             screenName: activeScreen
         )
         
-        // Cast response to HTTPURLResponse
+        // --- 2. FILTER RESPONSE BODY ---
         let httpResponse = response as? HTTPURLResponse
+        let responseHeaders = httpResponse?.allHeaderFields as? [String: String] ?? [:]
         
-        // Prepare body as Base64
-        let bodyBase64 = data?.base64EncodedString()
+        let responseIsJSON = isJSONContent(headers: responseHeaders)
+        let bodyBase64: String?
         let bodySize = data?.count ?? 0
+        
+        if responseIsJSON {
+            // Si c'est du JSON, on encode en Base64
+            bodyBase64 = data?.base64EncodedString()
+        } else {
+            // Sinon, on bloque le gros fichier binaire (image, vidéo, etc.)
+            bodyBase64 = "can't save this content type"
+        }
         
         // Build response model
         let responseModel = ResponseModel(
             statusCode: httpResponse?.statusCode ?? 0,
-            headers: httpResponse?.allHeaderFields as? [String: String] ?? [:],
+            headers: responseHeaders,
             bodyBase64: bodyBase64,
-            bodySizeBytes: bodySize,
+            bodySizeBytes: bodySize, // On garde la taille réelle pour l'information, même si on ne sauve pas le body !
             errorDescription: error?.localizedDescription
         )
         
