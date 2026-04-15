@@ -11,6 +11,8 @@ public final class DiagnosticContext: NSObject {
     /// Holds the name of the currently visible screen.
     /// I made it private(set) to ensure it can only be modified through the official update method.
     @objc public private(set) var currentScreen: String?
+
+    public var isConsoleLoggingEnabled: Bool = false
     
     private override init() {
         super.init()

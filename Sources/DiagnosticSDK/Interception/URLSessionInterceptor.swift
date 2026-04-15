@@ -3,10 +3,10 @@ import Foundation
 /// Gère l’interception des requêtes via URLProtocol
 final class URLSessionInterceptor {
     
-    private let store: NetworkStoreProtocol
+    private let store: NetworkStoreProtocol?
     private let tracker = AsyncTracker()
     
-    init(store: NetworkStoreProtocol) {
+    init(store: NetworkStoreProtocol? = nil) {
         self.store = store
     }
     
@@ -39,8 +39,11 @@ final class URLSessionInterceptor {
             data: data,
             latency: latency
         )
+        store?.save(event: event)
         
-        store.save(event: event)
         DiagnosticSessionStore.shared.save(event: event)
+        if DiagnosticContext.shared.isConsoleLoggingEnabled {
+            ConsoleStore().save(event: event)
+            }
     }
 }
