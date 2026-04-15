@@ -9,6 +9,10 @@ public final class NetworkInterceptor: NetworkInterceptorProtocol {
         self.interceptor = URLSessionInterceptor(store: store)
     }
     
+    public convenience init() {
+        self.init(store: JSONFileStore())
+    }
+    
     public func start() {
         interceptor.enable()
     }

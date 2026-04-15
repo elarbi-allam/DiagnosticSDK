@@ -35,7 +35,7 @@
     Class interceptorClass = NSClassFromString(@"DiagnosticURLProtocol");
     
     if (interceptorClass) {
-        NSMutableArray *protocols = [NSMutableArray arrayWithArray:config.protocolClasses];
+        NSMutableArray *protocols = [NSMutableArray arrayWithArray:config.protocolClasses  ];
         
         // Insert at index 0 to ensure the interceptor evaluates requests before Apple's default protocols.
         if (![protocols containsObject:interceptorClass]) {
