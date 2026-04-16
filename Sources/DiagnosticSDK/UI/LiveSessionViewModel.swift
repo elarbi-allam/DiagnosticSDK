@@ -29,11 +29,11 @@ final class LiveSessionViewModel: ObservableObject {
     private let store: DiagnosticSessionStore
     
     private func refresh() {
-        objectWillChange.send()
         let newSnapshot = store.makeSnapshot()
         let newSignature = Signature(snapshot: newSnapshot)
         guard newSignature != lastSignature else { return }
         
+        objectWillChange.send()
         snapshot = newSnapshot
         lastSignature = newSignature
     }

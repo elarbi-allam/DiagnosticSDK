@@ -36,9 +36,7 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
         // This guarantees thread safety without blocking reader threads.
         isolationQueue.async(flags: .barrier) { [weak self] in
             self?.processAndAppend(event: event)
-            DispatchQueue.main.async {
-                NotificationCenter.default.post(name: .diagnosticSessionStoreDidUpdate, object: self)
-            }
+            NotificationCenter.default.post(name: .diagnosticSessionStoreDidUpdate, object: self)
         }
     }
     
