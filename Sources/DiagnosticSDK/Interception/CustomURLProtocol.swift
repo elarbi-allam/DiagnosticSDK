@@ -5,14 +5,11 @@ import Foundation
 class CustomURLProtocol: URLProtocol {
     
     static var interceptor: URLSessionInterceptor?
-    
-    // 2. THE SECRET KEY (method to prevent infinite loops)
     private static let handledKey = "DiagnosticSDK_RequestHandledKey"
     private static let session = URLSession(configuration: .default)
     
     private var datatask: URLSessionDataTask?
     private var requestId: String?
-    private var startTime: Date?
     
     override class func canInit(with request: URLRequest) -> Bool {
         // A. Only handle real web requests (HTTP/HTTPS)
@@ -39,11 +36,12 @@ class CustomURLProtocol: URLProtocol {
             return
         }
         
-        startTime = Date()
         requestId = interceptor.handleRequest(request)
         
-        // 3. CLONE AND TAG: Copy the request and attach our secret key.
         guard let mutableRequest = (request as NSURLRequest).mutableCopy() as? NSMutableURLRequest else {
+            if let requestId {
+                interceptor.discardRequest(id: requestId)
+            }
             client?.urlProtocolDidFinishLoading(self)
             return
         }
@@ -54,12 +52,11 @@ class CustomURLProtocol: URLProtocol {
             guard let self = self else { return }
             
             // Send response information to the tracker
-            if let id = self.requestId, let start = self.startTime {
+            if let id = self.requestId {
                 interceptor.handleResponse(
                     id: id,
                     response: response,
-                    data: data,
-                    startTime: start
+                    data: data
                 )
             }
             

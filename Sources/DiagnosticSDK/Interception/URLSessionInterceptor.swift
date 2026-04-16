@@ -17,6 +17,7 @@ final class URLSessionInterceptor {
     
     func disable() {
         URLProtocol.unregisterClass(CustomURLProtocol.self)
+        CustomURLProtocol.interceptor = nil
     }
     
     func handleRequest(_ request: URLRequest) -> String {
@@ -27,17 +28,13 @@ final class URLSessionInterceptor {
         return id
     }
     
-    func handleResponse(id: String, response: URLResponse?, data: Data?, startTime: Date) {
-        // 2. On récupère notre objet complet (Requête + Ancien écran)
+    func handleResponse(id: String, response: URLResponse?, data: Data?) {
         guard let pending = tracker.takeRequest(id: id) else { return }
-        
-        let latency = Date().timeIntervalSince(startTime)
-        
+
         let event = NetworkEventBuilder.build(
             request: pending.request,
             response: response,
             data: data,
-            latency: latency,
             screenName: pending.screenName
         )
         
@@ -46,5 +43,9 @@ final class URLSessionInterceptor {
             ConsoleStore().save(event: event)
         }
         store?.save(event: event)
+    }
+    
+    func discardRequest(id: String) {
+        tracker.removeRequest(id: id)
     }
 }

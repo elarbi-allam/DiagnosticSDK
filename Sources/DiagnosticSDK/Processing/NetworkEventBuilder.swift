@@ -6,7 +6,6 @@ enum NetworkEventBuilder {
         request: URLRequest,
         response: URLResponse?,
         data: Data?,
-        latency: Double,
         screenName: String?,
         error: Error? = nil
     ) -> NetworkEvent {

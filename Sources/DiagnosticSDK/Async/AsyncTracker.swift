@@ -25,4 +25,10 @@ final class AsyncTracker {
         requests.removeValue(forKey: id)
         return pending
     }
+    
+    func removeRequest(id: String) {
+        lock.lock()
+        defer { lock.unlock() }
+        requests.removeValue(forKey: id)
+    }
 }
