@@ -1,31 +1,28 @@
-//
-//  AsyncTracker.swift
-//  DiagnosticSDK
-//
-//  Created by wiame on 7/4/2026.
-//
-
 import Foundation
 
-/// Gère la correspondance requête/réponse
+/// Captured request metadata kept until the response arrives.
+struct PendingRequest {
+    let request: URLRequest
+    let screenName: String?
+}
+
 final class AsyncTracker {
     
-    private var storage: [String: URLRequest] = [:]
+    private var requests: [String: PendingRequest] = [:]
+    private let lock = NSLock()
     
-    private let queue = DispatchQueue(
-        label: "network.tracker.queue",
-        attributes: .concurrent
-    )
-    
-    func storeRequest(id: String, request: URLRequest) {
-        queue.async(flags: .barrier) {
-            self.storage[id] = request
-        }
+    func storeRequest(id: String, request: URLRequest, screenName: String?) {
+        lock.lock()
+        defer { lock.unlock() }
+        requests[id] = PendingRequest(request: request, screenName: screenName)
     }
     
-    func getRequest(id: String) -> URLRequest? {
-        queue.sync {
-            storage[id]
-        }
+    /// Atomically returns and removes a pending request.
+    func takeRequest(id: String) -> PendingRequest? {
+        lock.lock()
+        defer { lock.unlock() }
+        let pending = requests[id]
+        requests.removeValue(forKey: id)
+        return pending
     }
 }

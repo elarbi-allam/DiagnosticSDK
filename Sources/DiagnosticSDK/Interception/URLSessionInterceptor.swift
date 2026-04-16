@@ -1,6 +1,6 @@
 import Foundation
 
-/// Gère l’interception des requêtes via URLProtocol
+/// Captures requests and responses intercepted by URLProtocol.
 final class URLSessionInterceptor {
     
     private let store: NetworkStoreProtocol?
@@ -19,31 +19,32 @@ final class URLSessionInterceptor {
         URLProtocol.unregisterClass(CustomURLProtocol.self)
     }
     
-    /// Capture requête
     func handleRequest(_ request: URLRequest) -> String {
         let id = UUID().uuidString
-        tracker.storeRequest(id: id, request: request)
+        // 1. On capture l'écran actif EXACTEMENT au moment où la requête part
+        let currentScreen = DiagnosticContext.shared.currentScreen
+        tracker.storeRequest(id: id, request: request, screenName: currentScreen)
         return id
     }
     
-    /// Capture réponse
     func handleResponse(id: String, response: URLResponse?, data: Data?, startTime: Date) {
-        
-        guard let request = tracker.getRequest(id: id) else { return }
+        // 2. On récupère notre objet complet (Requête + Ancien écran)
+        guard let pending = tracker.takeRequest(id: id) else { return }
         
         let latency = Date().timeIntervalSince(startTime)
         
         let event = NetworkEventBuilder.build(
-            request: request,
+            request: pending.request,
             response: response,
             data: data,
-            latency: latency
+            latency: latency,
+            screenName: pending.screenName
         )
-        store?.save(event: event)
         
         DiagnosticSessionStore.shared.save(event: event)
         if DiagnosticContext.shared.isConsoleLoggingEnabled {
             ConsoleStore().save(event: event)
-            }
+        }
+        store?.save(event: event)
     }
 }

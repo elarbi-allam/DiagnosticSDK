@@ -4,9 +4,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface UIViewController (DiagnosticSDK)
 
-/// I implemented this method to inject our screen tracking logic into the application's lifecycle.
-/// It targets both 'viewDidLoad' and 'viewWillAppear:' to ensure we capture early network requests
-/// as well as reverse navigation (e.g., popping a view controller).
+/// Injects screen tracking into the view controller lifecycle.
+/// Swizzles `viewDidLoad` and `viewWillAppear:` to keep screen context up to date.
 + (void)diagnostic_swizzleLifecycle;
 
 @end

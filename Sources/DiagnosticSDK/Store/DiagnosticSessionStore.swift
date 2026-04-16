@@ -2,8 +2,7 @@ import Foundation
 import UIKit
 
 /// A high-performance, thread-safe store that manages the diagnostic session in memory.
-/// It builds a hierarchical tree of screens and network interactions on the fly
-/// to ensure O(1) export performance later, without blocking the host application's main thread.
+/// It builds a hierarchical tree of screens and network interactions.
 public final class DiagnosticSessionStore: NetworkStoreProtocol {
     
     /// The shared singleton instance accessed by the interception engine.
@@ -40,7 +39,6 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
     
     /// Processes the raw event and places it into the correct ScreenNode.
     private func processAndAppend(event: NetworkEvent) {
-        // Récupération sécurisée du nom de l'écran depuis RequestModel
         let targetScreenName = event.request.screenName ?? "Background"
         let interaction = mapToInteraction(event)
         
@@ -81,9 +79,7 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
                 errorDescription: response.errorDescription
             )
             
-            // Note: La durée (durationMs) est ignorée pour le moment car `ResponseModel`
-            // ne contient pas la propriété `duration`.
-            // interaction.durationMs = ...
+            //TODO: durationMs calculation
         }
         
         return interaction
