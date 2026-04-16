@@ -36,6 +36,9 @@
 		206E630F2F8CEB690011E974 /* UIViewController+DiagnosticSDK.m in Sources */ = {isa = PBXBuildFile; fileRef = 206E630E2F8CEB690011E974 /* UIViewController+DiagnosticSDK.m */; };
 		206E63A62F8DB44F0011E974 /* DiagnosticSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E63A52F8DB44F0011E974 /* DiagnosticSessionStore.swift */; };
 		206E63BE2F8EABD90011E974 /* ConsoleStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E63BD2F8EABD90011E974 /* ConsoleStore.swift */; };
+		206E63D52F90EE1F0011E974 /* DiagnosticDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E63D42F90EE1F0011E974 /* DiagnosticDashboardView.swift */; };
+		206E63D72F90EE5A0011E974 /* DiagnosticUIManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E63D62F90EE5A0011E974 /* DiagnosticUIManager.swift */; };
+		206E63D92F90EE740011E974 /* ShakeDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E63D82F90EE740011E974 /* ShakeDetector.swift */; };
 		20F102E22F8014470096C884 /* DiagnosticSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20F102D62F8014470096C884 /* DiagnosticSDK.framework */; };
 /* End PBXBuildFile section */
 
@@ -81,6 +84,9 @@
 		206E630E2F8CEB690011E974 /* UIViewController+DiagnosticSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIViewController+DiagnosticSDK.m"; sourceTree = "<group>"; };
 		206E63A52F8DB44F0011E974 /* DiagnosticSessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticSessionStore.swift; sourceTree = "<group>"; };
 		206E63BD2F8EABD90011E974 /* ConsoleStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleStore.swift; sourceTree = "<group>"; };
+		206E63D42F90EE1F0011E974 /* DiagnosticDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticDashboardView.swift; sourceTree = "<group>"; };
+		206E63D62F90EE5A0011E974 /* DiagnosticUIManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticUIManager.swift; sourceTree = "<group>"; };
+		206E63D82F90EE740011E974 /* ShakeDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShakeDetector.swift; sourceTree = "<group>"; };
 		20F102D62F8014470096C884 /* DiagnosticSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DiagnosticSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		20F102E12F8014470096C884 /* DiagnosticSDKTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DiagnosticSDKTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -181,6 +187,7 @@
 		206E627A2F8AD1A10011E974 /* DiagnosticSDK */ = {
 			isa = PBXGroup;
 			children = (
+				206E63D32F90EE050011E974 /* UI */,
 				206E62632F8AD1A10011E974 /* Async */,
 				206E62662F8AD1A10011E974 /* Core */,
 				206E62692F8AD1A10011E974 /* Interception */,
@@ -250,6 +257,16 @@
 				206E62A92F8AD2340011E974 /* DiagnosticSDKTests */,
 			);
 			path = Tests;
+			sourceTree = "<group>";
+		};
+		206E63D32F90EE050011E974 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				206E63D42F90EE1F0011E974 /* DiagnosticDashboardView.swift */,
+				206E63D62F90EE5A0011E974 /* DiagnosticUIManager.swift */,
+				206E63D82F90EE740011E974 /* ShakeDetector.swift */,
+			);
+			path = UI;
 			sourceTree = "<group>";
 		};
 		20F102CC2F8014470096C884 = {
@@ -398,6 +415,7 @@
 				206E630B2F8CE8DA0011E974 /* DiagnosticContext.swift in Sources */,
 				206E628E2F8AD1A10011E974 /* JSONFormatter.swift in Sources */,
 				206E628F2F8AD1A10011E974 /* NetworkInterceptor.swift in Sources */,
+				206E63D92F90EE740011E974 /* ShakeDetector.swift in Sources */,
 				206E62902F8AD1A10011E974 /* DiagnosticSDK.m in Sources */,
 				206E62912F8AD1A10011E974 /* DiagnosticSDKBootstrapper.m in Sources */,
 				206E62922F8AD1A10011E974 /* RequestModel.swift in Sources */,
@@ -406,11 +424,13 @@
 				206E62942F8AD1A10011E974 /* NetworkEventBuilder.swift in Sources */,
 				206E62952F8AD1A10011E974 /* TracerModels.swift in Sources */,
 				206E62962F8AD1A10011E974 /* AsyncTracker.swift in Sources */,
+				206E63D52F90EE1F0011E974 /* DiagnosticDashboardView.swift in Sources */,
 				206E62972F8AD1A10011E974 /* CustomURLProtocol.swift in Sources */,
 				206E630F2F8CEB690011E974 /* UIViewController+DiagnosticSDK.m in Sources */,
 				206E62A62F8AD2160011E974 /* Extensions.swift in Sources */,
 				206E62982F8AD1A10011E974 /* SensitiveDataFilter.swift in Sources */,
 				206E62992F8AD1A10011E974 /* NetworkStoreProtocol.swift in Sources */,
+				206E63D72F90EE5A0011E974 /* DiagnosticUIManager.swift in Sources */,
 				206E629A2F8AD1A10011E974 /* NetworkEvent.swift in Sources */,
 				206E629B2F8AD1A10011E974 /* ResponseModel.swift in Sources */,
 			);
