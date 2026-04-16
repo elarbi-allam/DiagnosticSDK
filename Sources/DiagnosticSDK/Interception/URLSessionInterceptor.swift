@@ -1,12 +1,12 @@
 import Foundation
 
-/// Gère l’interception des requêtes via URLProtocol
+/// Captures requests and responses intercepted by URLProtocol.
 final class URLSessionInterceptor {
     
-    private let store: NetworkStoreProtocol
+    private let store: NetworkStoreProtocol?
     private let tracker = AsyncTracker()
     
-    init(store: NetworkStoreProtocol) {
+    init(store: NetworkStoreProtocol? = nil) {
         self.store = store
     }
     
@@ -17,30 +17,37 @@ final class URLSessionInterceptor {
     
     func disable() {
         URLProtocol.unregisterClass(CustomURLProtocol.self)
+        CustomURLProtocol.interceptor = nil
     }
     
-    /// Capture requête
     func handleRequest(_ request: URLRequest) -> String {
         let id = UUID().uuidString
-        tracker.storeRequest(id: id, request: request)
+        // Capture the active screen exactly when the request starts.
+        let currentScreen = DiagnosticContext.shared.currentScreen
+        tracker.storeRequest(id: id, request: request, screenName: currentScreen)
         return id
     }
     
-    /// Capture réponse
     func handleResponse(id: String, response: URLResponse?, data: Data?, startTime: Date) {
-        
-        guard let request = tracker.getRequest(id: id) else { return }
-        
+        guard let pending = tracker.takeRequest(id: id) else { return }
         let latency = Date().timeIntervalSince(startTime)
-        
+
         let event = NetworkEventBuilder.build(
-            request: request,
+            request: pending.request,
             response: response,
             data: data,
-            latency: latency
+            latency: latency,
+            screenName: pending.screenName
         )
         
-        store.save(event: event)
         DiagnosticSessionStore.shared.save(event: event)
+        if DiagnosticContext.shared.isConsoleLoggingEnabled {
+            ConsoleStore().save(event: event)
+        }
+        store?.save(event: event)
+    }
+    
+    func discardRequest(id: String) {
+        tracker.removeRequest(id: id)
     }
 }

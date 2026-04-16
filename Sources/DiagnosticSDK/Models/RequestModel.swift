@@ -7,8 +7,7 @@ public struct RequestModel: Codable {
     public let headers: [String: String]
     public let body: String?
     
-    /// I added this to track which screen triggered the network request.
-    /// It's optional because background requests might occur before any screen is visible.
+    /// Screen associated with the request at dispatch time.
     public let screenName: String?
     
     public init(url: String, method: String, headers: [String: String], body: String?, screenName: String? = nil) {

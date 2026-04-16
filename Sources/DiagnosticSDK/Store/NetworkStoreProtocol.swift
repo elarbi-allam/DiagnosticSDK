@@ -1,6 +1,6 @@
 import Foundation
 
-/// Interface vers le module de stockage 
+/// Interface for the storage module
 public protocol NetworkStoreProtocol {
     func save(event: NetworkEvent)
 }

@@ -1,13 +1,12 @@
 import Foundation
 
-// 1. OBJECTIVE-C EXPOSURE: We provide a strict name your Obj-C code can find.
+/// Exposed to Objective-C runtime for protocol injection.
 @objc(DiagnosticURLProtocol)
 class CustomURLProtocol: URLProtocol {
     
     static var interceptor: URLSessionInterceptor?
-    
-    // 2. THE SECRET KEY (method to prevent infinite loops)
     private static let handledKey = "DiagnosticSDK_RequestHandledKey"
+    private static let session = URLSession(configuration: .default)
     
     private var datatask: URLSessionDataTask?
     private var requestId: String?
@@ -41,26 +40,26 @@ class CustomURLProtocol: URLProtocol {
         startTime = Date()
         requestId = interceptor.handleRequest(request)
         
-        // 3. CLONE AND TAG: Copy the request and attach our secret key.
         guard let mutableRequest = (request as NSURLRequest).mutableCopy() as? NSMutableURLRequest else {
+            if let requestId {
+                interceptor.discardRequest(id: requestId)
+            }
             client?.urlProtocolDidFinishLoading(self)
             return
         }
         URLProtocol.setProperty(true, forKey: Self.handledKey, in: mutableRequest)
         
-        // 4. Send the MODIFIED REQUEST (with the tag) to the network
-        let session = URLSession(configuration: .default)
         
-        datatask = session.dataTask(with: mutableRequest as URLRequest) { [weak self] data, response, error in
+        datatask = Self.session.dataTask(with: mutableRequest as URLRequest) { [weak self] data, response, error in
             guard let self = self else { return }
             
             // Send response information to the tracker
-            if let id = self.requestId, let start = self.startTime {
+            if let id = self.requestId, let startTime = self.startTime {
                 interceptor.handleResponse(
                     id: id,
                     response: response,
                     data: data,
-                    startTime: start
+                    startTime: startTime
                 )
             }
             

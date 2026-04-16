@@ -1,6 +1,6 @@
 import Foundation
 
-// Protocole exposé pour contrôler le moteur de capture
+/// Public API to control the capture lifecycle.
 public protocol NetworkInterceptorProtocol {
     func start()
     func stop()
