@@ -63,22 +63,26 @@ class CustomURLProtocol: URLProtocol {
                 )
             }
             
-            // 5. ERROR HANDLING (Important to avoid freezing the app)
-            if let error = error {
-                self.client?.urlProtocol(self, didFailWithError: error)
-                return
+            // URLProtocolClient callbacks are expected on the client thread.
+            // Dispatching to main avoids subtle issues (notably with image loaders) without blocking the host app.
+            DispatchQueue.main.async {
+                // ERROR HANDLING
+                if let error = error {
+                    self.client?.urlProtocol(self, didFailWithError: error)
+                    return
+                }
+                
+                // Return data to the host application as usual
+                if let response = response {
+                    self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .allowed)
+                }
+                
+                if let data = data {
+                    self.client?.urlProtocol(self, didLoad: data)
+                }
+                
+                self.client?.urlProtocolDidFinishLoading(self)
             }
-            
-            // Return data to the host application as usual
-            if let response = response {
-                self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-            }
-            
-            if let data = data {
-                self.client?.urlProtocol(self, didLoad: data)
-            }
-            
-            self.client?.urlProtocolDidFinishLoading(self)
         }
         
         datatask?.resume()

@@ -4,6 +4,7 @@ import Foundation
 struct PendingRequest {
     let request: URLRequest
     let screenName: String?
+    let screenVisitId: Int?
 }
 
 final class AsyncTracker {
@@ -11,10 +12,14 @@ final class AsyncTracker {
     private var requests: [String: PendingRequest] = [:]
     private let lock = NSLock()
     
-    func storeRequest(id: String, request: URLRequest, screenName: String?) {
+    func storeRequest(id: String, request: URLRequest, screenName: String?, screenVisitId: Int?) {
         lock.lock()
         defer { lock.unlock() }
-        requests[id] = PendingRequest(request: request, screenName: screenName)
+        requests[id] = PendingRequest(
+            request: request,
+            screenName: screenName,
+            screenVisitId: screenVisitId
+        )
     }
     
     /// Atomically returns and removes a pending request.

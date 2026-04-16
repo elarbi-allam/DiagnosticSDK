@@ -8,25 +8,17 @@ public struct DiagnosticDashboardView: View {
     
     public var body: some View {
         NavigationView {
-            VStack(spacing: 20) {
-                Image(systemName: "ladybug.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(.blue)
-                
-                Text("Diagnostic SDK")
-                    .font(.largeTitle)
-                    .bold()
-                
-                Text("Le moteur UI est connecté et prêt ! 🚀")
-                    .foregroundColor(.secondary)
-            }
-            .navigationTitle("Dashboard")
-            .navigationBarItems(trailing: Button(action: {
-                presentationMode.wrappedValue.dismiss()
-            }) {
-                Text("Fermer")
-                    .bold()
-            })
+            DiagnosticRootTabView()
+                .navigationBarTitle("Diagnostic", displayMode: .inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            presentationMode.wrappedValue.dismiss()
+                        } label: {
+                            Text("Fermer").bold()
+                        }
+                    }
+                }
         }
     }
 }

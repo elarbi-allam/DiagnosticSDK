@@ -16,6 +16,10 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
     /// A concurrent dispatch queue acting as a read-write lock to prevent race conditions.
     private let isolationQueue = DispatchQueue(label: "com.diagnosticsdk.sessionstore.isolation", attributes: .concurrent)
     
+    /// Maps a screen visit id to the corresponding screen node index.
+    /// This preserves navigation chronology even when the same screen name appears multiple times.
+    private var screenIndexByVisitId: [Int: Int] = [:]
+    
     // MARK: - Initialization
     
     private init() {
@@ -32,6 +36,9 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
         // This guarantees thread safety without blocking reader threads.
         isolationQueue.async(flags: .barrier) { [weak self] in
             self?.processAndAppend(event: event)
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .diagnosticSessionStoreDidUpdate, object: self)
+            }
         }
     }
     
@@ -41,19 +48,34 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
     private func processAndAppend(event: NetworkEvent) {
         let targetScreenName = event.request.screenName ?? "Background"
         let interaction = mapToInteraction(event)
+        let visitId = event.request.screenVisitId
         
-        // Check if the user is still interacting with the same screen
-        if let currentScreen = currentSession.screens.last, currentScreen.name == targetScreenName {
-            currentScreen.networkInteractions.append(interaction)
-        } else {
-            // User navigated to a new screen: mark the exit time of the previous screen
-            currentSession.screens.last?.exitedAt = Date()
+        // Preferred path: attach by unique visit id captured when the request started.
+        // This keeps Home -> Detail -> Home as distinct blocks and still handles async responses correctly.
+        if let visitId {
+            if let idx = screenIndexByVisitId[visitId], idx < currentSession.screens.count {
+                currentSession.screens[idx].networkInteractions.append(interaction)
+                return
+            }
             
-            // Create and append the new screen node
             let newScreenNode = ScreenNode(name: targetScreenName)
             newScreenNode.networkInteractions.append(interaction)
             currentSession.screens.append(newScreenNode)
+            screenIndexByVisitId[visitId] = currentSession.screens.count - 1
+            return
         }
+        
+        // Fallback for older events: only merge with the currently open tail screen.
+        // If navigation moved in-between, create a new screen node even with the same name.
+        if let idx = currentSession.screens.indices.last,
+           currentSession.screens[idx].name == targetScreenName {
+            currentSession.screens[idx].networkInteractions.append(interaction)
+            return
+        }
+        
+        let newScreenNode = ScreenNode(name: targetScreenName)
+        newScreenNode.networkInteractions.append(interaction)
+        currentSession.screens.append(newScreenNode)
     }
     
     // MARK: - Data Mapping
@@ -84,6 +106,12 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
         
         return interaction
     }
+}
+
+// MARK: - Notifications
+
+public extension Notification.Name {
+    static let diagnosticSessionStoreDidUpdate = Notification.Name("com.diagnosticsdk.sessionstore.didUpdate")
 }
 
 // MARK: - File System Export
@@ -136,6 +164,75 @@ extension DiagnosticSessionStore {
             queue: .main
         ) { [weak self] _ in
             self?.exportSessionToDisk()
+        }
+    }
+}
+
+// MARK: - UI Snapshot (Read-Only)
+
+/// A read-only, value-type snapshot tailored for SwiftUI rendering.
+/// This avoids exposing mutable arrays from `ScreenNode` (a reference type) to the UI layer.
+public struct DiagnosticSessionSnapshot: Sendable, Equatable {
+    public struct Screen: Identifiable, Sendable, Equatable {
+        public let id: String
+        public let name: String
+        public let enteredAt: Date
+        public let exitedAt: Date?
+        public let interactions: [Interaction]
+    }
+    
+    public struct Interaction: Identifiable, Sendable, Equatable {
+        public let id: String
+        public let startedAt: Date
+        public let durationMs: Int?
+        public let method: String
+        public let url: String
+        public let status: Int?
+    }
+    
+    public let sessionId: String
+    public let startedAt: Date
+    public let screens: [Screen]
+    
+    public init(sessionId: String, startedAt: Date, screens: [Screen]) {
+        self.sessionId = sessionId
+        self.startedAt = startedAt
+        self.screens = screens
+    }
+}
+
+extension DiagnosticSessionStore {
+    
+    /// Produces a thread-safe snapshot for UI rendering.
+    /// - Important: This executes a synchronous read on the store's isolation queue.
+    public func makeSnapshot() -> DiagnosticSessionSnapshot {
+        isolationQueue.sync {
+            let screens: [DiagnosticSessionSnapshot.Screen] = currentSession.screens.map { screen in
+                let interactions: [DiagnosticSessionSnapshot.Interaction] = screen.networkInteractions.map { interaction in
+                    DiagnosticSessionSnapshot.Interaction(
+                        id: interaction.id,
+                        startedAt: interaction.startedAt,
+                        durationMs: interaction.durationMs,
+                        method: interaction.request.method,
+                        url: interaction.request.url,
+                        status: interaction.response?.status
+                    )
+                }
+                
+                return DiagnosticSessionSnapshot.Screen(
+                    id: screen.id,
+                    name: screen.name,
+                    enteredAt: screen.enteredAt,
+                    exitedAt: screen.exitedAt,
+                    interactions: interactions
+                )
+            }
+            
+            return DiagnosticSessionSnapshot(
+                sessionId: currentSession.sessionId,
+                startedAt: currentSession.startedAt,
+                screens: screens
+            )
         }
     }
 }
