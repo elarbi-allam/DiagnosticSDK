@@ -50,12 +50,32 @@ private struct FilterBarSection: View {
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: 12) {
-                Picker("Status", selection: $statusFilter) {
-                    ForEach(LiveSessionViewModel.StatusFilter.allCases) { filter in
-                        Text(filter.rawValue).tag(filter)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Status")
+                        .font(.caption.weight(.semibold))
+                        .foregroundColor(.secondary)
+                    
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(LiveSessionViewModel.StatusFilter.allCases) { filter in
+                                Button {
+                                    statusFilter = filter
+                                } label: {
+                                    Text(filter.rawValue)
+                                        .font(.caption.weight(.semibold))
+                                        .foregroundColor(filter == statusFilter ? .white : filter.filterColor)
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 6)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                                .fill(filter == statusFilter ? filter.filterColor : filter.filterColor.opacity(0.14))
+                                        )
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                        }
                     }
                 }
-                .pickerStyle(SegmentedPickerStyle())
                 
                 Picker("Method", selection: $methodFilter) {
                     ForEach(LiveSessionViewModel.MethodFilter.allCases) { filter in
@@ -67,6 +87,19 @@ private struct FilterBarSection: View {
             .padding(.vertical, 4)
         } header: {
             Text("Filters")
+        }
+    }
+}
+
+private extension LiveSessionViewModel.StatusFilter {
+    var filterColor: Color {
+        switch self {
+        case .all: return .gray
+        case .pending: return .gray
+        case .success2xx: return .green
+        case .redirect3xx: return .blue
+        case .client4xx: return .orange
+        case .server5xx: return .red
         }
     }
 }
