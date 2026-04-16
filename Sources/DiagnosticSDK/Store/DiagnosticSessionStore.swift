@@ -201,6 +201,19 @@ public struct DiagnosticSessionSnapshot: Sendable, Equatable {
 
 extension DiagnosticSessionStore {
     
+    /// Thread-safe lookup for a full interaction payload by id.
+    /// This is used by detail screens where lightweight snapshots are insufficient.
+    public func getInteraction(byId id: String) -> NetworkInteraction? {
+        isolationQueue.sync {
+            for screen in currentSession.screens {
+                if let interaction = screen.networkInteractions.first(where: { $0.id == id }) {
+                    return interaction
+                }
+            }
+            return nil
+        }
+    }
+    
     /// Produces a thread-safe snapshot for UI rendering.
     /// - Important: This executes a synchronous read on the store's isolation queue.
     public func makeSnapshot() -> DiagnosticSessionSnapshot {

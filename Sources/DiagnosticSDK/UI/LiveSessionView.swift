@@ -27,7 +27,11 @@ struct LiveSessionView: View {
                     ForEach(viewModel.filteredScreens) { screen in
                         Section(header: ScreenSectionHeader(screen: screen)) {
                             ForEach(screen.interactions.reversed()) { interaction in
-                                NetworkInteractionRow(interaction: interaction)
+                                NavigationLink {
+                                    NetworkInteractionDetailView(interactionId: interaction.id)
+                                } label: {
+                                    NetworkInteractionRow(interaction: interaction)
+                                }
                             }
                         }
                     }
