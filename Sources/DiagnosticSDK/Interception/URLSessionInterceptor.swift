@@ -22,19 +22,21 @@ final class URLSessionInterceptor {
     
     func handleRequest(_ request: URLRequest) -> String {
         let id = UUID().uuidString
-        // 1. On capture l'écran actif EXACTEMENT au moment où la requête part
+        // Capture the active screen exactly when the request starts.
         let currentScreen = DiagnosticContext.shared.currentScreen
         tracker.storeRequest(id: id, request: request, screenName: currentScreen)
         return id
     }
     
-    func handleResponse(id: String, response: URLResponse?, data: Data?) {
+    func handleResponse(id: String, response: URLResponse?, data: Data?, startTime: Date) {
         guard let pending = tracker.takeRequest(id: id) else { return }
+        let latency = Date().timeIntervalSince(startTime)
 
         let event = NetworkEventBuilder.build(
             request: pending.request,
             response: response,
             data: data,
+            latency: latency,
             screenName: pending.screenName
         )
         

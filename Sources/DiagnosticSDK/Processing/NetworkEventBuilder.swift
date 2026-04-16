@@ -6,6 +6,7 @@ enum NetworkEventBuilder {
         request: URLRequest,
         response: URLResponse?,
         data: Data?,
+        latency: Double,
         screenName: String?,
         error: Error? = nil
     ) -> NetworkEvent {
@@ -67,7 +68,8 @@ enum NetworkEventBuilder {
         return NetworkEvent(
             request: requestModel,
             response: responseModel,
-            timestamp: Date()
+            timestamp: Date(),
+            durationMs: Int(latency * 1000)
         )
     }
 }

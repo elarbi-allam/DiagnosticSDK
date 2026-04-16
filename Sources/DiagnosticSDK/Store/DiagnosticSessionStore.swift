@@ -79,7 +79,7 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
                 errorDescription: response.errorDescription
             )
             
-            //TODO: durationMs calculation
+            interaction.durationMs = event.durationMs
         }
         
         return interaction

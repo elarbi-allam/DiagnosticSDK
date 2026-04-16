@@ -10,6 +10,7 @@ class CustomURLProtocol: URLProtocol {
     
     private var datatask: URLSessionDataTask?
     private var requestId: String?
+    private var startTime: Date?
     
     override class func canInit(with request: URLRequest) -> Bool {
         // A. Only handle real web requests (HTTP/HTTPS)
@@ -36,6 +37,7 @@ class CustomURLProtocol: URLProtocol {
             return
         }
         
+        startTime = Date()
         requestId = interceptor.handleRequest(request)
         
         guard let mutableRequest = (request as NSURLRequest).mutableCopy() as? NSMutableURLRequest else {
@@ -52,11 +54,12 @@ class CustomURLProtocol: URLProtocol {
             guard let self = self else { return }
             
             // Send response information to the tracker
-            if let id = self.requestId {
+            if let id = self.requestId, let startTime = self.startTime {
                 interceptor.handleResponse(
                     id: id,
                     response: response,
-                    data: data
+                    data: data,
+                    startTime: startTime
                 )
             }
             
