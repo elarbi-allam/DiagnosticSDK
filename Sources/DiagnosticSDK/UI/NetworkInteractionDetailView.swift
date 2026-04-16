@@ -70,6 +70,10 @@ struct NetworkInteractionDetailView: View {
     
     private func overviewSection(_ interaction: NetworkInteraction) -> some View {
         Section("Overview") {
+            detailRow(
+                title: "Screen",
+                value: interaction.screenName ?? "Background"
+            )
             detailRow(title: "URL", value: interaction.request.url, multiline: true)
             detailRow(title: "Method", value: interaction.request.method.uppercased())
             detailRow(title: "Status", value: interaction.response.map { "\($0.status)" } ?? "Pending")
@@ -83,16 +87,16 @@ struct NetworkInteractionDetailView: View {
     
     private func requestSection(_ interaction: NetworkInteraction) -> some View {
         Section("Request") {
-            detailsBlock(title: "Headers", value: formattedHeaders(interaction.request.headers))
-            detailsBlock(title: "Body", value: prettifiedBodyText(interaction.request.bodyBase64))
+            headersBlock(title: "Headers", headers: interaction.request.headers)
+            bodyBlock(title: "Body", rawValue: interaction.request.bodyBase64)
         }
     }
     
     private func responseSection(_ interaction: NetworkInteraction) -> some View {
         Section("Response") {
             if let response = interaction.response {
-                detailsBlock(title: "Headers", value: formattedHeaders(response.headers))
-                detailsBlock(title: "Body", value: prettifiedBodyText(response.bodyBase64))
+                headersBlock(title: "Headers", headers: response.headers)
+                bodyBlock(title: "Body", rawValue: response.bodyBase64)
                 detailRow(
                     title: "Error",
                     value: response.errorDescription ?? "None",
@@ -122,46 +126,108 @@ struct NetworkInteractionDetailView: View {
         .padding(.vertical, 4)
     }
     
-    private func detailsBlock(title: String, value: String) -> some View {
+    private func headersBlock(title: String, headers: [String: String]?) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.caption.weight(.semibold))
                 .foregroundColor(.secondary)
-            Text(value)
-                .font(.footnote.monospaced())
-                .textSelection(.enabled)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(10)
+            
+            if let headers, !headers.isEmpty {
+                let sortedKeys = headers.keys.sorted {
+                    $0.localizedCaseInsensitiveCompare($1) == .orderedAscending
+                }
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(sortedKeys, id: \.self) { key in
+                        HStack(alignment: .firstTextBaseline, spacing: 6) {
+                            Text(headerNameLabel(key))
+                                .font(.footnote.monospaced().weight(.bold))
+                                .foregroundColor(.primary)
+                            Text(headers[key] ?? "")
+                                .font(.footnote.monospaced())
+                                .foregroundColor(.primary)
+                                .textSelection(.enabled)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                }
+                .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color(.secondarySystemBackground))
                 .cornerRadius(10)
+            } else {
+                Text("No headers")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                    .padding(10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(10)
+            }
         }
         .padding(.vertical, 4)
     }
     
-    private func formattedHeaders(_ headers: [String: String]?) -> String {
-        guard let headers, !headers.isEmpty else { return "No headers" }
-        
-        return headers
-            .sorted { lhs, rhs in lhs.key.localizedCaseInsensitiveCompare(rhs.key) == .orderedAscending }
-            .map { "\($0.key): \($0.value)" }
-            .joined(separator: "\n")
+    private func headerNameLabel(_ name: String) -> String {
+        name.hasSuffix(":") ? name : "\(name):"
     }
     
-    private func prettifiedBodyText(_ rawValue: String?) -> String {
-        guard let rawValue, !rawValue.isEmpty else { return "No body" }
+    private func bodyBlock(title: String, rawValue: String?) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundColor(.secondary)
+            
+            switch bodyDisplayMode(rawValue) {
+            case .empty:
+                Text("No body")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                    .padding(10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(10)
+            case .plain(let text):
+                Text(text)
+                    .font(.footnote.monospaced())
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(10)
+            case .json(let pretty):
+                FormattedJSONBodyView(prettyJSON: pretty)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+    
+    private enum BodyDisplayMode {
+        case empty
+        case plain(String)
+        case json(String)
+    }
+    
+    private func bodyDisplayMode(_ rawValue: String?) -> BodyDisplayMode {
+        guard let rawValue, !rawValue.isEmpty else { return .empty }
         
         let data = Data(base64Encoded: rawValue) ?? rawValue.data(using: .utf8)
-        guard let data else { return rawValue }
+        guard let data else { return .plain(rawValue) }
         
-        if let json = try? JSONSerialization.jsonObject(with: data, options: []),
-           JSONSerialization.isValidJSONObject(json),
-           let prettyData = try? JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted]),
-           let prettyString = String(data: prettyData, encoding: .utf8) {
-            return prettyString
+        guard let jsonObject = try? JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed]) else {
+            return .plain(String(data: data, encoding: .utf8) ?? rawValue)
         }
         
-        return String(data: data, encoding: .utf8) ?? rawValue
+        guard JSONSerialization.isValidJSONObject(jsonObject) else {
+            return .plain(String(data: data, encoding: .utf8) ?? rawValue)
+        }
+        
+        let options: JSONSerialization.WritingOptions = [.prettyPrinted, .sortedKeys]
+        guard let prettyData = try? JSONSerialization.data(withJSONObject: jsonObject, options: options),
+              let prettyString = String(data: prettyData, encoding: .utf8) else {
+            return .plain(String(data: data, encoding: .utf8) ?? rawValue)
+        }
+        return .json(prettyString)
     }
     
     private func canPreviewImage(_ interaction: NetworkInteraction) -> Bool {
@@ -184,6 +250,104 @@ struct NetworkInteractionDetailView: View {
         
         return url.absoluteString.contains("image.tmdb.org")
     }
+}
+
+// MARK: - Structured JSON body (readable hierarchy + bold keys)
+
+private struct FormattedJSONBodyView: View {
+    let prettyJSON: String
+    
+    private var lines: [String] {
+        prettyJSON.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
+                jsonLineView(line)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(10)
+    }
+    
+    @ViewBuilder
+    private func jsonLineView(_ line: String) -> some View {
+        let leadingSpaces = line.prefix(while: { $0 == " " }).count
+        let indent = CGFloat(leadingSpaces) * 3.5
+        
+        if let parsed = parseJSONKeyValueLine(line) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(parsed.keyDisplay)
+                    .font(.footnote.monospaced())
+                    .fontWeight(.bold)
+                    .foregroundColor(Color(red: 0.12, green: 0.38, blue: 0.72))
+                Text(parsed.valueDisplay)
+                    .font(.footnote.monospaced())
+                    .foregroundColor(.primary)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.leading, indent)
+        } else if isJSONStructuralLine(line) {
+            Text(line)
+                .font(.footnote.monospaced())
+                .fontWeight(.semibold)
+                .foregroundColor(.secondary)
+                .padding(.leading, indent)
+                .textSelection(.enabled)
+        } else {
+            Text(line)
+                .font(.footnote.monospaced())
+                .foregroundColor(.primary)
+                .padding(.leading, indent)
+                .textSelection(.enabled)
+        }
+    }
+}
+
+private struct ParsedJSONKeyLine {
+    let keyDisplay: String
+    let valueDisplay: String
+}
+
+private func parseJSONKeyValueLine(_ line: String) -> ParsedJSONKeyLine? {
+    var idx = line.startIndex
+    while idx < line.endIndex, line[idx] == " " || line[idx] == "\t" {
+        idx = line.index(after: idx)
+    }
+    guard idx < line.endIndex, line[idx] == "\"" else { return nil }
+    idx = line.index(after: idx)
+    let keyStart = idx
+    while idx < line.endIndex {
+        if line[idx] == "\\" {
+            idx = line.index(after: idx)
+            if idx < line.endIndex { idx = line.index(after: idx) }
+            continue
+        }
+        if line[idx] == "\"" { break }
+        idx = line.index(after: idx)
+    }
+    guard idx < line.endIndex else { return nil }
+    let keyInner = String(line[keyStart..<idx])
+    idx = line.index(after: idx)
+    while idx < line.endIndex, line[idx].isWhitespace {
+        idx = line.index(after: idx)
+    }
+    guard idx < line.endIndex, line[idx] == ":" else { return nil }
+    idx = line.index(after: idx)
+    let valuePart = String(line[idx...])
+    return ParsedJSONKeyLine(keyDisplay: "\"\(keyInner)\"", valueDisplay: valuePart)
+}
+
+private func isJSONStructuralLine(_ line: String) -> Bool {
+    let t = line.trimmingCharacters(in: .whitespaces)
+    guard !t.isEmpty else { return false }
+    if t.contains("\"") { return false }
+    let structuralLines: Set<String> = ["{", "}", "[", "]", "},", "],", "}]", "[{"]
+    return structuralLines.contains(t)
 }
 
 private struct PressablePreviewCard: View {

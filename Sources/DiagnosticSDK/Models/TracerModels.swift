@@ -70,13 +70,16 @@ public struct NetworkInteraction: Codable {
     public let id: String
     public let startedAt: Date
     public var durationMs: Int?
+    /// Screen that was active when the request started (same semantics as `RequestModel.screenName`).
+    public let screenName: String?
     public let request: RequestDetails
     public var response: ResponseDetails?
     
-    public init(id: String = UUID().uuidString, request: RequestDetails) {
+    public init(id: String = UUID().uuidString, request: RequestDetails, screenName: String? = nil) {
         self.id = id
         self.startedAt = Date()
         self.request = request
+        self.screenName = screenName
     }
 }
 

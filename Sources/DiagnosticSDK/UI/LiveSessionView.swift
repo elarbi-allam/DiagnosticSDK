@@ -32,6 +32,7 @@ struct LiveSessionView: View {
                                 } label: {
                                     NetworkInteractionRow(interaction: interaction)
                                 }
+                                .id(interaction.id)
                             }
                         }
                     }
@@ -155,38 +156,43 @@ private struct NetworkInteractionRow: View {
     let interaction: DiagnosticSessionSnapshot.Interaction
     
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            StatusPill(status: interaction.status)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 8) {
-                    Text(interaction.method.uppercased())
-                        .font(.caption2.weight(.semibold))
-                        .foregroundColor(Color.secondary)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(
-                            Color.secondary.opacity(0.10),
-                            in: RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        )
-                    
-                    Text(hostAndPath(from: interaction.url))
-                        .font(.subheadline)
-                        .lineLimit(2)
-                }
+        HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .leading, spacing: 6) {
+                StatusPill(status: interaction.status)
                 
-                HStack(spacing: 8) {
-                    Text(interaction.startedAt.formatted(date: .omitted, time: .standard))
-                        .font(.caption)
-                        .foregroundColor(Color.secondary)
-                    
-                    if let durationMs = interaction.durationMs {
-                        Text("\(durationMs) ms")
-                            .font(.caption)
-                            .foregroundColor(Color.secondary)
-                    }
+                Text(interaction.method.uppercased())
+                    .font(.caption2.weight(.bold))
+                    .foregroundColor(methodAccentColor(for: interaction.method))
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(
+                        methodAccentColor(for: interaction.method).opacity(0.14),
+                        in: RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    )
+                
+                if let durationMs = interaction.durationMs {
+                    Text("\(durationMs) ms")
+                        .font(.caption2.weight(.medium))
+                        .foregroundColor(.secondary)
+                } else {
+                    Text("…")
+                        .font(.caption2.weight(.medium))
+                        .foregroundColor(.secondary)
                 }
             }
+            .fixedSize(horizontal: true, vertical: false)
+            
+            VStack(alignment: .leading, spacing: 3) {
+                Text(hostAndPath(from: interaction.url))
+                    .font(.subheadline)
+                    .lineLimit(3)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Text(interaction.startedAt.formatted(date: .omitted, time: .standard))
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.vertical, 4)
     }
@@ -196,6 +202,18 @@ private struct NetworkInteractionRow: View {
         let host = url.host ?? urlString
         let path = url.path.isEmpty ? "/" : url.path
         return host + path
+    }
+    
+    private func methodAccentColor(for method: String) -> Color {
+        switch method.uppercased() {
+        case "GET": return .blue
+        case "POST": return .green
+        case "PUT": return .orange
+        case "PATCH": return .purple
+        case "DELETE": return .red
+        case "HEAD", "OPTIONS", "CONNECT", "TRACE": return .gray
+        default: return .indigo
+        }
     }
 }
 

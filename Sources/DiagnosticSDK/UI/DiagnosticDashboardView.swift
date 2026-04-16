@@ -1,24 +1,11 @@
 import SwiftUI
 
 public struct DiagnosticDashboardView: View {
-    // Permet de fermer la vue
-    @Environment(\.presentationMode) var presentationMode
-    
     public init() {}
     
     public var body: some View {
-        NavigationView {
-            DiagnosticRootTabView()
-                .navigationBarTitle("Diagnostic", displayMode: .inline)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button {
-                            presentationMode.wrappedValue.dismiss()
-                        } label: {
-                            Text("Fermer").bold()
-                        }
-                    }
-                }
-        }
+        // One NavigationView per tab (not wrapping the whole TabView) avoids broken pops
+        // from NavigationLink detail screens on iOS 15.
+        DiagnosticRootTabView()
     }
 }

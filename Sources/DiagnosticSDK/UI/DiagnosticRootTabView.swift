@@ -1,17 +1,45 @@
 import SwiftUI
 
 struct DiagnosticRootTabView: View {
+    @Environment(\.presentationMode) private var presentationMode
+    
     var body: some View {
         TabView {
-            LiveSessionView()
-                .tabItem {
-                    Label("Live", systemImage: "waveform.path.ecg")
-                }
+            NavigationView {
+                LiveSessionView()
+                    .navigationBarTitle("Diagnostic", displayMode: .inline)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button {
+                                presentationMode.wrappedValue.dismiss()
+                            } label: {
+                                Text("Fermer").bold()
+                            }
+                        }
+                    }
+            }
+            .navigationViewStyle(StackNavigationViewStyle())
+            .tabItem {
+                Label("Live", systemImage: "waveform.path.ecg")
+            }
             
-            HistoryManagerPlaceholderView()
-                .tabItem {
-                    Label("History", systemImage: "clock.arrow.circlepath")
-                }
+            NavigationView {
+                HistoryManagerPlaceholderView()
+                    .navigationBarTitle("Diagnostic", displayMode: .inline)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button {
+                                presentationMode.wrappedValue.dismiss()
+                            } label: {
+                                Text("Fermer").bold()
+                            }
+                        }
+                    }
+            }
+            .navigationViewStyle(StackNavigationViewStyle())
+            .tabItem {
+                Label("History", systemImage: "clock.arrow.circlepath")
+            }
         }
     }
 }

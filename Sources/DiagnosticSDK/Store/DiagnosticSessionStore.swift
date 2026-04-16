@@ -88,7 +88,10 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
             bodySizeBytes: event.request.body?.utf8.count ?? 0
         )
         
-        var interaction = NetworkInteraction(request: requestDetails)
+        var interaction = NetworkInteraction(
+            request: requestDetails,
+            screenName: event.request.screenName
+        )
         
         if let response = event.response {
             interaction.response = ResponseDetails(
