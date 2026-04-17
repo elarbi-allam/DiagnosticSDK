@@ -174,6 +174,12 @@ extension DiagnosticSessionStore {
 /// A read-only, value-type snapshot tailored for SwiftUI rendering.
 /// This avoids exposing mutable arrays from `ScreenNode` (a reference type) to the UI layer.
 public struct DiagnosticSessionSnapshot: Sendable, Equatable {
+    public struct Metadata: Sendable, Equatable {
+        public let appVersion: String
+        public let osVersion: String
+        public let deviceModel: String
+    }
+    
     public struct Screen: Identifiable, Sendable, Equatable {
         public let id: String
         public let name: String
@@ -193,11 +199,13 @@ public struct DiagnosticSessionSnapshot: Sendable, Equatable {
     
     public let sessionId: String
     public let startedAt: Date
+    public let metadata: Metadata
     public let screens: [Screen]
     
-    public init(sessionId: String, startedAt: Date, screens: [Screen]) {
+    public init(sessionId: String, startedAt: Date, metadata: Metadata, screens: [Screen]) {
         self.sessionId = sessionId
         self.startedAt = startedAt
+        self.metadata = metadata
         self.screens = screens
     }
 }
@@ -245,6 +253,11 @@ extension DiagnosticSessionStore {
             return DiagnosticSessionSnapshot(
                 sessionId: currentSession.sessionId,
                 startedAt: currentSession.startedAt,
+                metadata: .init(
+                    appVersion: currentSession.metadata.appVersion,
+                    osVersion: currentSession.metadata.osVersion,
+                    deviceModel: currentSession.metadata.deviceModel
+                ),
                 screens: screens
             )
         }

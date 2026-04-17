@@ -24,7 +24,7 @@ struct DiagnosticRootTabView: View {
             }
             
             NavigationView {
-                HistoryManagerPlaceholderView()
+                SessionHistoryView()
                     .navigationBarTitle("Diagnostic", displayMode: .inline)
                     .toolbar {
                         ToolbarItem(placement: .navigationBarTrailing) {
@@ -43,14 +43,3 @@ struct DiagnosticRootTabView: View {
         }
     }
 }
-
-private struct HistoryManagerPlaceholderView: View {
-    var body: some View {
-        DiagnosticEmptyStateView(
-            title: "History Manager",
-            systemImage: "clock.arrow.circlepath",
-            message: "Step 3 will list exported session files from Documents."
-        )
-    }
-}
-

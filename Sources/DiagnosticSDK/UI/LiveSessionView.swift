@@ -16,7 +16,8 @@ struct LiveSessionView: View {
                 List {
                     SessionHeaderView(
                         sessionId: viewModel.snapshot.sessionId,
-                        startedAt: viewModel.snapshot.startedAt
+                        startedAt: viewModel.snapshot.startedAt,
+                        metadata: viewModel.snapshot.metadata
                     )
                     
                     FilterBarSection(
@@ -108,24 +109,68 @@ private extension LiveSessionViewModel.StatusFilter {
 private struct SessionHeaderView: View {
     let sessionId: String
     let startedAt: Date
+    let metadata: DiagnosticSessionSnapshot.Metadata
     
     var body: some View {
         Section {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Live session")
-                    .font(.headline)
-                
-                Text("Started \(startedAt.formatted(date: .abbreviated, time: .standard))")
-                    .font(.subheadline)
-                    .foregroundColor(Color.secondary)
-                
-                Text(sessionId)
-                    .font(.caption)
-                    .foregroundColor(Color.secondary)
-                    .textSelection(.enabled)
-                    .lineLimit(1)
+            NavigationLink {
+                SessionMetadataView(
+                    sessionId: sessionId,
+                    startedAt: startedAt,
+                    metadata: metadata
+                )
+            } label: {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Live session")
+                        .font(.headline)
+                    
+                    Text("Started \(startedAt.formatted(date: .abbreviated, time: .standard))")
+                        .font(.subheadline)
+                        .foregroundColor(Color.secondary)
+                    
+                    Text(sessionId)
+                        .font(.caption)
+                        .foregroundColor(Color.secondary)
+                        .textSelection(.enabled)
+                        .lineLimit(1)
+                }
             }
             .padding(.vertical, 4)
+        }
+    }
+}
+
+private struct SessionMetadataView: View {
+    let sessionId: String
+    let startedAt: Date
+    let metadata: DiagnosticSessionSnapshot.Metadata
+    
+    var body: some View {
+        Form {
+            Section("Session") {
+                metadataRow("Session ID", sessionId)
+                metadataRow("Started", startedAt.formatted(date: .abbreviated, time: .standard))
+            }
+            
+            Section("Environment") {
+                metadataRow("App Version", metadata.appVersion)
+                metadataRow("OS Version", metadata.osVersion)
+                metadataRow("Device Model", metadata.deviceModel)
+            }
+        }
+        .navigationBarTitle("Session Details", displayMode: .inline)
+    }
+    
+    private func metadataRow(_ title: String, _ value: String) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundColor(.secondary)
+                .frame(width: 110, alignment: .leading)
+            Text(value)
+                .font(.body.weight(.medium))
+                .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }

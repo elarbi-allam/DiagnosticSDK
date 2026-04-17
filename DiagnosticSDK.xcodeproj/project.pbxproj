@@ -44,6 +44,9 @@
 		206E63E52F90F9AB0011E974 /* LiveSessionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E63E42F90F9AB0011E974 /* LiveSessionViewModel.swift */; };
 		206E63E72F90F9B40011E974 /* DiagnosticRootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E63E62F90F9B40011E974 /* DiagnosticRootTabView.swift */; };
 		206E63F02F914D880011E974 /* NetworkInteractionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E63EF2F914D880011E974 /* NetworkInteractionDetailView.swift */; };
+		206E64102F9160000011E974 /* SessionHistoryFileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E64112F9160000011E974 /* SessionHistoryFileService.swift */; };
+		206E64122F9160010011E974 /* SessionHistoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E64132F9160010011E974 /* SessionHistoryViewModel.swift */; };
+		206E64142F9160020011E974 /* SessionHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E64152F9160020011E974 /* SessionHistoryView.swift */; };
 		20F102E22F8014470096C884 /* DiagnosticSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20F102D62F8014470096C884 /* DiagnosticSDK.framework */; };
 /* End PBXBuildFile section */
 
@@ -97,6 +100,9 @@
 		206E63E42F90F9AB0011E974 /* LiveSessionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSessionViewModel.swift; sourceTree = "<group>"; };
 		206E63E62F90F9B40011E974 /* DiagnosticRootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticRootTabView.swift; sourceTree = "<group>"; };
 		206E63EF2F914D880011E974 /* NetworkInteractionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInteractionDetailView.swift; sourceTree = "<group>"; };
+		206E64112F9160000011E974 /* SessionHistoryFileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionHistoryFileService.swift; sourceTree = "<group>"; };
+		206E64132F9160010011E974 /* SessionHistoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionHistoryViewModel.swift; sourceTree = "<group>"; };
+		206E64152F9160020011E974 /* SessionHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionHistoryView.swift; sourceTree = "<group>"; };
 		20F102D62F8014470096C884 /* DiagnosticSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DiagnosticSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		20F102E12F8014470096C884 /* DiagnosticSDKTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DiagnosticSDKTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -182,6 +188,7 @@
 				206E62752F8AD1A10011E974 /* NetworkStoreProtocol.swift */,
 				206E63A52F8DB44F0011E974 /* DiagnosticSessionStore.swift */,
 				206E63BD2F8EABD90011E974 /* ConsoleStore.swift */,
+				206E64112F9160000011E974 /* SessionHistoryFileService.swift */,
 			);
 			path = Store;
 			sourceTree = "<group>";
@@ -277,6 +284,8 @@
 				206E63E02F90F99B0011E974 /* LiveSessionView.swift */,
 				206E63E22F90F9A40011E974 /* DiagnosticEmptyStateView.swift */,
 				206E63E62F90F9B40011E974 /* DiagnosticRootTabView.swift */,
+				206E64152F9160020011E974 /* SessionHistoryView.swift */,
+				206E64132F9160010011E974 /* SessionHistoryViewModel.swift */,
 				206E63D62F90EE5A0011E974 /* DiagnosticUIManager.swift */,
 				206E63E42F90F9AB0011E974 /* LiveSessionViewModel.swift */,
 				206E63D82F90EE740011E974 /* ShakeDetector.swift */,
@@ -426,6 +435,7 @@
 				206E628B2F8AD1A10011E974 /* DiagnosticSDK.docc in Sources */,
 				206E628C2F8AD1A10011E974 /* NetworkInterceptorProtocol.swift in Sources */,
 				206E63A62F8DB44F0011E974 /* DiagnosticSessionStore.swift in Sources */,
+				206E64102F9160000011E974 /* SessionHistoryFileService.swift in Sources */,
 				206E628D2F8AD1A10011E974 /* URLSessionInterceptor.swift in Sources */,
 				206E630B2F8CE8DA0011E974 /* DiagnosticContext.swift in Sources */,
 				206E628E2F8AD1A10011E974 /* JSONFormatter.swift in Sources */,
@@ -443,6 +453,7 @@
 				206E62962F8AD1A10011E974 /* AsyncTracker.swift in Sources */,
 				206E63D52F90EE1F0011E974 /* DiagnosticDashboardView.swift in Sources */,
 				206E63E52F90F9AB0011E974 /* LiveSessionViewModel.swift in Sources */,
+				206E64122F9160010011E974 /* SessionHistoryViewModel.swift in Sources */,
 				206E62972F8AD1A10011E974 /* CustomURLProtocol.swift in Sources */,
 				206E630F2F8CEB690011E974 /* UIViewController+DiagnosticSDK.m in Sources */,
 				206E62A62F8AD2160011E974 /* Extensions.swift in Sources */,
@@ -450,6 +461,7 @@
 				206E62992F8AD1A10011E974 /* NetworkStoreProtocol.swift in Sources */,
 				206E63E72F90F9B40011E974 /* DiagnosticRootTabView.swift in Sources */,
 				206E63E12F90F99B0011E974 /* LiveSessionView.swift in Sources */,
+				206E64142F9160020011E974 /* SessionHistoryView.swift in Sources */,
 				206E63D72F90EE5A0011E974 /* DiagnosticUIManager.swift in Sources */,
 				206E629A2F8AD1A10011E974 /* NetworkEvent.swift in Sources */,
 				206E629B2F8AD1A10011E974 /* ResponseModel.swift in Sources */,
