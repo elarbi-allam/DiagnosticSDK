@@ -11,7 +11,7 @@ public final class JSONFileStore: NetworkStoreProtocol {
 
     // MARK: - Properties
 
-    private let fileURL: URL
+    public let fileURL: URL
     private let writeQueue = DispatchQueue(label: "diagnosticsdk.store.write")
 
     // MARK: - Init
@@ -78,6 +78,15 @@ public final class JSONFileStore: NetworkStoreProtocol {
     public func readAll() -> [NetworkEvent] {
         writeQueue.sync {   // sync because we need the return value
             loadExistingEvents()
+        }
+    }
+    func clearAll() {
+        if FileManager.default.fileExists(atPath: fileURL.path) {
+            do {
+                try FileManager.default.removeItem(at: fileURL)
+            } catch {
+                print("Failed to clear file:", error)
+            }
         }
     }
 }
