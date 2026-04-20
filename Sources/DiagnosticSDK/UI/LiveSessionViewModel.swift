@@ -5,8 +5,8 @@ import Combine
 final class LiveSessionViewModel: ObservableObject {
     @Published private(set) var snapshot: DiagnosticSessionSnapshot
     @Published var searchText: String = ""
-    @Published var statusFilter: StatusFilter = .all
-    @Published var methodFilter: MethodFilter = .all
+    @Published var statusFilter: TraceHTTPStatusFilter = .all
+    @Published var methodFilter: TraceHTTPMethodFilter = .all
     
     private var lastSignature: Signature?
     private var updateCancellable: AnyCancellable?
@@ -24,8 +24,6 @@ final class LiveSessionViewModel: ObservableObject {
             }
     }
     
-    // MARK: - Private
-    
     private let store: DiagnosticSessionStore
     
     private func refresh() {
@@ -36,73 +34,14 @@ final class LiveSessionViewModel: ObservableObject {
         snapshot = newSnapshot
         lastSignature = newSignature
     }
-}
-
-extension LiveSessionViewModel {
-    enum StatusFilter: String, CaseIterable, Identifiable {
-        case all = "All"
-        case success2xx = "2xx"
-        case redirect3xx = "3xx"
-        case client4xx = "4xx"
-        case server5xx = "5xx"
-        case pending = "—"
-        
-        var id: String { rawValue }
-        
-        func matches(_ status: Int?) -> Bool {
-            switch self {
-            case .all: return true
-            case .pending: return status == nil
-            case .success2xx: return (status ?? -1) >= 200 && (status ?? -1) < 300
-            case .redirect3xx: return (status ?? -1) >= 300 && (status ?? -1) < 400
-            case .client4xx: return (status ?? -1) >= 400 && (status ?? -1) < 500
-            case .server5xx: return (status ?? -1) >= 500 && (status ?? -1) < 600
-            }
-        }
-    }
-    
-    enum MethodFilter: String, CaseIterable, Identifiable {
-        case all = "All"
-        case get = "GET"
-        case post = "POST"
-        case put = "PUT"
-        case patch = "PATCH"
-        case delete = "DELETE"
-        
-        var id: String { rawValue }
-        
-        func matches(_ method: String) -> Bool {
-            switch self {
-            case .all: return true
-            default: return method.uppercased() == rawValue
-            }
-        }
-    }
     
     var filteredScreens: [DiagnosticSessionSnapshot.Screen] {
-        let needle = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        
-        return snapshot.screens.compactMap { screen in
-            let filteredInteractions = screen.interactions.filter { interaction in
-                guard statusFilter.matches(interaction.status) else { return false }
-                guard methodFilter.matches(interaction.method) else { return false }
-                
-                guard !needle.isEmpty else { return true }
-                return interaction.url.lowercased().contains(needle)
-                    || interaction.method.lowercased().contains(needle)
-            }
-            
-            guard !filteredInteractions.isEmpty else { return nil }
-            
-            return DiagnosticSessionSnapshot.Screen(
-                id: screen.id,
-                name: screen.name,
-                enteredAt: screen.enteredAt,
-                exitedAt: screen.exitedAt,
-                interactions: filteredInteractions
-            )
-        }
-        .reversed() // most recent screen first
+        TraceSessionListFiltering.filteredScreens(
+            snapshot: snapshot,
+            searchText: searchText,
+            statusFilter: statusFilter,
+            methodFilter: methodFilter
+        )
     }
 }
 

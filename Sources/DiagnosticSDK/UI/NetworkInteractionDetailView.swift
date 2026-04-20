@@ -4,8 +4,8 @@ import UIKit
 import Combine
 
 struct NetworkInteractionDetailView: View {
-    let interactionId: String
-    private let store: DiagnosticSessionStore
+    private let interactionId: String
+    private let store: DiagnosticSessionStore?
     
     @State private var interaction: NetworkInteraction?
     @State private var isImagePreviewPresented = false
@@ -13,6 +13,14 @@ struct NetworkInteractionDetailView: View {
     init(interactionId: String, store: DiagnosticSessionStore = .shared) {
         self.interactionId = interactionId
         self.store = store
+        _interaction = State(initialValue: nil)
+    }
+    
+    /// Static detail for an archived trace (no live store subscription).
+    init(archivedInteraction: NetworkInteraction) {
+        self.interactionId = archivedInteraction.id
+        self.store = nil
+        _interaction = State(initialValue: archivedInteraction)
     }
     
     var body: some View {
@@ -31,13 +39,11 @@ struct NetworkInteractionDetailView: View {
         }
         .navigationBarTitle("Request Detail", displayMode: .inline)
         .onAppear {
-            if interaction == nil {
+            if interaction == nil, let store {
                 interaction = store.getInteraction(byId: interactionId)
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .diagnosticSessionStoreDidUpdate)) { _ in
-            interaction = store.getInteraction(byId: interactionId)
-        }
+        .overlay(storeUpdateOverlay)
         .sheet(isPresented: $isImagePreviewPresented) {
             if let interaction {
                 PreviewSheet(
@@ -46,6 +52,18 @@ struct NetworkInteractionDetailView: View {
                     urlString: interaction.request.url
                 )
             }
+        }
+    }
+    
+    @ViewBuilder
+    private var storeUpdateOverlay: some View {
+        if let store {
+            Color.clear
+                .frame(width: 0, height: 0)
+                .accessibilityHidden(true)
+                .onReceive(NotificationCenter.default.publisher(for: .diagnosticSessionStoreDidUpdate)) { _ in
+                    interaction = store.getInteraction(byId: interactionId)
+                }
         }
     }
     

@@ -33,31 +33,36 @@ struct SessionHistoryView: View {
                     } else {
                         ForEach(viewModel.visibleFiles) { file in
                             HStack(alignment: .center, spacing: 12) {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    HStack(spacing: 8) {
-                                        SourceBadge(source: file.source)
-                                        Text(file.fileName)
-                                            .font(.subheadline.weight(.semibold))
-                                            .foregroundColor(.primary)
-                                            .lineLimit(2)
-                                    }
-                                    
-                                    Text(file.source == .imported ? "Imported trace file" : "Recorded session trace")
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
-                                    
-                                    HStack(spacing: 6) {
-                                        Text(
-                                            file.recordingDate.formatted(date: .abbreviated, time: .standard)
-                                        )
-                                        Text("·")
+                                NavigationLink {
+                                    TraceInspectorView(file: file)
+                                } label: {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        HStack(spacing: 8) {
+                                            SourceBadge(source: file.source)
+                                            Text(file.fileName)
+                                                .font(.subheadline.weight(.semibold))
+                                                .foregroundColor(.primary)
+                                                .lineLimit(2)
+                                        }
+                                        
+                                        Text(file.source == .imported ? "Imported trace file" : "Recorded session trace")
+                                            .font(.caption2)
                                             .foregroundColor(.secondary)
-                                        Text(file.formattedByteCount)
+                                        
+                                        HStack(spacing: 6) {
+                                            Text(
+                                                file.recordingDate.formatted(date: .abbreviated, time: .standard)
+                                            )
+                                            Text("·")
+                                                .foregroundColor(.secondary)
+                                            Text(file.formattedByteCount)
+                                        }
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
                                     }
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
                                 }
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .buttonStyle(PlainButtonStyle())
                                 
                                 Button {
                                     viewModel.prepareShare(for: file)
