@@ -33,36 +33,31 @@ struct SessionHistoryView: View {
                     } else {
                         ForEach(viewModel.visibleFiles) { file in
                             HStack(alignment: .center, spacing: 12) {
-                                Button {
-                                    viewModel.handleRowTap(file)
-                                } label: {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        HStack(spacing: 8) {
-                                            SourceBadge(source: file.source)
-                                            Text(file.fileName)
-                                                .font(.subheadline.weight(.semibold))
-                                                .foregroundColor(.primary)
-                                                .lineLimit(2)
-                                        }
-                                        
-                                        Text(file.source == .imported ? "Imported trace file" : "Recorded session trace")
-                                            .font(.caption2)
-                                            .foregroundColor(.secondary)
-                                        
-                                        HStack(spacing: 6) {
-                                            Text(
-                                                file.recordingDate.formatted(date: .abbreviated, time: .standard)
-                                            )
-                                            Text("·")
-                                                .foregroundColor(.secondary)
-                                            Text(file.formattedByteCount)
-                                        }
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack(spacing: 8) {
+                                        SourceBadge(source: file.source)
+                                        Text(file.fileName)
+                                            .font(.subheadline.weight(.semibold))
+                                            .foregroundColor(.primary)
+                                            .lineLimit(2)
                                     }
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    
+                                    Text(file.source == .imported ? "Imported trace file" : "Recorded session trace")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                    
+                                    HStack(spacing: 6) {
+                                        Text(
+                                            file.recordingDate.formatted(date: .abbreviated, time: .standard)
+                                        )
+                                        Text("·")
+                                            .foregroundColor(.secondary)
+                                        Text(file.formattedByteCount)
+                                    }
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                                 }
-                                .buttonStyle(PlainButtonStyle())
+                                .frame(maxWidth: .infinity, alignment: .leading)
                                 
                                 Button {
                                     viewModel.prepareShare(for: file)
@@ -134,7 +129,11 @@ struct SessionHistoryView: View {
             "Delete trace?",
             isPresented: Binding(
                 get: { filePendingDeletion != nil },
-                set: { _ in }
+                set: { isPresented in
+                    if !isPresented {
+                        filePendingDeletion = nil
+                    }
+                }
             ),
             titleVisibility: .visible
         ) {

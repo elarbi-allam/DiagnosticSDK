@@ -33,7 +33,6 @@ final class LiveSessionViewModel: ObservableObject {
         let newSignature = Signature(snapshot: newSnapshot)
         guard newSignature != lastSignature else { return }
         
-        objectWillChange.send()
         snapshot = newSnapshot
         lastSignature = newSignature
     }

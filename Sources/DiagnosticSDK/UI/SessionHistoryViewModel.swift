@@ -149,11 +149,7 @@ final class SessionHistoryViewModel: ObservableObject {
     func selectFilter(_ filter: SessionHistorySourceFilter) {
         sourceFilter = filter
     }
-    
-    func handleRowTap(_ file: DiagnosticTraceFileInfo) {
-        print(file.fileName)
-    }
-    
+
     func prepareShare(for file: DiagnosticTraceFileInfo) {
         shareItem = SessionHistoryShareItem(url: file.url)
     }

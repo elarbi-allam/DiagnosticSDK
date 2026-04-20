@@ -2,7 +2,6 @@ import Foundation
 import UIKit
 
 /// A high-performance, thread-safe store that manages the diagnostic session in memory.
-/// It builds a hierarchical tree of screens and network interactions.
 public final class DiagnosticSessionStore: NetworkStoreProtocol {
     
     /// The shared singleton instance accessed by the interception engine.
@@ -17,8 +16,8 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
     private let isolationQueue = DispatchQueue(label: "com.diagnosticsdk.sessionstore.isolation", attributes: .concurrent)
     
     /// Maps a screen visit id to the corresponding screen node index.
-    /// This preserves navigation chronology even when the same screen name appears multiple times.
     private var screenIndexByVisitId: [Int: Int] = [:]
+    private var backgroundObserver: NSObjectProtocol?
     
     // MARK: - Initialization
     
@@ -27,13 +26,17 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
         self.setupAutoSave()
     }
     
+    deinit {
+        if let backgroundObserver {
+            NotificationCenter.default.removeObserver(backgroundObserver)
+        }
+    }
+    
     // MARK: - NetworkStoreProtocol Implementation
     
     /// Asynchronously stores a captured network event into the hierarchical tree.
     /// - Parameter event: The raw network event intercepted from URLSession.
     public func save(event: NetworkEvent) {
-        // Use a barrier block to ensure exclusive write access to the session tree.
-        // This guarantees thread safety without blocking reader threads.
         isolationQueue.async(flags: .barrier) { [weak self] in
             self?.processAndAppend(event: event)
             NotificationCenter.default.post(name: .diagnosticSessionStoreDidUpdate, object: self)
@@ -48,8 +51,7 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
         let interaction = mapToInteraction(event)
         let visitId = event.request.screenVisitId
         
-        // Preferred path: attach by unique visit id captured when the request started.
-        // This keeps Home -> Detail -> Home as distinct blocks and still handles async responses correctly.
+        // Attach by screen visit when available to preserve navigation chronology.
         if let visitId {
             if let idx = screenIndexByVisitId[visitId], idx < currentSession.screens.count {
                 currentSession.screens[idx].networkInteractions.append(interaction)
@@ -63,8 +65,7 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
             return
         }
         
-        // Fallback for older events: only merge with the currently open tail screen.
-        // If navigation moved in-between, create a new screen node even with the same name.
+        // Fallback path for events captured without a visit id.
         if let idx = currentSession.screens.indices.last,
            currentSession.screens[idx].name == targetScreenName {
             currentSession.screens[idx].networkInteractions.append(interaction)
@@ -125,27 +126,25 @@ extension DiagnosticSessionStore {
     public func exportSessionToDisk() -> URL? {
         var exportedURL: URL?
         
-        // Sync read to guarantee data consistency during serialization.
-        // It freezes the queue for a millisecond to take a snapshot of the tree.
         isolationQueue.sync {
             let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted // Makes the JSON readable for humans
+            encoder.outputFormatting = .prettyPrinted
             encoder.dateEncodingStrategy = .iso8601
             
             do {
                 let jsonData = try encoder.encode(self.currentSession)
                 
-                // Format the filename with the exact export date: "DiagnosticTrace_2026-04-14_12-30-00.json"
                 let formatter = DateFormatter()
                 formatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
                 let dateString = formatter.string(from: Date())
                 let fileName = "DiagnosticTrace_\(dateString).json"
                 
-                // Get the path to the app's secure Documents folder
-                let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+                    print("❌ [DiagnosticSDK] Failed to export session to disk: missing Documents directory")
+                    return
+                }
                 let filePath = documentsPath.appendingPathComponent(fileName)
                 
-                // Instant write to disk
                 try jsonData.write(to: filePath)
                 exportedURL = filePath
                 print("✅ [DiagnosticSDK] Session exported successfully to: \(filePath.path)")
@@ -159,7 +158,7 @@ extension DiagnosticSessionStore {
     
     /// Listens for the app going into the background to trigger a safety save.
     private func setupAutoSave() {
-        NotificationCenter.default.addObserver(
+        backgroundObserver = NotificationCenter.default.addObserver(
             forName: UIApplication.didEnterBackgroundNotification,
             object: nil,
             queue: .main

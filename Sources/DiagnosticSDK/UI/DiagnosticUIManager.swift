@@ -7,28 +7,27 @@ public final class DiagnosticUIManager {
     
     private init() {}
     
-    /// Affiche le Dashboard de diagnostic au-dessus de l'application
+    /// Presents the diagnostic dashboard above the current application UI.
     public func presentDashboard() {
-        // 1. Trouver la fenêtre principale active de l'application
+        // Resolve the currently active key window and root controller.
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let window = windowScene.windows.first(where: { $0.isKeyWindow }),
               let rootVC = window.rootViewController else {
             return
         }
         
-        // 2. Trouver le ViewController le plus haut (pour éviter de présenter sous une modale existante)
+        // Present from the top-most controller to avoid stacking below an existing modal.
         var topController = rootVC
         while let presented = topController.presentedViewController {
             topController = presented
         }
         
-        // 3. Éviter d'ouvrir le dashboard s'il est déjà ouvert
+        // Prevent duplicate presentation of the same dashboard controller.
         if topController is UIHostingController<DiagnosticDashboardView> { return }
         
-        // 4. Créer et afficher la vue
         let dashboardView = DiagnosticDashboardView()
         let hostingController = UIHostingController(rootView: dashboardView)
-        hostingController.modalPresentationStyle = .pageSheet // Un bel affichage qui glisse du bas
+        hostingController.modalPresentationStyle = .pageSheet
         
         topController.present(hostingController, animated: true)
     }

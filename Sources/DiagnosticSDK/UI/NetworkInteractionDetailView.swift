@@ -35,6 +35,9 @@ struct NetworkInteractionDetailView: View {
                 interaction = store.getInteraction(byId: interactionId)
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .diagnosticSessionStoreDidUpdate)) { _ in
+            interaction = store.getInteraction(byId: interactionId)
+        }
         .sheet(isPresented: $isImagePreviewPresented) {
             if let interaction {
                 PreviewSheet(
@@ -447,7 +450,13 @@ private final class NonInterceptedImageLoader: ObservableObject {
     @Published var image: UIImage?
     @Published var errorMessage: String?
     
+    private var session: URLSession?
     private var task: URLSessionDataTask?
+    
+    deinit {
+        task?.cancel()
+        session?.invalidateAndCancel()
+    }
     
     func load(from urlString: String) {
         guard image == nil else { return }
@@ -466,6 +475,7 @@ private final class NonInterceptedImageLoader: ObservableObject {
         }
         
         let session = URLSession(configuration: config)
+        self.session = session
         task = session.dataTask(with: url) { [weak self] data, response, error in
             DispatchQueue.main.async {
                 guard let self = self else { return }
@@ -488,6 +498,7 @@ private final class NonInterceptedImageLoader: ObservableObject {
                 }
                 
                 self.image = image
+                self.errorMessage = nil
             }
         }
         task?.resume()
