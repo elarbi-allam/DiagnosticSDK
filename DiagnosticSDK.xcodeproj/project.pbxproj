@@ -293,22 +293,94 @@
 		206E63D32F90EE050011E974 /* UI */ = {
 			isa = PBXGroup;
 			children = (
-				206E63D42F90EE1F0011E974 /* DiagnosticDashboardView.swift */,
-				206E63EF2F914D880011E974 /* NetworkInteractionDetailView.swift */,
-				206E63E02F90F99B0011E974 /* LiveSessionView.swift */,
-				206E63E22F90F9A40011E974 /* DiagnosticEmptyStateView.swift */,
-				206E63E62F90F9B40011E974 /* DiagnosticRootTabView.swift */,
-				206E64152F9160020011E974 /* SessionHistoryView.swift */,
-				206E64132F9160010011E974 /* SessionHistoryViewModel.swift */,
-				206E63D62F90EE5A0011E974 /* DiagnosticUIManager.swift */,
-				206E63E42F90F9AB0011E974 /* LiveSessionViewModel.swift */,
-				206E63D82F90EE740011E974 /* ShakeDetector.swift */,
-				206E65032F9180000011E974 /* TraceSessionListFilters.swift */,
-				206E65042F9180000011E974 /* DiagnosticTraceSessionListViews.swift */,
-				206E65052F9180000011E974 /* TraceInspectorViewModel.swift */,
-				206E65062F9180000011E974 /* TraceInspectorView.swift */,
+				208E76432F977BAC0010B0F8 /* Components */,
+				208E76402F977B460010B0F8 /* History */,
+				208E763D2F977B0A0010B0F8 /* Live */,
+				208E763C2F977AF60010B0F8 /* Root */,
+				208E763B2F977AD00010B0F8 /* Public */,
 			);
 			path = UI;
+			sourceTree = "<group>";
+		};
+		208E763B2F977AD00010B0F8 /* Public */ = {
+			isa = PBXGroup;
+			children = (
+				206E63D42F90EE1F0011E974 /* DiagnosticDashboardView.swift */,
+				206E63D62F90EE5A0011E974 /* DiagnosticUIManager.swift */,
+				206E63D82F90EE740011E974 /* ShakeDetector.swift */,
+			);
+			path = Public;
+			sourceTree = "<group>";
+		};
+		208E763C2F977AF60010B0F8 /* Root */ = {
+			isa = PBXGroup;
+			children = (
+				206E63E62F90F9B40011E974 /* DiagnosticRootTabView.swift */,
+			);
+			path = Root;
+			sourceTree = "<group>";
+		};
+		208E763D2F977B0A0010B0F8 /* Live */ = {
+			isa = PBXGroup;
+			children = (
+				208E763F2F977B280010B0F8 /* ViewModels */,
+				208E763E2F977B110010B0F8 /* Views */,
+			);
+			path = Live;
+			sourceTree = "<group>";
+		};
+		208E763E2F977B110010B0F8 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				206E63E02F90F99B0011E974 /* LiveSessionView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		208E763F2F977B280010B0F8 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				206E63E42F90F9AB0011E974 /* LiveSessionViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		208E76402F977B460010B0F8 /* History */ = {
+			isa = PBXGroup;
+			children = (
+				208E76422F977B800010B0F8 /* ViewModels */,
+				208E76412F977B510010B0F8 /* Views */,
+			);
+			path = History;
+			sourceTree = "<group>";
+		};
+		208E76412F977B510010B0F8 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				206E64152F9160020011E974 /* SessionHistoryView.swift */,
+				206E65062F9180000011E974 /* TraceInspectorView.swift */,
+				206E63EF2F914D880011E974 /* NetworkInteractionDetailView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		208E76422F977B800010B0F8 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				206E64132F9160010011E974 /* SessionHistoryViewModel.swift */,
+				206E65052F9180000011E974 /* TraceInspectorViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		208E76432F977BAC0010B0F8 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				206E63E22F90F9A40011E974 /* DiagnosticEmptyStateView.swift */,
+				206E65032F9180000011E974 /* TraceSessionListFilters.swift */,
+				206E65042F9180000011E974 /* DiagnosticTraceSessionListViews.swift */,
+			);
+			path = Components;
 			sourceTree = "<group>";
 		};
 		20F102CC2F8014470096C884 = {

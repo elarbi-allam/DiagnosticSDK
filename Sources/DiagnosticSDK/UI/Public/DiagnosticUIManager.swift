@@ -16,19 +16,32 @@ public final class DiagnosticUIManager {
             return
         }
         
+        // Avoid duplicate stackings when shake is triggered repeatedly.
+        if isDashboardAlreadyPresented(from: rootVC) {
+            return
+        }
+        
         // Present from the top-most controller to avoid stacking below an existing modal.
         var topController = rootVC
         while let presented = topController.presentedViewController {
             topController = presented
         }
         
-        // Prevent duplicate presentation of the same dashboard controller.
-        if topController is UIHostingController<DiagnosticDashboardView> { return }
-        
         let dashboardView = DiagnosticDashboardView()
         let hostingController = UIHostingController(rootView: dashboardView)
         hostingController.modalPresentationStyle = .pageSheet
         
         topController.present(hostingController, animated: true)
+    }
+    
+    private func isDashboardAlreadyPresented(from root: UIViewController) -> Bool {
+        var current: UIViewController? = root
+        while let controller = current {
+            if controller is UIHostingController<DiagnosticDashboardView> {
+                return true
+            }
+            current = controller.presentedViewController
+        }
+        return false
     }
 }
