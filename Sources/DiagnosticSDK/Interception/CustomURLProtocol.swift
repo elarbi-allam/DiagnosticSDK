@@ -63,15 +63,14 @@ class CustomURLProtocol: URLProtocol {
                 )
             }
             
-            // 5. ERROR HANDLING (Important to avoid freezing the app)
+            // Keep delivery on the URLSession callback thread to avoid flooding main.
             if let error = error {
                 self.client?.urlProtocol(self, didFailWithError: error)
                 return
             }
             
-            // Return data to the host application as usual
             if let response = response {
-                self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+                self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .allowed)
             }
             
             if let data = data {

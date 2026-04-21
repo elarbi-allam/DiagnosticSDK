@@ -8,6 +8,7 @@ enum NetworkEventBuilder {
         data: Data?,
         latency: Double,
         screenName: String?,
+        screenVisitId: Int?,
         error: Error? = nil
     ) -> NetworkEvent {
         
@@ -38,7 +39,8 @@ enum NetworkEventBuilder {
             method: request.httpMethod ?? "UNKNOWN",
             headers: filteredHeaders,
             body: requestBody,
-            screenName: screenName
+            screenName: screenName,
+            screenVisitId: screenVisitId
         )
         
         let httpResponse = response as? HTTPURLResponse

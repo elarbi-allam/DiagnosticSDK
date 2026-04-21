@@ -31,7 +31,7 @@ public struct TraceMetadata: Codable {
         let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
         let osVersion = UIDevice.current.systemVersion
         
-        // Fetch hardware identifier (e.g., "iPhone14,2")
+        // Hardware identifier (for example, "iPhone14,2").
         var systemInfo = utsname()
         uname(&systemInfo)
         let modelCode = withUnsafePointer(to: &systemInfo.machine) {
@@ -45,9 +45,7 @@ public struct TraceMetadata: Codable {
 // MARK: - Screen Tracking
 
 /// Represents an active screen.
-/// Implemented as a final class (reference type) to allow appending network interactions
-/// to the `networkInteractions` array while the screen is currently visible.
-/// The `final` keyword ensures Codable compliance in Swift.
+/// Implemented as a reference type to support in-place interaction appends.
 public final class ScreenNode: Codable {
     public let id: String
     public let name: String
@@ -70,13 +68,16 @@ public struct NetworkInteraction: Codable {
     public let id: String
     public let startedAt: Date
     public var durationMs: Int?
+    /// Screen that was active when the request started (same semantics as `RequestModel.screenName`).
+    public let screenName: String?
     public let request: RequestDetails
     public var response: ResponseDetails?
     
-    public init(id: String = UUID().uuidString, request: RequestDetails) {
+    public init(id: String = UUID().uuidString, request: RequestDetails, screenName: String? = nil) {
         self.id = id
         self.startedAt = Date()
         self.request = request
+        self.screenName = screenName
     }
 }
 

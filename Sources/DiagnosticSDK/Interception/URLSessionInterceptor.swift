@@ -24,7 +24,13 @@ final class URLSessionInterceptor {
         let id = UUID().uuidString
         // Capture the active screen exactly when the request starts.
         let currentScreen = DiagnosticContext.shared.currentScreen
-        tracker.storeRequest(id: id, request: request, screenName: currentScreen)
+        let currentScreenVisitId = DiagnosticContext.shared.currentScreenVisitId
+        tracker.storeRequest(
+            id: id,
+            request: request,
+            screenName: currentScreen,
+            screenVisitId: currentScreenVisitId
+        )
         return id
     }
     
@@ -37,7 +43,8 @@ final class URLSessionInterceptor {
             response: response,
             data: data,
             latency: latency,
-            screenName: pending.screenName
+            screenName: pending.screenName,
+            screenVisitId: pending.screenVisitId
         )
         
         DiagnosticSessionStore.shared.save(event: event)

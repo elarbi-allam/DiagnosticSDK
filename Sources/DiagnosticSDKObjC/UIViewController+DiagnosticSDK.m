@@ -64,7 +64,14 @@
     if ([screenName hasPrefix:@"UI"] ||
         [screenName hasPrefix:@"_UI"] ||
         [screenName isEqualToString:@"UINavigationController"] ||
-        [screenName isEqualToString:@"UITabBarController"]) {
+        [screenName isEqualToString:@"UITabBarController"] ||
+        // SwiftUI hosting containers are structural; tagging them breaks attribution for mixed UIKit/SwiftUI apps.
+        // SwiftUI-only apps should explicitly set the screen via the Swift API (provided by the SDK UI layer).
+        [screenName hasPrefix:@"SwiftUI."] ||
+        [screenName containsString:@"UIHostingController"] ||
+        // SwiftUI-mangled runtime names (e.g. _TtGC7SwiftUI...StyleContextSplitViewNavigationController...)
+        [screenName containsString:@"SwiftUI"] ||
+        [screenName hasPrefix:@"_TtGC7SwiftUI"]) {
         return;
     }
     
