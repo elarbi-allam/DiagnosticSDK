@@ -43,7 +43,9 @@ enum NetworkEventBuilder {
         return NetworkEvent(
             request: requestModel,
             response: responseModel,
-            timestamp: Date()
+            timestamp: Date(),
+            sessionId: SessionContext.shared.currentSessionId,
+            sessionStartedAt: SessionContext.shared.currentSessionStartedAt
         )
     }
 }
