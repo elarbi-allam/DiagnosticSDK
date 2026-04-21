@@ -1,19 +1,29 @@
 import Foundation
 
 /// Point d'entrée principal du SDK
-public final class NetworkInterceptor: NetworkInterceptorProtocol {
+@objc(DiagnosticSDKNetworkInterceptor)
+public final class NetworkInterceptor: NSObject, NetworkInterceptorProtocol {
     
     private let interceptor: URLSessionInterceptor
     
     public init(store: NetworkStoreProtocol) {
         self.interceptor = URLSessionInterceptor(store: store)
+        super.init()
+        if let fileStore = store as? JSONFileStore {
+            DiagnosticOverlayWindow.shared.configure(store: fileStore)
+            }
     }
     
-    public func start() {
+    @objc public override convenience init() {
+        self.init(store: JSONFileStore())
+    }
+    
+    @objc public func start() {
         interceptor.enable()
+        ShakeDetector.shared.start()
     }
     
-    public func stop() {
+    @objc public func stop() {
         interceptor.disable()
     }
 }

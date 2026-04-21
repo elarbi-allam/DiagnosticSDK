@@ -20,7 +20,7 @@ final class AsyncTracker {
     func storeRequest(id: String, request: URLRequest) {
         queue.async(flags: .barrier) {
             self.storage[id] = request
-        }
+                    }
     }
     
     func getRequest(id: String) -> URLRequest? {
