@@ -1,48 +1,42 @@
 import Foundation
 
-enum JSONFormatter {
+enum SessionTraceJSONCodec {
     
-    static func format(event: NetworkEvent) -> String? {
-        do {
-            return try formattedString(from: event)
-        } catch let error as JSONFormatterError {
-            print("[DiagnosticSDK][JSONFormatter] \(error.localizedDescription)")
-            return nil
-        } catch {
-            print("[DiagnosticSDK][JSONFormatter] Unexpected formatting error: \(error.localizedDescription)")
-            return nil
-        }
-    }
-    
-    static func formattedString(from event: NetworkEvent) throws -> String {
+    static func encode(_ session: SessionTrace) throws -> Data {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
+        encoder.dateEncodingStrategy = .iso8601
         
-        let data: Data
         do {
-            data = try encoder.encode(event)
+            return try encoder.encode(session)
         } catch {
-            throw JSONFormatterError.encodingFailure(details: describeEncodingError(error))
+            throw SessionTraceJSONCodecError.encodingFailed(details: describeEncodingError(error))
         }
-        
-        guard let jsonString = String(data: data, encoding: .utf8) else {
-            throw JSONFormatterError.invalidUTF8
-        }
-        
-        return jsonString
     }
     
-    static func decodeEvent(from jsonString: String) throws -> NetworkEvent {
-        guard let data = jsonString.data(using: .utf8) else {
-            throw JSONFormatterError.invalidUTF8
+    static func decode(from data: Data) throws -> SessionTrace {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        
+        do {
+            return try decoder.decode(SessionTrace.self, from: data)
+        } catch {
+            throw SessionTraceJSONCodecError.decodingFailed(details: describeDecodingError(error))
+        }
+    }
+    
+    static func decodeFile(at fileURL: URL) throws -> SessionTrace {
+        let data: Data
+        do {
+            data = try Data(contentsOf: fileURL, options: [.mappedIfSafe])
+        } catch {
+            throw SessionTraceJSONCodecError.fileReadFailed(
+                url: fileURL,
+                details: error.localizedDescription
+            )
         }
         
-        let decoder = JSONDecoder()
-        do {
-            return try decoder.decode(NetworkEvent.self, from: data)
-        } catch {
-            throw JSONFormatterError.decodingFailure(details: describeDecodingError(error))
-        }
+        return try decode(from: data)
     }
     
     private static func describeEncodingError(_ error: Error) -> String {
@@ -83,19 +77,19 @@ enum JSONFormatter {
     }
 }
 
-enum JSONFormatterError: LocalizedError {
-    case encodingFailure(details: String)
-    case decodingFailure(details: String)
-    case invalidUTF8
+enum SessionTraceJSONCodecError: LocalizedError {
+    case fileReadFailed(url: URL, details: String)
+    case encodingFailed(details: String)
+    case decodingFailed(details: String)
     
     var errorDescription: String? {
         switch self {
-        case .encodingFailure(let details):
-            return "Encoding failed: \(details)"
-        case .decodingFailure(let details):
-            return "Decoding failed: \(details)"
-        case .invalidUTF8:
-            return "UTF-8 conversion failed while processing JSON payload."
+        case .fileReadFailed(let url, let details):
+            return "Failed to read session file at '\(url.path)': \(details)"
+        case .encodingFailed(let details):
+            return "Failed to encode SessionTrace to JSON: \(details)"
+        case .decodingFailed(let details):
+            return "Failed to decode SessionTrace from JSON: \(details)"
         }
     }
 }
