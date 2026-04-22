@@ -127,12 +127,8 @@ extension DiagnosticSessionStore {
         var exportedURL: URL?
         
         isolationQueue.sync {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted
-            encoder.dateEncodingStrategy = .iso8601
-            
             do {
-                let jsonData = try encoder.encode(self.currentSession)
+                let jsonData = try SessionTraceJSONCodec.encode(self.currentSession)
                 
                 let formatter = DateFormatter()
                 formatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
@@ -148,6 +144,8 @@ extension DiagnosticSessionStore {
                 try jsonData.write(to: filePath)
                 exportedURL = filePath
                 print("✅ [DiagnosticSDK] Session exported successfully to: \(filePath.path)")
+            } catch let error as SessionTraceJSONCodecError {
+                print("❌ [DiagnosticSDK] Failed to export session to disk: \(error.localizedDescription)")
             } catch {
                 print("❌ [DiagnosticSDK] Failed to export session to disk: \(error.localizedDescription)")
             }
