@@ -10,7 +10,7 @@ public final class NetworkInterceptor: NetworkInterceptorProtocol {
     
     private let interceptor: URLSessionInterceptor
     
-    public init(store: NetworkStoreProtocol? = nil) {
+    public init(store: NetworkStoreProtocol = ConsoleStore()) {
         self.interceptor = URLSessionInterceptor(store: store)
     }
     

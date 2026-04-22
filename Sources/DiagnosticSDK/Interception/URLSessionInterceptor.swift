@@ -3,10 +3,10 @@ import Foundation
 /// Captures requests and responses intercepted by URLProtocol.
 final class URLSessionInterceptor {
     
-    private let store: NetworkStoreProtocol?
+    private let store: NetworkStoreProtocol
     private let tracker = AsyncTracker()
     
-    init(store: NetworkStoreProtocol? = nil) {
+    init(store: NetworkStoreProtocol) {
         self.store = store
     }
     
@@ -48,10 +48,7 @@ final class URLSessionInterceptor {
         )
         
         DiagnosticSessionStore.shared.save(event: event)
-        if DiagnosticContext.shared.isConsoleLoggingEnabled {
-            ConsoleStore().save(event: event)
-        }
-        store?.save(event: event)
+        store.save(event: event)
     }
     
     func discardRequest(id: String) {

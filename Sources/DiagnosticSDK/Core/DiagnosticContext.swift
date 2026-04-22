@@ -23,8 +23,6 @@ public final class DiagnosticContext: NSObject {
         return _currentScreenVisitId
     }
 
-    public var isConsoleLoggingEnabled: Bool = false
-    
     private override init() {
         super.init()
     }
