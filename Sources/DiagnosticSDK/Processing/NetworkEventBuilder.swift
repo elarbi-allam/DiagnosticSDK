@@ -16,19 +16,31 @@ enum NetworkEventBuilder {
             headers: request.allHTTPHeaderFields ?? [:]
         )
         
-        func isJSONContent(headers: [String: String]?) -> Bool {
-            guard let headers = headers else { return false }
+        func contentType(from headers: [String: String]?) -> String? {
+            guard let headers = headers else { return nil }
             let contentTypeKey = headers.keys.first { $0.caseInsensitiveCompare("Content-Type") == .orderedSame }
-            guard let key = contentTypeKey, let contentTypeValue = headers[key] else { return false }
-            return contentTypeValue.lowercased().contains("application/json")
+            guard let key = contentTypeKey else { return nil }
+            let rawContentType = headers[key]?.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard let contentType = rawContentType, !contentType.isEmpty else { return nil }
+            return contentType
+        }
+        
+        func isJSONContentType(_ contentType: String?) -> Bool {
+            guard let contentType = contentType?.lowercased() else { return false }
+            return contentType.contains("application/json") || contentType.contains("+json")
+        }
+        
+        func unsupportedContentTypeMessage(from headers: [String: String]?) -> String {
+            let resolvedContentType = contentType(from: headers) ?? "unknown"
+            return "can't save this type of content: \(resolvedContentType)"
         }
         
         let requestBody: String?
         if let bodyData = request.httpBody, !bodyData.isEmpty {
-            if isJSONContent(headers: request.allHTTPHeaderFields) {
+            if isJSONContentType(contentType(from: request.allHTTPHeaderFields)) {
                 requestBody = String(data: bodyData, encoding: .utf8)
             } else {
-                requestBody = "can't save this content type"
+                requestBody = unsupportedContentTypeMessage(from: request.allHTTPHeaderFields)
             }
         } else {
             requestBody = nil
@@ -50,10 +62,10 @@ enum NetworkEventBuilder {
         let bodySize = data?.count ?? 0
         
         if let responseData = data, !responseData.isEmpty {
-            if isJSONContent(headers: responseHeaders) {
+            if isJSONContentType(contentType(from: responseHeaders)) {
                 bodyBase64 = responseData.base64EncodedString()
             } else {
-                bodyBase64 = "can't save this content type"
+                bodyBase64 = unsupportedContentTypeMessage(from: responseHeaders)
             }
         } else {
             bodyBase64 = nil
