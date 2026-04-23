@@ -50,9 +50,17 @@ final class LiveSessionViewModel: ObservableObject {
         )
     }
     
+    var totalRequests: Int {
+        snapshot.screens.reduce(into: 0) { $0 += $1.interactions.count }
+    }
+    
     func exportCurrentSession() {
         guard let exportedURL = store.exportSessionToDisk() else { return }
         shareItem = LiveSessionShareItem(url: exportedURL)
+    }
+    
+    func clearCurrentSession() {
+        store.clearCurrentSessionContent()
     }
 }
 

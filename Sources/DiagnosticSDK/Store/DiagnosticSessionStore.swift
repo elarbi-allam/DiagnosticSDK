@@ -43,6 +43,16 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
         }
     }
     
+    /// Clears captured screens and interactions while preserving the active session identity.
+    public func clearCurrentSessionContent() {
+        isolationQueue.async(flags: .barrier) { [weak self] in
+            guard let self else { return }
+            self.currentSession.screens.removeAll(keepingCapacity: false)
+            self.screenIndexByVisitId.removeAll(keepingCapacity: false)
+            NotificationCenter.default.post(name: .diagnosticSessionStoreDidUpdate, object: self)
+        }
+    }
+    
     // MARK: - Tree Building Logic
     
     /// Processes the raw event and places it into the correct ScreenNode.

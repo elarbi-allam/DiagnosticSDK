@@ -57,6 +57,11 @@ final class TraceInspectorViewModel: ObservableObject {
         )
     }
     
+    var totalRequests: Int {
+        guard let snapshot else { return 0 }
+        return snapshot.screens.reduce(into: 0) { $0 += $1.interactions.count }
+    }
+    
     func interaction(for id: String) -> NetworkInteraction? {
         interactionIndex[id]
     }
