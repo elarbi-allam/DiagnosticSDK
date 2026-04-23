@@ -5,6 +5,7 @@ import UIKit
 struct SessionHistoryView: View {
     @StateObject private var viewModel = SessionHistoryViewModel()
     @State private var isImportPickerPresented = false
+    @State private var isClearAllConfirmationPresented = false
     
     var body: some View {
         Group {
@@ -87,6 +88,7 @@ struct SessionHistoryView: View {
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
             viewModel.refresh()
         }
+        .navigationBarItems(leading: clearAllButton)
         .safeAreaInset(edge: .bottom) {
             Button {
                 isImportPickerPresented = true
@@ -118,6 +120,19 @@ struct SessionHistoryView: View {
             ActivityView(activityItems: [item.url])
         }
         .alert(
+            "Clear all traces?",
+            isPresented: $isClearAllConfirmationPresented,
+            actions: {
+                Button("Delete All", role: .destructive) {
+                    viewModel.clearAllFiles()
+                }
+                Button("Cancel", role: .cancel) {}
+            },
+            message: {
+                Text("This action will permanently remove all exported and imported trace files.")
+            }
+        )
+        .alert(
             "Import failed",
             isPresented: Binding(
                 get: { viewModel.importErrorMessage != nil },
@@ -147,6 +162,13 @@ struct SessionHistoryView: View {
                 Text(viewModel.deleteErrorMessage ?? "")
             }
         )
+    }
+    
+    private var clearAllButton: some View {
+        Button("Clear All", role: .destructive) {
+            isClearAllConfirmationPresented = true
+        }
+        .disabled(viewModel.files.isEmpty)
     }
     
     private var historyFilterBar: some View {

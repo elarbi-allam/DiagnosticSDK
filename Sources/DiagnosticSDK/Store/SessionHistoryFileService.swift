@@ -59,8 +59,8 @@ enum SessionHistoryFileService {
             guard values.isRegularFile == true else { return nil }
             
             let size = Int64(values.fileSize ?? 0)
-            let recorded = values.creationDate
-                ?? values.contentModificationDate
+            let recorded = values.contentModificationDate
+                ?? values.creationDate
                 ?? Date.distantPast
             let source: DiagnosticTraceSource = name.hasPrefix(importedTraceNamePrefix) ? .imported : .session
             
@@ -126,10 +126,12 @@ enum SessionHistoryFileService {
         let destinationFileName = "\(importedTraceNamePrefix)\(sourceFileName)"
         
         let destination = destDir.appendingPathComponent(destinationFileName)
+        let fm = FileManager.default
         if FileManager.default.fileExists(atPath: destination.path) {
-            try FileManager.default.removeItem(at: destination)
+            try fm.removeItem(at: destination)
         }
-        try FileManager.default.copyItem(at: sourceURL, to: destination)
+        try fm.copyItem(at: sourceURL, to: destination)
+        try fm.setAttributes([.modificationDate: Date()], ofItemAtPath: destination.path)
         return destination
     }
     
