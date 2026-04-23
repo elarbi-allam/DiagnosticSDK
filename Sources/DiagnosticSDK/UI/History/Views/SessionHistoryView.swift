@@ -5,7 +5,6 @@ import UIKit
 struct SessionHistoryView: View {
     @StateObject private var viewModel = SessionHistoryViewModel()
     @State private var isImportPickerPresented = false
-    @State private var filePendingDeletion: DiagnosticTraceFileInfo?
     
     var body: some View {
         Group {
@@ -32,61 +31,49 @@ struct SessionHistoryView: View {
                         }
                     } else {
                         ForEach(viewModel.visibleFiles) { file in
-                            HStack(alignment: .center, spacing: 12) {
-                                NavigationLink {
-                                    TraceInspectorView(file: file)
-                                } label: {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        HStack(spacing: 8) {
-                                            SourceBadge(source: file.source)
-                                            Text(file.fileName)
-                                                .font(.subheadline.weight(.semibold))
-                                                .foregroundColor(.primary)
-                                                .lineLimit(2)
-                                        }
-                                        
-                                        Text(file.source == .imported ? "Imported trace file" : "Recorded session trace")
-                                            .font(.caption2)
-                                            .foregroundColor(.secondary)
-                                        
-                                        HStack(spacing: 6) {
-                                            Text(
-                                                file.recordingDate.formatted(date: .abbreviated, time: .standard)
-                                            )
-                                            Text("·")
-                                                .foregroundColor(.secondary)
-                                            Text(file.formattedByteCount)
-                                        }
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                            NavigationLink {
+                                TraceInspectorView(file: file)
+                            } label: {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack(spacing: 8) {
+                                        SourceBadge(source: file.source)
+                                        Text(file.fileName)
+                                            .font(.subheadline.weight(.semibold))
+                                            .foregroundColor(.primary)
+                                            .lineLimit(2)
                                     }
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    
+                                    Text(file.source == .imported ? "Imported trace file" : "Recorded session trace")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                    
+                                    HStack(spacing: 6) {
+                                        Text(
+                                            file.recordingDate.formatted(date: .abbreviated, time: .standard)
+                                        )
+                                        Text("·")
+                                            .foregroundColor(.secondary)
+                                        Text(file.formattedByteCount)
+                                    }
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                                 }
-                                .buttonStyle(PlainButtonStyle())
-                                
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .swipeActions(edge: .leading, allowsFullSwipe: false) {
                                 Button {
                                     viewModel.prepareShare(for: file)
                                 } label: {
-                                    Image(systemName: "square.and.arrow.up")
-                                        .font(.body)
-                                        .foregroundColor(.accentColor)
+                                    Label("Share", systemImage: "square.and.arrow.up")
                                 }
-                                .buttonStyle(PlainButtonStyle())
-                                .accessibilityLabel("Share")
-                                
-                                Button(role: .destructive) {
-                                    filePendingDeletion = file
-                                } label: {
-                                    Image(systemName: "trash")
-                                        .font(.body)
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                                .accessibilityLabel("Delete")
+                                .tint(.accentColor)
                             }
-                        }
-                        .onDelete { offsets in
-                            if let first = offsets.first, viewModel.visibleFiles.indices.contains(first) {
-                                filePendingDeletion = viewModel.visibleFiles[first]
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button(role: .destructive) {
+                                    viewModel.delete(file: file)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
                             }
                         }
                     }
@@ -129,30 +116,6 @@ struct SessionHistoryView: View {
         }
         .sheet(item: $viewModel.shareItem) { item in
             ActivityView(activityItems: [item.url])
-        }
-        .confirmationDialog(
-            "Delete trace?",
-            isPresented: Binding(
-                get: { filePendingDeletion != nil },
-                set: { isPresented in
-                    if !isPresented {
-                        filePendingDeletion = nil
-                    }
-                }
-            ),
-            titleVisibility: .visible
-        ) {
-            Button("Delete", role: .destructive) {
-                if let target = filePendingDeletion {
-                    viewModel.delete(file: target)
-                }
-                filePendingDeletion = nil
-            }
-            Button("Cancel", role: .cancel) {
-                filePendingDeletion = nil
-            }
-        } message: {
-            Text(filePendingDeletion?.fileName ?? "")
         }
         .alert(
             "Import failed",
