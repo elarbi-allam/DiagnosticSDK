@@ -15,7 +15,7 @@ struct SessionHistoryView: View {
                 DiagnosticEmptyStateView(
                     title: "No saved traces",
                     systemImage: "doc.text",
-                    message: "Exported sessions appear here as DiagnosticTrace_*.json in Documents (for example after the app enters the background)."
+                    message: "Exported sessions appear here as Diagnostic_*.json in Documents (for example after the app enters the background)."
                 )
             } else {
                 List {

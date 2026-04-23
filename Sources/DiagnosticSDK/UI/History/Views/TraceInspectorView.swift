@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Static inspector for a saved `DiagnosticTrace_*.json` file (not a live session replay).
+/// Static inspector for a saved diagnostic JSON file (not a live session replay).
 struct TraceInspectorView: View {
     let file: DiagnosticTraceFileInfo
     

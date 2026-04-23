@@ -174,10 +174,14 @@ extension DiagnosticSessionStore {
     
     /// Builds a deterministic export file name so one session always overwrites the same JSON file.
     private func exportFileName(for session: SessionTrace) -> String {
-        let stableIdentifier = session.sessionId.isEmpty
+        let rawId = session.sessionId.isEmpty
             ? ISO8601DateFormatter().string(from: session.startedAt)
             : session.sessionId
-        return "DiagnosticTrace_\(stableIdentifier).json"
+        let normalized = rawId
+            .uppercased()
+            .filter(\.isHexDigit)
+        let shortIdentifier = String(normalized.prefix(7))
+        return "Diagnostic_\(shortIdentifier.isEmpty ? "0000000" : shortIdentifier).json"
     }
 }
 
