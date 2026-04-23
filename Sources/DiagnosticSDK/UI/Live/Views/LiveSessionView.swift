@@ -1,5 +1,6 @@
 import SwiftUI
 import Foundation
+import UIKit
 
 struct LiveSessionView: View {
     @StateObject private var viewModel = LiveSessionViewModel()
@@ -43,5 +44,28 @@ struct LiveSessionView: View {
                 .searchable(text: $viewModel.searchText, placement: .navigationBarDrawer(displayMode: .always))
             }
         }
+        .navigationBarItems(leading: exportButton)
+        .sheet(item: $viewModel.shareItem) { item in
+            ActivityView(activityItems: [item.url])
+        }
     }
+    
+    private var exportButton: some View {
+        Button {
+            viewModel.exportCurrentSession()
+        } label: {
+            Image(systemName: "square.and.arrow.up")
+        }
+        .accessibilityLabel("Export current session")
+    }
+}
+
+private struct ActivityView: UIViewControllerRepresentable {
+    let activityItems: [Any]
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
