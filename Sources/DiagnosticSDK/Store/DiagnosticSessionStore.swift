@@ -129,11 +129,7 @@ extension DiagnosticSessionStore {
         isolationQueue.sync {
             do {
                 let jsonData = try SessionTraceJSONCodec.encode(self.currentSession)
-                
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
-                let dateString = formatter.string(from: Date())
-                let fileName = "DiagnosticTrace_\(dateString).json"
+                let fileName = self.exportFileName(for: self.currentSession)
                 
                 guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
                     print("❌ [DiagnosticSDK] Failed to export session to disk: missing Documents directory")
@@ -141,7 +137,8 @@ extension DiagnosticSessionStore {
                 }
                 let filePath = documentsPath.appendingPathComponent(fileName)
                 
-                try jsonData.write(to: filePath)
+                // A session always maps to the same file path; each export replaces that file content.
+                try jsonData.write(to: filePath, options: .atomic)
                 exportedURL = filePath
                 print("✅ [DiagnosticSDK] Session exported successfully to: \(filePath.path)")
             } catch let error as SessionTraceJSONCodecError {
@@ -163,6 +160,14 @@ extension DiagnosticSessionStore {
         ) { [weak self] _ in
             self?.exportSessionToDisk()
         }
+    }
+    
+    /// Builds a deterministic export file name so one session always overwrites the same JSON file.
+    private func exportFileName(for session: SessionTrace) -> String {
+        let stableIdentifier = session.sessionId.isEmpty
+            ? ISO8601DateFormatter().string(from: session.startedAt)
+            : session.sessionId
+        return "DiagnosticTrace_\(stableIdentifier).json"
     }
 }
 
