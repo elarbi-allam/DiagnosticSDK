@@ -5,7 +5,6 @@ struct TraceInspectorView: View {
     let file: DiagnosticTraceFileInfo
     
     @StateObject private var viewModel: TraceInspectorViewModel
-    @State private var decryptionPassword = ""
     @State private var isPasswordPromptPresented = false
     
     init(file: DiagnosticTraceFileInfo) {
@@ -52,28 +51,27 @@ struct TraceInspectorView: View {
         }
         .onChange(of: viewModel.passwordPromptRequestID) { requestID in
             guard requestID > 0 else { return }
-            decryptionPassword = ""
             isPasswordPromptPresented = true
         }
-        .alert("Encrypted trace", isPresented: $isPasswordPromptPresented) {
-            SecureField("Password", text: $decryptionPassword)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled(true)
-            Button("Cancel", role: .cancel) {
-                decryptionPassword = ""
-                viewModel.cancelUnlock()
-            }
-            Button("Unlock") {
-                viewModel.unlockEncryptedTrace(password: decryptionPassword)
-                decryptionPassword = ""
-            }
-            .disabled(
-                decryptionPassword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                || viewModel.isUnlocking
+        .background(
+            DiagnosticPasswordPrompt(
+                isPresented: $isPasswordPromptPresented,
+                title: "Encrypted trace",
+                message: viewModel.passwordPromptMessage,
+                placeholder: "Password",
+                confirmTitle: "Unlock",
+                cancelTitle: "Cancel",
+                onConfirm: { password in
+                    let normalized = password.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !normalized.isEmpty else { return }
+                    viewModel.unlockEncryptedTrace(password: normalized)
+                },
+                onCancel: {
+                    viewModel.cancelUnlock()
+                }
             )
-        } message: {
-            Text(viewModel.passwordPromptMessage)
-        }
+            .frame(width: 0, height: 0)
+        )
     }
     
     private var historySummaryBar: some View {
@@ -83,13 +81,12 @@ struct TraceInspectorView: View {
                 .foregroundColor(.primary)
             
             if viewModel.isViewingDecryptedSafeTrace {
-                Label("Safe Decrypted", systemImage: "lock.shield")
-                    .font(.caption.weight(.semibold))
+                Image(systemName: "lock.shield.fill")
+                    .font(.subheadline.weight(.semibold))
                     .foregroundColor(.indigo)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
+                    .padding(7)
                     .background(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
                             .fill(Color.indigo.opacity(0.14))
                     )
             }

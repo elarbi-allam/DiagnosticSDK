@@ -9,7 +9,6 @@ struct SessionHistoryView: View {
     @State private var isExportOptionsPresented = false
     @State private var exportTargetFile: DiagnosticTraceFileInfo?
     @State private var isSafeExportDialogPresented = false
-    @State private var safeExportPassword = ""
     
     var body: some View {
         Group {
@@ -135,31 +134,33 @@ struct SessionHistoryView: View {
                 exportTargetFile = nil
             }
             Button("Safe Export") {
-                safeExportPassword = ""
                 isSafeExportDialogPresented = true
             }
             Button("Cancel", role: .cancel) {
                 exportTargetFile = nil
             }
         }
-        .alert("Safe Export", isPresented: $isSafeExportDialogPresented) {
-            SecureField("Password", text: $safeExportPassword)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled(true)
-            Button("Cancel", role: .cancel) {
-                safeExportPassword = ""
-                exportTargetFile = nil
-            }
-            Button("Export") {
-                guard let target = exportTargetFile else { return }
-                viewModel.prepareSafeShare(for: target, password: safeExportPassword)
-                safeExportPassword = ""
-                exportTargetFile = nil
-            }
-            .disabled(safeExportPassword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-        } message: {
-            Text("Enter a password to encrypt the exported file.")
-        }
+        .background(
+            DiagnosticPasswordPrompt(
+                isPresented: $isSafeExportDialogPresented,
+                title: "Safe Export",
+                message: "Enter a password to encrypt the exported file.",
+                placeholder: "Password",
+                confirmTitle: "Export",
+                cancelTitle: "Cancel",
+                onConfirm: { password in
+                    let normalized = password.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !normalized.isEmpty else { return }
+                    guard let target = exportTargetFile else { return }
+                    viewModel.prepareSafeShare(for: target, password: normalized)
+                    exportTargetFile = nil
+                },
+                onCancel: {
+                    exportTargetFile = nil
+                }
+            )
+            .frame(width: 0, height: 0)
+        )
         .alert(
             "Clear all traces?",
             isPresented: $isClearAllConfirmationPresented,

@@ -97,15 +97,34 @@ struct NetworkInteractionDetailView: View {
         Section("Overview") {
             detailRow(
                 title: "Screen",
-                value: interaction.screenName ?? "Background"
+                value: interaction.screenName ?? "Background",
+                titleStyle: .overview,
+                valueStyle: .overview
             )
             urlOverviewRow(urlString: interaction.request.url)
-            detailRow(title: "Method", value: interaction.request.method.uppercased())
-            detailRow(title: "Status", value: interaction.response.map { "\($0.status)" } ?? "Pending")
-            detailRow(title: "Duration", value: interaction.durationMs.map { "\($0) ms" } ?? "—")
+            detailRow(
+                title: "Method",
+                value: interaction.request.method.uppercased(),
+                titleStyle: .overview,
+                valueStyle: .overview
+            )
+            detailRow(
+                title: "Status",
+                value: interaction.response.map { "\($0.status)" } ?? "Pending",
+                titleStyle: .overview,
+                valueStyle: .overview
+            )
+            detailRow(
+                title: "Duration",
+                value: interaction.durationMs.map { "\($0) ms" } ?? "—",
+                titleStyle: .overview,
+                valueStyle: .overview
+            )
             detailRow(
                 title: "Timestamp",
-                value: interaction.startedAt.formatted(date: .abbreviated, time: .standard)
+                value: interaction.startedAt.formatted(date: .abbreviated, time: .standard),
+                titleStyle: .overview,
+                valueStyle: .overview
             )
         }
     }
@@ -113,7 +132,7 @@ struct NetworkInteractionDetailView: View {
     private func urlOverviewRow(urlString: String) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("URL")
-                .font(.caption.weight(.semibold))
+                .font(.subheadline.weight(.semibold))
                 .foregroundColor(.secondary)
             DiagnosticReadableTextBlock(
                 text: urlString,
@@ -142,7 +161,7 @@ struct NetworkInteractionDetailView: View {
                 if let errorText = response.errorDescription, !errorText.isEmpty {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Error")
-                            .font(.caption.weight(.semibold))
+                            .font(.subheadline.weight(.semibold))
                             .foregroundColor(.secondary)
                         if let prettyError = DiagnosticJSONFormatting.prettyString(parsing: errorText) {
                             DiagnosticJSONPreviewBlock(prettyJSON: prettyError, sheetTitle: "Error")
@@ -159,7 +178,7 @@ struct NetworkInteractionDetailView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.vertical, 4)
                 } else {
-                    detailRow(title: "Error", value: "None")
+                    detailRow(title: "Error", value: "None", titleStyle: .sectionLabel, valueStyle: .standard)
                 }
             } else {
                 Text("No response captured yet.")
@@ -168,15 +187,44 @@ struct NetworkInteractionDetailView: View {
         }
     }
     
-    private func detailRow(title: String, value: String, multiline: Bool = false) -> some View {
-        HStack(alignment: .top, spacing: 10) {
+    private enum DetailLabelFontStyle {
+        case standard
+        case overview
+        case sectionLabel
+    }
+    
+    private func detailRow(
+        title: String,
+        value: String,
+        multiline: Bool = false,
+        titleStyle: DetailLabelFontStyle = .standard,
+        valueStyle: DetailLabelFontStyle = .standard
+    ) -> some View {
+        let titleFont: Font
+        let valueFont: Font
+        let titleWidth: CGFloat
+        switch (titleStyle, valueStyle) {
+        case (.overview, .overview):
+            titleFont = .subheadline.weight(.semibold)
+            valueFont = multiline ? .callout.monospaced() : .callout.weight(.medium)
+            titleWidth = 100
+        case (.sectionLabel, .standard):
+            titleFont = .subheadline.weight(.semibold)
+            valueFont = multiline ? .body.monospaced() : .body.weight(.medium)
+            titleWidth = 100
+        default:
+            titleFont = .caption.weight(.semibold)
+            valueFont = multiline ? .body.monospaced() : .body.weight(.medium)
+            titleWidth = 90
+        }
+        return HStack(alignment: .top, spacing: 10) {
             Text(title)
-                .font(.caption.weight(.semibold))
+                .font(titleFont)
                 .foregroundColor(.secondary)
-                .frame(width: 90, alignment: .leading)
+                .frame(width: titleWidth, alignment: .leading)
             
             Text(value)
-                .font(multiline ? .body.monospaced() : .body.weight(.medium))
+                .font(valueFont)
                 .foregroundColor(.primary)
                 .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: multiline)
@@ -188,7 +236,7 @@ struct NetworkInteractionDetailView: View {
     private func headersBlock(title: String, headers: [String: String]?) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.caption.weight(.semibold))
+                .font(.subheadline.weight(.semibold))
                 .foregroundColor(.secondary)
             
             if let headers, !headers.isEmpty {
@@ -225,7 +273,7 @@ struct NetworkInteractionDetailView: View {
     private func bodyBlock(title: String, rawValue: String?) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.caption.weight(.semibold))
+                .font(.subheadline.weight(.semibold))
                 .foregroundColor(.secondary)
             
             switch bodyDisplayMode(rawValue) {

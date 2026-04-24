@@ -6,7 +6,6 @@ struct LiveSessionView: View {
     @StateObject private var viewModel = LiveSessionViewModel()
     @State private var isExportOptionsPresented = false
     @State private var isSafeExportDialogPresented = false
-    @State private var safeExportPassword = ""
     
     var body: some View {
         VStack(spacing: 0) {
@@ -57,7 +56,6 @@ struct LiveSessionView: View {
                 viewModel.exportCurrentSession()
             }
             Button("Safe Export") {
-                safeExportPassword = ""
                 isSafeExportDialogPresented = true
             }
             Button("Cancel", role: .cancel) {}
@@ -65,21 +63,23 @@ struct LiveSessionView: View {
         .sheet(item: $viewModel.shareItem) { item in
             ActivityView(activityItems: [item.url])
         }
-        .alert("Safe Export", isPresented: $isSafeExportDialogPresented) {
-            SecureField("Password", text: $safeExportPassword)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled(true)
-            Button("Cancel", role: .cancel) {
-                safeExportPassword = ""
-            }
-            Button("Export") {
-                viewModel.exportCurrentSessionSafely(password: safeExportPassword)
-                safeExportPassword = ""
-            }
-            .disabled(safeExportPassword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-        } message: {
-            Text("Enter a password to encrypt the exported file.")
-        }
+        .background(
+            DiagnosticPasswordPrompt(
+                isPresented: $isSafeExportDialogPresented,
+                title: "Safe Export",
+                message: "Enter a password to encrypt the exported file.",
+                placeholder: "Password",
+                confirmTitle: "Export",
+                cancelTitle: "Cancel",
+                onConfirm: { password in
+                    let normalized = password.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !normalized.isEmpty else { return }
+                    viewModel.exportCurrentSessionSafely(password: normalized)
+                },
+                onCancel: {}
+            )
+            .frame(width: 0, height: 0)
+        )
         .alert(
             "Export failed",
             isPresented: Binding(

@@ -135,29 +135,9 @@ extension DiagnosticSessionStore {
     @discardableResult
     public func exportSessionToDisk() -> URL? {
         var exportedURL: URL?
-        
         isolationQueue.sync {
-            do {
-                let jsonData = try SessionTraceJSONCodec.encode(self.currentSession)
-                let fileName = self.exportFileName(for: self.currentSession)
-                
-                guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
-                    print("❌ [DiagnosticSDK] Failed to export session to disk: missing Documents directory")
-                    return
-                }
-                let filePath = documentsPath.appendingPathComponent(fileName)
-                
-                // A session always maps to the same file path; each export replaces that file content.
-                try jsonData.write(to: filePath, options: .atomic)
-                exportedURL = filePath
-                print("✅ [DiagnosticSDK] Session exported successfully to: \(filePath.path)")
-            } catch let error as SessionTraceJSONCodecError {
-                print("❌ [DiagnosticSDK] Failed to export session to disk: \(error.localizedDescription)")
-            } catch {
-                print("❌ [DiagnosticSDK] Failed to export session to disk: \(error.localizedDescription)")
-            }
+            exportedURL = self.writeCurrentSessionToDocuments()
         }
-        
         return exportedURL
     }
     
@@ -167,23 +147,17 @@ extension DiagnosticSessionStore {
     /// - Returns: The URL of the encrypted temporary file, or `nil` if any step fails.
     @discardableResult
     public func exportSessionSafelyToTemporary(password: String) -> URL? {
-        // Critical rule: always execute the normal export path first.
-        guard exportSessionToDisk() != nil else {
-            print("❌ [DiagnosticSDK] Safe export aborted: normal export failed.")
-            return nil
-        }
-        
         var encryptedURL: URL?
-        
         isolationQueue.sync {
+            guard let (_, jsonData) = self.writeCurrentSessionToDocumentsReturningData() else {
+                print("❌ [DiagnosticSDK] Safe export aborted: normal export failed.")
+                return
+            }
             do {
-                let jsonData = try SessionTraceJSONCodec.encode(self.currentSession)
                 let wrapped = try TraceEncryptionService.encryptTraceJSON(jsonData, password: password)
-                
                 let wrapperData = try JSONEncoder().encode(wrapped)
                 let fileName = self.safeExportFileName(for: self.currentSession)
                 let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
-                
                 try wrapperData.write(to: tempURL, options: .atomic)
                 encryptedURL = tempURL
                 print("✅ [DiagnosticSDK] Safe export created in temporary directory: \(tempURL.path)")
@@ -193,8 +167,33 @@ extension DiagnosticSessionStore {
                 print("❌ [DiagnosticSDK] Safe export failed: \(error.localizedDescription)")
             }
         }
-        
         return encryptedURL
+    }
+    
+    /// Single encode + write to Documents. Call only on `isolationQueue`.
+    private func writeCurrentSessionToDocuments() -> URL? {
+        guard let (url, _) = writeCurrentSessionToDocumentsReturningData() else { return nil }
+        return url
+    }
+    
+    private func writeCurrentSessionToDocumentsReturningData() -> (url: URL, data: Data)? {
+        do {
+            let jsonData = try SessionTraceJSONCodec.encode(self.currentSession)
+            let fileName = self.exportFileName(for: self.currentSession)
+            guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+                print("❌ [DiagnosticSDK] Failed to export session to disk: missing Documents directory")
+                return nil
+            }
+            let filePath = documentsPath.appendingPathComponent(fileName)
+            try jsonData.write(to: filePath, options: .atomic)
+            print("✅ [DiagnosticSDK] Session exported successfully to: \(filePath.path)")
+            return (filePath, jsonData)
+        } catch let error as SessionTraceJSONCodecError {
+            print("❌ [DiagnosticSDK] Failed to export session to disk: \(error.localizedDescription)")
+        } catch {
+            print("❌ [DiagnosticSDK] Failed to export session to disk: \(error.localizedDescription)")
+        }
+        return nil
     }
     
     /// Listens for the app going into the background to trigger a safety save.
