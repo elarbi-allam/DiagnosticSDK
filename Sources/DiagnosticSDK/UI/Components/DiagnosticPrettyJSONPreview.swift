@@ -14,17 +14,18 @@ enum DiagnosticJSONFormatting {
         guard let jsonObject = try? JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed]),
               JSONSerialization.isValidJSONObject(jsonObject),
               let out = try? JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted, .sortedKeys]),
-              let s = String(data: out, encoding: .utf8) else { return nil }
-        return s
+              let prettyJSONString = String(data: out, encoding: .utf8) else { return nil }
+        return prettyJSONString
     }
     
     /// Try UTF-8 first, then Base64-decoded data (for headers and bodies that ship JSON in Base64).
     static func prettyString(parsing possibleJSON: String) -> String? {
-        if let p = prettyString(from: possibleJSON) { return p }
-        if let b64 = Data(base64Encoded: possibleJSON) {
-            if let p = prettyString(from: b64) { return p }
-            if let inner = String(data: b64, encoding: .utf8), let p = prettyString(from: inner) {
-                return p
+        if let prettyJSONString = prettyString(from: possibleJSON) { return prettyJSONString }
+        if let base64Data = Data(base64Encoded: possibleJSON) {
+            if let prettyJSONDataString = prettyString(from: base64Data) { return prettyJSONDataString }
+            if let inner = String(data: base64Data, encoding: .utf8),
+               let prettyJSONFromInnerString = prettyString(from: inner) {
+                return prettyJSONFromInnerString
             }
         }
         return nil
@@ -222,9 +223,9 @@ private func parseJSONKeyValueLine(_ line: String) -> ParsedJSONKeyLine? {
 }
 
 private func isJSONStructuralLine(_ line: String) -> Bool {
-    let t = line.trimmingCharacters(in: .whitespaces)
-    guard !t.isEmpty else { return false }
-    if t.contains("\"") { return false }
+    let trimmedLine = line.trimmingCharacters(in: .whitespaces)
+    guard !trimmedLine.isEmpty else { return false }
+    if trimmedLine.contains("\"") { return false }
     let structuralLines: Set<String> = ["{", "}", "[", "]", "},", "],", "}]", "[{"]
-    return structuralLines.contains(t)
+    return structuralLines.contains(trimmedLine)
 }

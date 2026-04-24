@@ -85,12 +85,12 @@ enum SessionHistoryFileService {
     
     /// Intended for background queues.
     static func deleteFile(at url: URL) throws -> DeletionReport {
-        let fm = FileManager.default
+        let fileManager = FileManager.default
         let candidate = url.standardizedFileURL
         let candidatePath = candidate.path
-        if fm.fileExists(atPath: candidatePath) {
-            try fm.removeItem(at: candidate)
-            let deleted = !fm.fileExists(atPath: candidatePath)
+        if fileManager.fileExists(atPath: candidatePath) {
+            try fileManager.removeItem(at: candidate)
+            let deleted = !fileManager.fileExists(atPath: candidatePath)
             return DeletionReport(
                 deleted: deleted,
                 deletedPath: candidatePath,
@@ -102,7 +102,7 @@ enum SessionHistoryFileService {
         let docs = try documentsDirectoryURL()
         let fallback = docs.appendingPathComponent(candidate.lastPathComponent).standardizedFileURL
         let fallbackPath = fallback.path
-        guard fm.fileExists(atPath: fallbackPath) else {
+        guard fileManager.fileExists(atPath: fallbackPath) else {
             return DeletionReport(
                 deleted: false,
                 deletedPath: nil,
@@ -110,8 +110,8 @@ enum SessionHistoryFileService {
             )
         }
         
-        try fm.removeItem(at: fallback)
-        let deleted = !fm.fileExists(atPath: fallbackPath)
+        try fileManager.removeItem(at: fallback)
+        let deleted = !fileManager.fileExists(atPath: fallbackPath)
         return DeletionReport(
             deleted: deleted,
             deletedPath: fallbackPath,
@@ -126,12 +126,12 @@ enum SessionHistoryFileService {
         let destinationFileName = "\(importedTraceNamePrefix)\(sourceFileName)"
         
         let destination = destDir.appendingPathComponent(destinationFileName)
-        let fm = FileManager.default
+        let fileManager = FileManager.default
         if FileManager.default.fileExists(atPath: destination.path) {
-            try fm.removeItem(at: destination)
+            try fileManager.removeItem(at: destination)
         }
-        try fm.copyItem(at: sourceURL, to: destination)
-        try fm.setAttributes([.modificationDate: Date()], ofItemAtPath: destination.path)
+        try fileManager.copyItem(at: sourceURL, to: destination)
+        try fileManager.setAttributes([.modificationDate: Date()], ofItemAtPath: destination.path)
         return destination
     }
     

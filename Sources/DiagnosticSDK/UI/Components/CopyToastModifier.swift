@@ -16,7 +16,7 @@ private struct CopiedToastView: View {
     }
 }
 
-private struct CopyToastModifier: ViewModifier {
+struct CopyToastModifier: ViewModifier {
     let copiedText: String
     let accessibilityLabel: String
     
@@ -54,8 +54,3 @@ private struct CopyToastModifier: ViewModifier {
     }
 }
 
-extension View {
-    func copyableOverlay(text: String, accessibilityLabel: String) -> some View {
-        modifier(CopyToastModifier(copiedText: text, accessibilityLabel: accessibilityLabel))
-    }
-}

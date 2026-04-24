@@ -84,21 +84,21 @@ struct DiagnosticReadableTextBlock: View {
     
     private func urlCharacterWrapArea(lineLimit: Int) -> some View {
         let capHeight = lineLimit == 0 ? 10_000 : max(CGFloat(12 + lineLimit * 22), 1)
-        return GeometryReader { g in
-            let w = max(0, g.size.width)
+        return GeometryReader { geometryProxy in
+            let availableWidth = max(0, geometryProxy.size.width)
             URLCharacterWrappingLabel(
                 text: text,
-                maxWidth: w,
+                maxWidth: availableWidth,
                 numberOfLines: lineLimit
-            ) { h in
-                let capped = min(h, capHeight)
+            ) { measuredHeight in
+                let capped = min(measuredHeight, capHeight)
                 if abs(capped - urlMeasuredHeight) > 0.5 {
                     DispatchQueue.main.async {
                         urlMeasuredHeight = capped
                     }
                 }
             }
-            .frame(width: w, height: min(urlMeasuredHeight > 0 ? urlMeasuredHeight : 44, capHeight), alignment: .topLeading)
+            .frame(width: availableWidth, height: min(urlMeasuredHeight > 0 ? urlMeasuredHeight : 44, capHeight), alignment: .topLeading)
         }
         .frame(
             maxWidth: .infinity,
@@ -160,130 +160,6 @@ struct DiagnosticReadableTextBlock: View {
     }
 }
 
-// MARK: - Full screen
-
-private struct DiagnosticPlainFullScreenSheet: View {
-    let title: String
-    let text: String
-    var kind: DiagnosticReadableTextBlock.Kind
-    @Binding var isPresented: Bool
-    @State private var urlHeight: CGFloat = 0
-    
-    var body: some View {
-        NavigationView {
-            ScrollView {
-                Group {
-                    switch kind {
-                    case .url:
-                        fullScreenURLLabel
-                    case .plain:
-                        Text(text)
-                            .font(.system(size: 12, design: .monospaced))
-                    }
-                }
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background(Color(.systemBackground))
-            .if(kind == .url) { view in
-                view.copyableOverlay(text: text, accessibilityLabel: "Copy URL")
-            }
-            .navigationBarTitle(title, displayMode: .inline)
-            .navigationBarItems(trailing: Button("Done") { isPresented = false })
-        }
-    }
-    
-    private var fullScreenURLLabel: some View {
-        GeometryReader { g in
-            let w = max(0, g.size.width)
-            URLCharacterWrappingLabel(
-                text: text,
-                maxWidth: w,
-                numberOfLines: 0
-            ) { h in
-                if abs(h - urlHeight) > 0.5 {
-                    DispatchQueue.main.async { urlHeight = h }
-                }
-            }
-            .frame(
-                width: w,
-                height: urlHeight > 0 ? urlHeight : 100,
-                alignment: .topLeading
-            )
-        }
-        .frame(
-            minHeight: max(urlHeight, 40),
-            maxHeight: .none,
-            alignment: .top
-        )
-    }
-}
-
-// MARK: - URL: UIKit char wrapping (avoids early breaks at ? / &)
-
-private final class URLCharWrappingLabel: UILabel {
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        if bounds.width > 0, preferredMaxLayoutWidth != bounds.width {
-            preferredMaxLayoutWidth = bounds.width
-        }
-    }
-}
-
-private struct URLCharacterWrappingLabel: UIViewRepresentable {
-    var text: String
-    var maxWidth: CGFloat
-    /// 0 = unlimited
-    var numberOfLines: Int
-    var onHeight: (CGFloat) -> Void
-    
-    func makeCoordinator() -> Coordinator {
-        Coordinator()
-    }
-    
-    func makeUIView(context: Context) -> URLCharWrappingLabel {
-        let l = URLCharWrappingLabel()
-        l.setContentHuggingPriority(.defaultLow, for: .vertical)
-        l.setContentCompressionResistancePriority(.defaultHigh, for: .vertical)
-        l.backgroundColor = .clear
-        l.isAccessibilityElement = true
-        l.accessibilityLabel = "URL"
-        l.accessibilityValue = text
-        return l
-    }
-    
-    func updateUIView(_ label: URLCharWrappingLabel, context: Context) {
-        let ps = NSMutableParagraphStyle()
-        ps.alignment = .natural
-        ps.lineSpacing = 4
-        ps.lineBreakMode = .byCharWrapping
-        let font = UIFont.preferredFont(forTextStyle: .callout)
-        let attr: [NSAttributedString.Key: Any] = [
-            .font: font,
-            .foregroundColor: UIColor.label,
-            .paragraphStyle: ps
-        ]
-        label.numberOfLines = numberOfLines
-        label.lineBreakMode = .byCharWrapping
-        label.attributedText = NSAttributedString(string: text, attributes: attr)
-        if maxWidth > 0 {
-            label.preferredMaxLayoutWidth = maxWidth
-        }
-        let measuredHeight = ceil(label.sizeThatFits(
-            CGSize(width: max(1, maxWidth), height: .greatestFiniteMagnitude)
-        ).height)
-        guard context.coordinator.lastHeight != measuredHeight else { return }
-        context.coordinator.lastHeight = measuredHeight
-        onHeight(measuredHeight)
-    }
-    
-    final class Coordinator {
-        var lastHeight: CGFloat = -1
-    }
-}
-
 // MARK: - Shared block chrome (padding, frame, background, stroke)
 
 private extension View {
@@ -299,16 +175,5 @@ private extension View {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .stroke(Color.secondary.opacity(0.22), lineWidth: 0.5)
             )
-    }
-}
-
-private extension View {
-    @ViewBuilder
-    func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
-        if condition {
-            transform(self)
-        } else {
-            self
-        }
     }
 }
