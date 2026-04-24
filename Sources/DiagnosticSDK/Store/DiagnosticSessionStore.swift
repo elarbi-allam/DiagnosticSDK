@@ -161,6 +161,42 @@ extension DiagnosticSessionStore {
         return exportedURL
     }
     
+    /// Performs the standard export to Documents first, then creates an encrypted export in Temporary.
+    /// The temporary encrypted file is intended for sharing and should not appear in session history listings.
+    /// - Parameter password: User-provided password used to derive the encryption key.
+    /// - Returns: The URL of the encrypted temporary file, or `nil` if any step fails.
+    @discardableResult
+    public func exportSessionSafelyToTemporary(password: String) -> URL? {
+        // Critical rule: always execute the normal export path first.
+        guard exportSessionToDisk() != nil else {
+            print("❌ [DiagnosticSDK] Safe export aborted: normal export failed.")
+            return nil
+        }
+        
+        var encryptedURL: URL?
+        
+        isolationQueue.sync {
+            do {
+                let jsonData = try SessionTraceJSONCodec.encode(self.currentSession)
+                let wrapped = try TraceEncryptionService.encryptTraceJSON(jsonData, password: password)
+                
+                let wrapperData = try JSONEncoder().encode(wrapped)
+                let fileName = self.safeExportFileName(for: self.currentSession)
+                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+                
+                try wrapperData.write(to: tempURL, options: .atomic)
+                encryptedURL = tempURL
+                print("✅ [DiagnosticSDK] Safe export created in temporary directory: \(tempURL.path)")
+            } catch let error as TraceEncryptionServiceError {
+                print("❌ [DiagnosticSDK] Safe export failed: \(error.localizedDescription)")
+            } catch {
+                print("❌ [DiagnosticSDK] Safe export failed: \(error.localizedDescription)")
+            }
+        }
+        
+        return encryptedURL
+    }
+    
     /// Listens for the app going into the background to trigger a safety save.
     private func setupAutoSave() {
         backgroundObserver = NotificationCenter.default.addObserver(
@@ -182,6 +218,13 @@ extension DiagnosticSessionStore {
             .filter(\.isHexDigit)
         let shortIdentifier = String(normalized.prefix(7))
         return "Diagnostic_\(shortIdentifier.isEmpty ? "0000000" : shortIdentifier).json"
+    }
+    
+    /// Builds a deterministic temporary file name for encrypted exports.
+    private func safeExportFileName(for session: SessionTrace) -> String {
+        let regularName = exportFileName(for: session)
+        let baseName = regularName.replacingOccurrences(of: ".json", with: "")
+        return "\(baseName)_SAFE.json"
     }
 }
 
