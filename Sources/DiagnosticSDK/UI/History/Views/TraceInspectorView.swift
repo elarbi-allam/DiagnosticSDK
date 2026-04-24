@@ -50,8 +50,9 @@ struct TraceInspectorView: View {
         .onAppear {
             viewModel.loadIfNeeded()
         }
-        .onChange(of: viewModel.needsPassword) { needsPassword in
-            isPasswordPromptPresented = needsPassword
+        .onChange(of: viewModel.passwordPromptRequestID) { requestID in
+            guard requestID > 0 else { return }
+            isPasswordPromptPresented = true
         }
         .alert("Encrypted trace", isPresented: $isPasswordPromptPresented) {
             SecureField("Password", text: $decryptionPassword)
@@ -60,13 +61,15 @@ struct TraceInspectorView: View {
                 viewModel.cancelUnlock()
             }
             Button("Unlock") {
-                isPasswordPromptPresented = false
                 viewModel.unlockEncryptedTrace(password: decryptionPassword)
                 decryptionPassword = ""
             }
-            .disabled(decryptionPassword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            .disabled(
+                decryptionPassword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                || viewModel.isUnlocking
+            )
         } message: {
-            Text("Enter the password used during Safe Export to open this trace.")
+            Text(viewModel.passwordPromptMessage)
         }
     }
     

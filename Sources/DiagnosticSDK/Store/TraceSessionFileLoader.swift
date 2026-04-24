@@ -8,7 +8,12 @@ enum TraceSessionFileLoader {
     
     /// Decodes a trace file into either plain session content or encrypted wrapper metadata.
     static func decodeTraceContent(from fileURL: URL) throws -> DecodedTraceContent {
-        let data = try Data(contentsOf: fileURL, options: [.mappedIfSafe])
+        let data: Data
+        do {
+            data = try Data(contentsOf: fileURL, options: [.mappedIfSafe])
+        } catch {
+            throw TraceSessionFileLoaderError.fileReadFailed
+        }
         
         if let trace = try? SessionTraceJSONCodec.decode(from: data) {
             return .plain(trace)
@@ -18,19 +23,36 @@ enum TraceSessionFileLoader {
         do {
             wrapper = try JSONDecoder().decode(SecureTraceWrapper.self, from: data)
         } catch {
-            throw SessionTraceJSONCodecError.decodingFailed(details: "Unsupported trace file format.")
+            throw TraceSessionFileLoaderError.unsupportedFormat
         }
         
         guard wrapper.isEncrypted else {
-            throw SessionTraceJSONCodecError.decodingFailed(details: "Unsupported trace file format.")
+            throw TraceSessionFileLoaderError.unsupportedFormat
         }
         
         return .encrypted(wrapper)
     }
     
     static func decryptSession(wrapper: SecureTraceWrapper, password: String) throws -> SessionTrace {
-        let decryptedData = try TraceEncryptionService.decryptWrappedTrace(wrapper, password: password)
-        return try SessionTraceJSONCodec.decode(from: decryptedData)
+        let decryptedData: Data
+        do {
+            decryptedData = try TraceEncryptionService.decryptWrappedTrace(wrapper, password: password)
+        } catch let error as TraceEncryptionServiceError {
+            switch error {
+            case .invalidSaltEncoding, .invalidEncryptedDataEncoding, .wrapperNotEncrypted:
+                throw TraceSessionFileLoaderError.invalidEncryptedFile
+            case .emptyPassword, .decryptionFailed, .combinedCiphertextUnavailable:
+                throw TraceSessionFileLoaderError.wrongPasswordOrCorruptedFile
+            }
+        } catch {
+            throw TraceSessionFileLoaderError.wrongPasswordOrCorruptedFile
+        }
+        
+        do {
+            return try SessionTraceJSONCodec.decode(from: decryptedData)
+        } catch {
+            throw TraceSessionFileLoaderError.invalidEncryptedFile
+        }
     }
     
     /// Flat index for resolving full `NetworkInteraction` payloads in the inspector (not the lightweight snapshot rows).

@@ -59,6 +59,7 @@
 		204334592F9B6D00006CE9D9 /* URLCharacterWrappingLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 204334572F9B6D00006CE9D9 /* URLCharacterWrappingLabel.swift */; };
 		2043345A2F9B6E10006CE9D9 /* SecureTraceWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2043345B2F9B6E10006CE9D9 /* SecureTraceWrapper.swift */; };
 		2043345C2F9B6E10006CE9D9 /* TraceEncryptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2043345D2F9B6E10006CE9D9 /* TraceEncryptionService.swift */; };
+		2043345E2F9B6E20006CE9D9 /* TraceSessionFileLoaderError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2043345F2F9B6E20006CE9D9 /* TraceSessionFileLoaderError.swift */; };
 		206E62A62F8AD2160011E974 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62A42F8AD2160011E974 /* Extensions.swift */; };
 		206E62AB2F8AD2340011E974 /* DiagnosticSDKTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62A82F8AD2340011E974 /* DiagnosticSDKTests.swift */; };
 		20F102E22F8014470096C884 /* DiagnosticSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20F102D62F8014470096C884 /* DiagnosticSDK.framework */; };
@@ -129,6 +130,7 @@
 		204334572F9B6D00006CE9D9 /* URLCharacterWrappingLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLCharacterWrappingLabel.swift; sourceTree = "<group>"; };
 		2043345B2F9B6E10006CE9D9 /* SecureTraceWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureTraceWrapper.swift; sourceTree = "<group>"; };
 		2043345D2F9B6E10006CE9D9 /* TraceEncryptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TraceEncryptionService.swift; sourceTree = "<group>"; };
+		2043345F2F9B6E20006CE9D9 /* TraceSessionFileLoaderError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TraceSessionFileLoaderError.swift; sourceTree = "<group>"; };
 		206E62A42F8AD2160011E974 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		206E62A82F8AD2340011E974 /* DiagnosticSDKTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticSDKTests.swift; sourceTree = "<group>"; };
 		20F102D62F8014470096C884 /* DiagnosticSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DiagnosticSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -221,6 +223,7 @@
 				204333E32F9B5D93006CE9D9 /* SessionTraceJSONCodec.swift */,
 				204333E42F9B5D93006CE9D9 /* TraceSessionFileLoader.swift */,
 				2043345D2F9B6E10006CE9D9 /* TraceEncryptionService.swift */,
+				2043345F2F9B6E20006CE9D9 /* TraceSessionFileLoaderError.swift */,
 			);
 			path = Store;
 			sourceTree = "<group>";
@@ -600,6 +603,7 @@
 				2043343F2F9B5D93006CE9D9 /* DiagnosticRootTabView.swift in Sources */,
 				204334402F9B5D93006CE9D9 /* SessionHistoryFileService.swift in Sources */,
 				2043345C2F9B6E10006CE9D9 /* TraceEncryptionService.swift in Sources */,
+				2043345E2F9B6E20006CE9D9 /* TraceSessionFileLoaderError.swift in Sources */,
 				206E62A62F8AD2160011E974 /* Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
