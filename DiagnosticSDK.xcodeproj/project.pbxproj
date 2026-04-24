@@ -57,6 +57,8 @@
 		204334552F9B6C78006CE9D9 /* View+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 204334542F9B6C78006CE9D9 /* View+Extension.swift */; };
 		204334582F9B6D00006CE9D9 /* DiagnosticPlainFullScreenSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 204334562F9B6D00006CE9D9 /* DiagnosticPlainFullScreenSheet.swift */; };
 		204334592F9B6D00006CE9D9 /* URLCharacterWrappingLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 204334572F9B6D00006CE9D9 /* URLCharacterWrappingLabel.swift */; };
+		2043345A2F9B6E10006CE9D9 /* SecureTraceWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2043345B2F9B6E10006CE9D9 /* SecureTraceWrapper.swift */; };
+		2043345C2F9B6E10006CE9D9 /* TraceEncryptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2043345D2F9B6E10006CE9D9 /* TraceEncryptionService.swift */; };
 		206E62A62F8AD2160011E974 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62A42F8AD2160011E974 /* Extensions.swift */; };
 		206E62AB2F8AD2340011E974 /* DiagnosticSDKTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62A82F8AD2340011E974 /* DiagnosticSDKTests.swift */; };
 		20F102E22F8014470096C884 /* DiagnosticSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20F102D62F8014470096C884 /* DiagnosticSDK.framework */; };
@@ -125,6 +127,8 @@
 		204334542F9B6C78006CE9D9 /* View+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extension.swift"; sourceTree = "<group>"; };
 		204334562F9B6D00006CE9D9 /* DiagnosticPlainFullScreenSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticPlainFullScreenSheet.swift; sourceTree = "<group>"; };
 		204334572F9B6D00006CE9D9 /* URLCharacterWrappingLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLCharacterWrappingLabel.swift; sourceTree = "<group>"; };
+		2043345B2F9B6E10006CE9D9 /* SecureTraceWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureTraceWrapper.swift; sourceTree = "<group>"; };
+		2043345D2F9B6E10006CE9D9 /* TraceEncryptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TraceEncryptionService.swift; sourceTree = "<group>"; };
 		206E62A42F8AD2160011E974 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		206E62A82F8AD2340011E974 /* DiagnosticSDKTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticSDKTests.swift; sourceTree = "<group>"; };
 		20F102D62F8014470096C884 /* DiagnosticSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DiagnosticSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -184,6 +188,7 @@
 				204333D52F9B5D93006CE9D9 /* NetworkEvent.swift */,
 				204333D62F9B5D93006CE9D9 /* RequestModel.swift */,
 				204333D72F9B5D93006CE9D9 /* ResponseModel.swift */,
+				2043345B2F9B6E10006CE9D9 /* SecureTraceWrapper.swift */,
 				204333D82F9B5D93006CE9D9 /* TracerModels.swift */,
 			);
 			path = Models;
@@ -215,6 +220,7 @@
 				204333E22F9B5D93006CE9D9 /* SessionHistoryFileService.swift */,
 				204333E32F9B5D93006CE9D9 /* SessionTraceJSONCodec.swift */,
 				204333E42F9B5D93006CE9D9 /* TraceSessionFileLoader.swift */,
+				2043345D2F9B6E10006CE9D9 /* TraceEncryptionService.swift */,
 			);
 			path = Store;
 			sourceTree = "<group>";
@@ -577,6 +583,7 @@
 				204334302F9B5D93006CE9D9 /* DiagnosticReadableTextBlock.swift in Sources */,
 				204334592F9B6D00006CE9D9 /* URLCharacterWrappingLabel.swift in Sources */,
 				204334312F9B5D93006CE9D9 /* NetworkEvent.swift in Sources */,
+				2043345A2F9B6E10006CE9D9 /* SecureTraceWrapper.swift in Sources */,
 				204334322F9B5D93006CE9D9 /* DiagnosticUIManager.swift in Sources */,
 				204334332F9B5D93006CE9D9 /* NetworkInteractionDetailView.swift in Sources */,
 				204334342F9B5D93006CE9D9 /* UIViewController+DiagnosticSDK.m in Sources */,
@@ -592,6 +599,7 @@
 				2043343E2F9B5D93006CE9D9 /* DiagnosticSDKMethodSwizzling.m in Sources */,
 				2043343F2F9B5D93006CE9D9 /* DiagnosticRootTabView.swift in Sources */,
 				204334402F9B5D93006CE9D9 /* SessionHistoryFileService.swift in Sources */,
+				2043345C2F9B6E10006CE9D9 /* TraceEncryptionService.swift in Sources */,
 				206E62A62F8AD2160011E974 /* Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
