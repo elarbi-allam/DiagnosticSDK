@@ -129,7 +129,7 @@ public extension Notification.Name {
 // MARK: - File System Export
 
 extension DiagnosticSessionStore {
-    
+
     /// Serializes the current session to JSON and saves it in the application's Document directory.
     /// - Returns: The URL of the saved file, useful for sharing via UIActivityViewController.
     @discardableResult
@@ -216,14 +216,14 @@ extension DiagnosticSessionStore {
             .uppercased()
             .filter(\.isHexDigit)
         let shortIdentifier = String(normalized.prefix(7))
-        return "Diagnostic_\(shortIdentifier.isEmpty ? "0000000" : shortIdentifier).json"
+        return "Dx_\(shortIdentifier.isEmpty ? "0000000" : shortIdentifier).json"
     }
     
     /// Builds a deterministic temporary file name for encrypted exports.
     private func safeExportFileName(for session: SessionTrace) -> String {
         let regularName = exportFileName(for: session)
         let baseName = regularName.replacingOccurrences(of: ".json", with: "")
-        return "\(baseName)_SAFE.json"
+        return "\(baseName)_S.json"
     }
 }
 

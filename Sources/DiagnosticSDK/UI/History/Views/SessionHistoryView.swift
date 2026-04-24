@@ -19,7 +19,7 @@ struct SessionHistoryView: View {
                 DiagnosticEmptyStateView(
                     title: "No saved traces",
                     systemImage: "doc.text",
-                    message: "Exported sessions appear here as Diagnostic_*.json in Documents (for example after the app enters the background)."
+                    message: "Exported sessions appear under Dx_* in Documents (for example when the app backgrounds)."
                 )
             } else {
                 List {
@@ -41,7 +41,7 @@ struct SessionHistoryView: View {
                                 VStack(alignment: .leading, spacing: 4) {
                                     HStack(spacing: 8) {
                                         SourceBadge(source: file.source)
-                                        Text(file.fileName)
+                                        Text(file.displayFileName)
                                             .font(.subheadline.weight(.semibold))
                                             .foregroundColor(.primary)
                                             .lineLimit(2)
@@ -97,7 +97,7 @@ struct SessionHistoryView: View {
             Button {
                 isImportPickerPresented = true
             } label: {
-                Label("Import JSON Trace", systemImage: "square.and.arrow.down")
+                Label("Import trace", systemImage: "square.and.arrow.down")
                     .font(.subheadline.weight(.semibold))
                     .frame(maxWidth: .infinity)
             }

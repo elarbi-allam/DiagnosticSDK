@@ -13,6 +13,10 @@ struct DiagnosticTraceFileInfo: Identifiable, Equatable {
     let byteCount: Int64
     let source: DiagnosticTraceSource
     
+    var displayFileName: String {
+        (fileName as NSString).deletingPathExtension
+    }
+    
     var formattedByteCount: String {
         ByteCountFormatter.string(fromByteCount: byteCount, countStyle: .file)
     }
@@ -20,8 +24,8 @@ struct DiagnosticTraceFileInfo: Identifiable, Equatable {
 
 enum SessionHistoryFileService {
     
-    private static let sessionTraceNamePrefix = "Diagnostic_"
-    private static let importedTraceNamePrefix = "IMP-"
+    private static let sessionTraceNamePrefix = "Dx_"
+    private static let importedTraceNamePrefix = "IMP_"
     private static let traceNameSuffix = ".json"
     
     private static func documentsDirectoryURL() throws -> URL {
@@ -31,7 +35,6 @@ enum SessionHistoryFileService {
         return url
     }
     
-    /// Reads directory contents and file metadata. Intended for background queues.
     static func listTraceFiles() throws -> [DiagnosticTraceFileInfo] {
         let directory = try documentsDirectoryURL()
         let urls = try FileManager.default.contentsOfDirectory(
@@ -119,7 +122,7 @@ enum SessionHistoryFileService {
         )
     }
     
-    /// Copies an imported JSON into Documents using `IMP-<originalFileName>`.
+    /// Copies an imported JSON into Documents using `IMP_<originalFileName>`.
     static func copyImportedJSONToDocuments(from sourceURL: URL) throws -> URL {
         let destDir = try documentsDirectoryURL()
         let sourceFileName = sourceURL.lastPathComponent
@@ -143,7 +146,7 @@ enum SessionHistoryFileService {
         
         let wrapperData = try JSONEncoder().encode(wrapper)
         let baseName = traceFileURL.deletingPathExtension().lastPathComponent
-        let fileName = "\(baseName)_SAFE.json"
+        let fileName = "\(baseName)_S.json"
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
         
         try wrapperData.write(to: tempURL, options: .atomic)

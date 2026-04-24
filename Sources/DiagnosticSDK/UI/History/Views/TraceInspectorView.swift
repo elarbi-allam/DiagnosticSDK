@@ -45,7 +45,7 @@ struct TraceInspectorView: View {
                 }
             }
         }
-        .navigationBarTitle(file.fileName, displayMode: .inline)
+        .navigationBarTitle(file.displayFileName, displayMode: .inline)
         .onAppear {
             viewModel.loadIfNeeded()
         }
