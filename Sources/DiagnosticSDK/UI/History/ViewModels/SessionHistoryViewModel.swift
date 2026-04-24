@@ -25,6 +25,7 @@ final class SessionHistoryViewModel: ObservableObject {
     @Published private(set) var isScanning = false
     @Published var importErrorMessage: String?
     @Published var deleteErrorMessage: String?
+    @Published var exportErrorMessage: String?
     @Published var shareItem: SessionHistoryShareItem?
     @Published var sourceFilter: SessionHistorySourceFilter = .all
     
@@ -188,5 +189,27 @@ final class SessionHistoryViewModel: ObservableObject {
 
     func prepareShare(for file: DiagnosticTraceFileInfo) {
         shareItem = SessionHistoryShareItem(url: file.url)
+    }
+    
+    func prepareSafeShare(for file: DiagnosticTraceFileInfo, password: String) {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let result = Result {
+                try SessionHistoryFileService.createSafeExportTemporaryFile(
+                    from: file.url,
+                    password: password
+                )
+            }
+            
+            DispatchQueue.main.async {
+                guard let self else { return }
+                switch result {
+                case .success(let safeURL):
+                    self.exportErrorMessage = nil
+                    self.shareItem = SessionHistoryShareItem(url: safeURL)
+                case .failure(let error):
+                    self.exportErrorMessage = error.localizedDescription
+                }
+            }
+        }
     }
 }

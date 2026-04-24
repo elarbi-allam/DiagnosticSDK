@@ -135,6 +135,21 @@ enum SessionHistoryFileService {
         return destination
     }
     
+    /// Creates an encrypted shareable trace file in Temporary from a history trace file.
+    static func createSafeExportTemporaryFile(from traceFileURL: URL, password: String) throws -> URL {
+        let trace = try SessionTraceJSONCodec.decodeFile(at: traceFileURL)
+        let plainJSONData = try SessionTraceJSONCodec.encode(trace)
+        let wrapper = try TraceEncryptionService.encryptTraceJSON(plainJSONData, password: password)
+        
+        let wrapperData = try JSONEncoder().encode(wrapper)
+        let baseName = traceFileURL.deletingPathExtension().lastPathComponent
+        let fileName = "\(baseName)_SAFE.json"
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        
+        try wrapperData.write(to: tempURL, options: .atomic)
+        return tempURL
+    }
+    
     private static func isDiagnosticTraceFileName(_ name: String) -> Bool {
         name.hasPrefix(sessionTraceNamePrefix) || name.hasPrefix(importedTraceNamePrefix)
     }

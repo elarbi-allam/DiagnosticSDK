@@ -6,6 +6,10 @@ struct SessionHistoryView: View {
     @StateObject private var viewModel = SessionHistoryViewModel()
     @State private var isImportPickerPresented = false
     @State private var isClearAllConfirmationPresented = false
+    @State private var isExportOptionsPresented = false
+    @State private var exportTargetFile: DiagnosticTraceFileInfo?
+    @State private var isSafeExportDialogPresented = false
+    @State private var safeExportPassword = ""
     
     var body: some View {
         Group {
@@ -63,7 +67,8 @@ struct SessionHistoryView: View {
                             }
                             .swipeActions(edge: .leading, allowsFullSwipe: false) {
                                 Button {
-                                    viewModel.prepareShare(for: file)
+                                    exportTargetFile = file
+                                    isExportOptionsPresented = true
                                 } label: {
                                     Label("Share", systemImage: "square.and.arrow.up")
                                 }
@@ -119,6 +124,40 @@ struct SessionHistoryView: View {
         .sheet(item: $viewModel.shareItem) { item in
             ActivityView(activityItems: [item.url])
         }
+        .confirmationDialog(
+            "Choose export type",
+            isPresented: $isExportOptionsPresented,
+            titleVisibility: .visible
+        ) {
+            Button("Export") {
+                guard let target = exportTargetFile else { return }
+                viewModel.prepareShare(for: target)
+                exportTargetFile = nil
+            }
+            Button("Safe Export") {
+                safeExportPassword = ""
+                isSafeExportDialogPresented = true
+            }
+            Button("Cancel", role: .cancel) {
+                exportTargetFile = nil
+            }
+        }
+        .alert("Safe Export", isPresented: $isSafeExportDialogPresented) {
+            SecureField("Password", text: $safeExportPassword)
+            Button("Cancel", role: .cancel) {
+                safeExportPassword = ""
+                exportTargetFile = nil
+            }
+            Button("Export") {
+                guard let target = exportTargetFile else { return }
+                viewModel.prepareSafeShare(for: target, password: safeExportPassword)
+                safeExportPassword = ""
+                exportTargetFile = nil
+            }
+            .disabled(safeExportPassword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        } message: {
+            Text("Enter a password to encrypt the exported file.")
+        }
         .alert(
             "Clear all traces?",
             isPresented: $isClearAllConfirmationPresented,
@@ -160,6 +199,21 @@ struct SessionHistoryView: View {
             },
             message: {
                 Text(viewModel.deleteErrorMessage ?? "")
+            }
+        )
+        .alert(
+            "Export failed",
+            isPresented: Binding(
+                get: { viewModel.exportErrorMessage != nil },
+                set: { if !$0 { viewModel.exportErrorMessage = nil } }
+            ),
+            actions: {
+                Button("OK", role: .cancel) {
+                    viewModel.exportErrorMessage = nil
+                }
+            },
+            message: {
+                Text(viewModel.exportErrorMessage ?? "")
             }
         )
     }
