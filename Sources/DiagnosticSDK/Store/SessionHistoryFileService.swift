@@ -20,9 +20,9 @@ struct DiagnosticTraceFileInfo: Identifiable, Equatable {
 
 enum SessionHistoryFileService {
     
-    private static let traceNamePrefix = "DiagnosticTrace_"
+    private static let sessionTraceNamePrefix = "Diagnostic_"
+    private static let importedTraceNamePrefix = "IMP-"
     private static let traceNameSuffix = ".json"
-    private static let importMarker = "_IMP_"
     
     private static func documentsDirectoryURL() throws -> URL {
         guard let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
@@ -47,7 +47,7 @@ enum SessionHistoryFileService {
         
         let infos: [DiagnosticTraceFileInfo] = try urls.compactMap { url in
             let name = url.lastPathComponent
-            guard name.hasPrefix(traceNamePrefix),
+            guard isDiagnosticTraceFileName(name),
                   name.lowercased().hasSuffix(traceNameSuffix) else { return nil }
             
             let values = try url.resourceValues(forKeys: [
@@ -59,10 +59,10 @@ enum SessionHistoryFileService {
             guard values.isRegularFile == true else { return nil }
             
             let size = Int64(values.fileSize ?? 0)
-            let recorded = values.creationDate
-                ?? values.contentModificationDate
+            let recorded = values.contentModificationDate
+                ?? values.creationDate
                 ?? Date.distantPast
-            let source: DiagnosticTraceSource = name.contains(importMarker) ? .imported : .session
+            let source: DiagnosticTraceSource = name.hasPrefix(importedTraceNamePrefix) ? .imported : .session
             
             return DiagnosticTraceFileInfo(
                 id: url.path,
@@ -85,12 +85,12 @@ enum SessionHistoryFileService {
     
     /// Intended for background queues.
     static func deleteFile(at url: URL) throws -> DeletionReport {
-        let fm = FileManager.default
+        let fileManager = FileManager.default
         let candidate = url.standardizedFileURL
         let candidatePath = candidate.path
-        if fm.fileExists(atPath: candidatePath) {
-            try fm.removeItem(at: candidate)
-            let deleted = !fm.fileExists(atPath: candidatePath)
+        if fileManager.fileExists(atPath: candidatePath) {
+            try fileManager.removeItem(at: candidate)
+            let deleted = !fileManager.fileExists(atPath: candidatePath)
             return DeletionReport(
                 deleted: deleted,
                 deletedPath: candidatePath,
@@ -102,7 +102,7 @@ enum SessionHistoryFileService {
         let docs = try documentsDirectoryURL()
         let fallback = docs.appendingPathComponent(candidate.lastPathComponent).standardizedFileURL
         let fallbackPath = fallback.path
-        guard fm.fileExists(atPath: fallbackPath) else {
+        guard fileManager.fileExists(atPath: fallbackPath) else {
             return DeletionReport(
                 deleted: false,
                 deletedPath: nil,
@@ -110,8 +110,8 @@ enum SessionHistoryFileService {
             )
         }
         
-        try fm.removeItem(at: fallback)
-        let deleted = !fm.fileExists(atPath: fallbackPath)
+        try fileManager.removeItem(at: fallback)
+        let deleted = !fileManager.fileExists(atPath: fallbackPath)
         return DeletionReport(
             deleted: deleted,
             deletedPath: fallbackPath,
@@ -119,19 +119,23 @@ enum SessionHistoryFileService {
         )
     }
     
-    /// Copies an imported JSON into Documents with a new `DiagnosticTrace_` name. Caller must manage security-scoped access to `sourceURL` when required.
+    /// Copies an imported JSON into Documents using `IMP-<originalFileName>`.
     static func copyImportedJSONToDocuments(from sourceURL: URL) throws -> URL {
         let destDir = try documentsDirectoryURL()
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
-        let stamp = formatter.string(from: Date())
-        var variant = 0
-        var destination = destDir.appendingPathComponent("\(traceNamePrefix)IMP_\(stamp)\(traceNameSuffix)")
-        while FileManager.default.fileExists(atPath: destination.path) {
-            variant += 1
-            destination = destDir.appendingPathComponent("\(traceNamePrefix)IMP_\(stamp)_\(variant)\(traceNameSuffix)")
+        let sourceFileName = sourceURL.lastPathComponent
+        let destinationFileName = "\(importedTraceNamePrefix)\(sourceFileName)"
+        
+        let destination = destDir.appendingPathComponent(destinationFileName)
+        let fileManager = FileManager.default
+        if FileManager.default.fileExists(atPath: destination.path) {
+            try fileManager.removeItem(at: destination)
         }
-        try FileManager.default.copyItem(at: sourceURL, to: destination)
+        try fileManager.copyItem(at: sourceURL, to: destination)
+        try fileManager.setAttributes([.modificationDate: Date()], ofItemAtPath: destination.path)
         return destination
+    }
+    
+    private static func isDiagnosticTraceFileName(_ name: String) -> Bool {
+        name.hasPrefix(sessionTraceNamePrefix) || name.hasPrefix(importedTraceNamePrefix)
     }
 }

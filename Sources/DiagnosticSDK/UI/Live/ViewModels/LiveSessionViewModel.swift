@@ -1,12 +1,18 @@
 import Foundation
 import Combine
 
+struct LiveSessionShareItem: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
 @MainActor
 final class LiveSessionViewModel: ObservableObject {
     @Published private(set) var snapshot: DiagnosticSessionSnapshot
     @Published var searchText: String = ""
     @Published var statusFilter: TraceHTTPStatusFilter = .all
     @Published var methodFilter: TraceHTTPMethodFilter = .all
+    @Published var shareItem: LiveSessionShareItem?
     
     private var lastSignature: Signature?
     private var updateCancellable: AnyCancellable?
@@ -42,6 +48,19 @@ final class LiveSessionViewModel: ObservableObject {
             statusFilter: statusFilter,
             methodFilter: methodFilter
         )
+    }
+    
+    var totalRequests: Int {
+        snapshot.screens.reduce(into: 0) { $0 += $1.interactions.count }
+    }
+    
+    func exportCurrentSession() {
+        guard let exportedURL = store.exportSessionToDisk() else { return }
+        shareItem = LiveSessionShareItem(url: exportedURL)
+    }
+    
+    func clearCurrentSession() {
+        store.clearCurrentSessionContent()
     }
 }
 

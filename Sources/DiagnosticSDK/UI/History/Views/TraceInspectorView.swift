@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Static inspector for a saved `DiagnosticTrace_*.json` file (not a live session replay).
+/// Static inspector for a saved diagnostic JSON file (not a live session replay).
 struct TraceInspectorView: View {
     let file: DiagnosticTraceFileInfo
     
@@ -12,36 +12,55 @@ struct TraceInspectorView: View {
     }
     
     var body: some View {
-        Group {
-            if viewModel.isLoading && viewModel.snapshot == nil {
-                ProgressView("Loading trace…")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if let message = viewModel.errorMessage {
-                DiagnosticEmptyStateView(
-                    title: "Could not open trace",
-                    systemImage: "exclamationmark.triangle",
-                    message: message
-                )
-            } else if let snapshot = viewModel.snapshot, snapshot.screens.isEmpty {
-                DiagnosticEmptyStateView(
-                    title: "Empty trace",
-                    systemImage: "doc.text",
-                    message: "This file contains no screen or network data."
-                )
-            } else if viewModel.snapshot != nil {
-                traceList
-            } else {
-                DiagnosticEmptyStateView(
-                    title: "No data",
-                    systemImage: "doc.text",
-                    message: "Unable to load this trace."
-                )
+        VStack(spacing: 0) {
+            if viewModel.snapshot != nil {
+                historySummaryBar
+            }
+            
+            Group {
+                if viewModel.isLoading && viewModel.snapshot == nil {
+                    ProgressView("Loading trace…")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if let message = viewModel.errorMessage {
+                    DiagnosticEmptyStateView(
+                        title: "Could not open trace",
+                        systemImage: "exclamationmark.triangle",
+                        message: message
+                    )
+                } else if let snapshot = viewModel.snapshot, snapshot.screens.isEmpty {
+                    DiagnosticEmptyStateView(
+                        title: "Empty trace",
+                        systemImage: "doc.text",
+                        message: "This file contains no screen or network data."
+                    )
+                } else if viewModel.snapshot != nil {
+                    traceList
+                } else {
+                    DiagnosticEmptyStateView(
+                        title: "No data",
+                        systemImage: "doc.text",
+                        message: "Unable to load this trace."
+                    )
+                }
             }
         }
         .navigationBarTitle(file.fileName, displayMode: .inline)
         .onAppear {
             viewModel.load()
         }
+    }
+    
+    private var historySummaryBar: some View {
+        HStack(spacing: 12) {
+            Label("Total Requests: \(viewModel.totalRequests)", systemImage: "network")
+                .font(.subheadline.weight(.semibold))
+                .foregroundColor(.primary)
+            
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(Color(.secondarySystemBackground))
     }
     
     @ViewBuilder

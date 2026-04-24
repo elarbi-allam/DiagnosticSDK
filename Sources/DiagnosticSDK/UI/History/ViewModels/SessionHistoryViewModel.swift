@@ -123,6 +123,42 @@ final class SessionHistoryViewModel: ObservableObject {
         }
     }
     
+    func clearAllFiles() {
+        let filesToDelete = files
+        guard !filesToDelete.isEmpty else { return }
+        
+        files.removeAll()
+        
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            var firstErrorMessage: String?
+            
+            for file in filesToDelete {
+                do {
+                    print("[DiagnosticSDK] Delete requested for: \(file.fileName) at \(file.url.path)")
+                    let report = try SessionHistoryFileService.deleteFile(at: file.url)
+                    if report.deleted {
+                        print("✅ [DiagnosticSDK] Deleted trace JSON: \(file.fileName)")
+                        print("[DiagnosticSDK] \(report.debugMessage)")
+                    } else if firstErrorMessage == nil {
+                        firstErrorMessage = "File not found on disk: \(file.fileName)"
+                    }
+                } catch {
+                    print("❌ [DiagnosticSDK] Failed to delete trace JSON \(file.fileName): \(error.localizedDescription)")
+                    if firstErrorMessage == nil {
+                        firstErrorMessage = error.localizedDescription
+                    }
+                }
+            }
+            
+            DispatchQueue.main.async {
+                if let firstErrorMessage {
+                    self?.deleteErrorMessage = firstErrorMessage
+                }
+                self?.refresh()
+            }
+        }
+    }
+    
     func importExternalTrace(from sourceURL: URL) {
         let startedAccess = sourceURL.startAccessingSecurityScopedResource()
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
