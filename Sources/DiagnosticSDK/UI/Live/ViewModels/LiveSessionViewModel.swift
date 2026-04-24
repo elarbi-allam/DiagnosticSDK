@@ -61,6 +61,7 @@ final class LiveSessionViewModel: ObservableObject {
     }
     
     func exportCurrentSessionSafely(password: String) {
+        exportErrorMessage = nil
         guard let exportedURL = store.exportSessionSafelyToTemporary(password: password) else {
             exportErrorMessage = "Safe export failed. Check password and try again."
             return

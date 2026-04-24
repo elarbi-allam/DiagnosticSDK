@@ -192,6 +192,7 @@ final class SessionHistoryViewModel: ObservableObject {
     }
     
     func prepareSafeShare(for file: DiagnosticTraceFileInfo, password: String) {
+        exportErrorMessage = nil
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let result = Result {
                 try SessionHistoryFileService.createSafeExportTemporaryFile(

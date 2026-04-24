@@ -67,6 +67,8 @@ struct LiveSessionView: View {
         }
         .alert("Safe Export", isPresented: $isSafeExportDialogPresented) {
             SecureField("Password", text: $safeExportPassword)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled(true)
             Button("Cancel", role: .cancel) {
                 safeExportPassword = ""
             }

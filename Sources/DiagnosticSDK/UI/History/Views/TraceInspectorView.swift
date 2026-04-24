@@ -52,10 +52,13 @@ struct TraceInspectorView: View {
         }
         .onChange(of: viewModel.passwordPromptRequestID) { requestID in
             guard requestID > 0 else { return }
+            decryptionPassword = ""
             isPasswordPromptPresented = true
         }
         .alert("Encrypted trace", isPresented: $isPasswordPromptPresented) {
             SecureField("Password", text: $decryptionPassword)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled(true)
             Button("Cancel", role: .cancel) {
                 decryptionPassword = ""
                 viewModel.cancelUnlock()
