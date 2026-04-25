@@ -1,7 +1,6 @@
 import SwiftUI
 import Foundation
 import UIKit
-import Combine
 
 struct NetworkInteractionDetailView: View {
     /// Same thresholds as response body for plain text: request/response headers and bodies.
@@ -13,6 +12,7 @@ struct NetworkInteractionDetailView: View {
     
     @State private var interaction: NetworkInteraction?
     @State private var isImagePreviewPresented = false
+    @StateObject private var imagePreviewLoader = NonInterceptedImageLoader()
     
     init(interactionId: String, store: DiagnosticSessionStore = .shared) {
         self.interactionId = interactionId
@@ -28,35 +28,42 @@ struct NetworkInteractionDetailView: View {
     }
     
     var body: some View {
-        Form {
-            if let interaction {
-                previewSection(interaction)
-                overviewSection(interaction)
-                requestSection(interaction)
-                responseSection(interaction)
-            } else {
-                Section("Interaction") {
-                    Text("Unable to load details for this request.")
-                        .foregroundColor(.secondary)
+        ZStack {
+            Form {
+                if let interaction {
+                    previewSection(interaction)
+                    overviewSection(interaction)
+                    requestSection(interaction)
+                    responseSection(interaction)
+                } else {
+                    Section("Interaction") {
+                        Text("Unable to load details for this request.")
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
-        }
-        .navigationBarTitle("Request Detail", displayMode: .inline)
-        .onAppear {
-            if interaction == nil, let store {
-                interaction = store.getInteraction(byId: interactionId)
+            .navigationBarTitle("Request Detail", displayMode: .inline)
+            .onAppear {
+                if interaction == nil, let store {
+                    interaction = store.getInteraction(byId: interactionId)
+                }
             }
-        }
-        .overlay(storeUpdateOverlay)
-        .sheet(isPresented: $isImagePreviewPresented) {
-            if let interaction {
-                PreviewSheet(
-                    title: "Image Preview",
-                    subtitle: interaction.request.url,
-                    urlString: interaction.request.url
+            .onChange(of: interactionId) { _ in
+                imagePreviewLoader.reset()
+            }
+            .overlay(storeUpdateOverlay)
+            if isImagePreviewPresented, let live = interaction, NetworkImagePreviewEligibility.canPreviewRequestImage(live) {
+                ImagePreviewToastOverlay(
+                    image: imagePreviewLoader.image,
+                    errorMessage: imagePreviewLoader.errorMessage,
+                    urlString: live.request.url,
+                    isPresented: $isImagePreviewPresented
                 )
+                .transition(AnyTransition.opacity.combined(with: .scale(scale: 0.92, anchor: .top)))
+                .zIndex(1000)
             }
         }
+        .animation(.spring(response: 0.4, dampingFraction: 0.86), value: isImagePreviewPresented)
     }
     
     @ViewBuilder
@@ -73,12 +80,19 @@ struct NetworkInteractionDetailView: View {
     
     private func previewSection(_ interaction: NetworkInteraction) -> some View {
         Section("Preview") {
-            if canPreviewImage(interaction) {
+            if NetworkImagePreviewEligibility.canPreviewRequestImage(interaction) {
                 PressablePreviewCard(
                     title: "Tap to preview image",
-                    subtitle: "Interactive zoom-like effect"
+                    subtitle: "Shows a system-style image toast",
+                    image: imagePreviewLoader.image,
+                    isLoading: imagePreviewLoader.isLoading,
+                    hasError: imagePreviewLoader.errorMessage != nil
                 ) {
+                    imagePreviewLoader.loadIfNeeded(from: interaction.request.url)
                     isImagePreviewPresented = true
+                }
+                .onAppear {
+                    imagePreviewLoader.loadIfNeeded(from: interaction.request.url)
                 }
             } else {
                 VStack(alignment: .leading, spacing: 6) {
@@ -328,178 +342,4 @@ struct NetworkInteractionDetailView: View {
         return .json(prettyString)
     }
     
-    private func canPreviewImage(_ interaction: NetworkInteraction) -> Bool {
-        guard interaction.request.method.uppercased() == "GET" else { return false }
-        guard let url = URL(string: interaction.request.url) else { return false }
-        
-        let imageExtensions = ["png", "jpg", "jpeg", "gif", "webp", "bmp", "heic", "tiff"]
-        if imageExtensions.contains(url.pathExtension.lowercased()) {
-            return true
-        }
-        
-        if let responseHeaders = interaction.response?.headers {
-            let contentType = responseHeaders.first(where: {
-                $0.key.caseInsensitiveCompare("Content-Type") == .orderedSame
-            })?.value.lowercased()
-            if contentType?.contains("image/") == true {
-                return true
-            }
-        }
-        
-        return url.absoluteString.contains("image.tmdb.org")
-    }
-}
-
-// MARK: - Preview card
-
-private struct PressablePreviewCard: View {
-    let title: String
-    let subtitle: String
-    let action: () -> Void
-    
-    @GestureState private var isPressing = false
-    
-    var body: some View {
-        let longPress = LongPressGesture(minimumDuration: 0.01)
-            .updating($isPressing) { currentState, state, _ in
-                state = currentState
-            }
-            .onEnded { _ in
-                action()
-            }
-        
-        return VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 10) {
-                Image(systemName: "photo")
-                    .foregroundColor(.blue)
-                Text(title)
-                    .font(.subheadline.weight(.semibold))
-            }
-            Text(subtitle)
-                .font(.footnote)
-                .foregroundColor(.secondary)
-        }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemBackground))
-        .cornerRadius(12)
-        .scaleEffect(isPressing ? 1.03 : 1.0)
-        .animation(.spring(response: 0.28, dampingFraction: 0.72), value: isPressing)
-        .gesture(longPress)
-    }
-}
-
-private struct PreviewSheet: View {
-    let title: String
-    let subtitle: String
-    let urlString: String
-    
-    @Environment(\.presentationMode) private var presentationMode
-    @StateObject private var loader = NonInterceptedImageLoader()
-    
-    var body: some View {
-        NavigationView {
-            ZStack {
-                Color.black.opacity(0.92).ignoresSafeArea()
-                
-                VStack(spacing: 12) {
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.8))
-                        .lineLimit(2)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
-                    
-                    if let image = loader.image {
-                    GeometryReader { proxy in
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: proxy.size.width, height: proxy.size.height)
-                            .padding()
-                    }
-                    } else if loader.errorMessage != nil {
-                        Text("This request is not an image or could not be loaded.")
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
-                            .padding()
-                    } else {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    }
-                }
-            }
-            .navigationBarTitle(title, displayMode: .inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                }
-            }
-        }
-        .onAppear {
-            loader.load(from: urlString)
-        }
-    }
-}
-
-@MainActor
-private final class NonInterceptedImageLoader: ObservableObject {
-    @Published var image: UIImage?
-    @Published var errorMessage: String?
-    
-    private var session: URLSession?
-    private var task: URLSessionDataTask?
-    
-    deinit {
-        task?.cancel()
-        session?.invalidateAndCancel()
-    }
-    
-    func load(from urlString: String) {
-        guard image == nil else { return }
-        guard let url = URL(string: urlString) else {
-            errorMessage = "Invalid URL"
-            return
-        }
-        
-        let config = URLSessionConfiguration.ephemeral
-        if let protocolClasses = config.protocolClasses {
-            config.protocolClasses = protocolClasses.filter { protocolClass in
-                NSStringFromClass(protocolClass) != "DiagnosticURLProtocol"
-            }
-        } else {
-            config.protocolClasses = []
-        }
-        
-        let session = URLSession(configuration: config)
-        self.session = session
-        task = session.dataTask(with: url) { [weak self] data, response, error in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                
-                if let error = error {
-                    self.errorMessage = error.localizedDescription
-                    return
-                }
-                
-                if let httpResponse = response as? HTTPURLResponse,
-                   let contentType = httpResponse.value(forHTTPHeaderField: "Content-Type")?.lowercased(),
-                   !contentType.contains("image/") {
-                    self.errorMessage = "Not an image response."
-                    return
-                }
-                
-                guard let data = data, let image = UIImage(data: data) else {
-                    self.errorMessage = "Unable to decode image."
-                    return
-                }
-                
-                self.image = image
-                self.errorMessage = nil
-            }
-        }
-        task?.resume()
-    }
 }
