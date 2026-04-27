@@ -29,6 +29,6 @@ enum NetworkImagePreviewEligibility {
            queryLower.contains("format=png") || queryLower.contains("type=image") {
             return true
         }
-        return url.host?.contains("tmdb") == true && url.absoluteString.contains("image")
+        return false
     }
 }

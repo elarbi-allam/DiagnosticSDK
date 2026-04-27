@@ -39,12 +39,24 @@ enum DiagnosticImageDataDecoder {
         var delay: Double = 0.1
         guard let info = CGImageSourceCopyPropertiesAtIndex(source, index, nil) as? [String: Any] else { return delay }
         if let gif = info[kCGImagePropertyGIFDictionary as String] as? [String: Any] {
-            if let u = gif[kCGImagePropertyGIFUnclampedDelayTime as String] as? Double, u > 0.0 { return u }
-            if let d = gif[kCGImagePropertyGIFDelayTime as String] as? Double, d > 0.0 { return d }
+            if let unclampedDelay = gif[kCGImagePropertyGIFUnclampedDelayTime as String] as? Double,
+               unclampedDelay > 0.0 {
+                return unclampedDelay
+            }
+            if let clampedDelay = gif[kCGImagePropertyGIFDelayTime as String] as? Double,
+               clampedDelay > 0.0 {
+                return clampedDelay
+            }
         }
         if let png = info[kCGImagePropertyPNGDictionary as String] as? [String: Any] {
-            if let u = png[kCGImagePropertyAPNGUnclampedDelayTime as String] as? NSNumber, u.doubleValue > 0.0 { return u.doubleValue }
-            if let d = png[kCGImagePropertyAPNGDelayTime as String] as? NSNumber, d.doubleValue > 0.0 { return d.doubleValue }
+            if let unclampedDelay = png[kCGImagePropertyAPNGUnclampedDelayTime as String] as? NSNumber,
+               unclampedDelay.doubleValue > 0.0 {
+                return unclampedDelay.doubleValue
+            }
+            if let clampedDelay = png[kCGImagePropertyAPNGDelayTime as String] as? NSNumber,
+               clampedDelay.doubleValue > 0.0 {
+                return clampedDelay.doubleValue
+            }
         }
         return delay
     }
