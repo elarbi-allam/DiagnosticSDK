@@ -10,29 +10,32 @@ enum DiagnosticImageDataDecoder {
         guard let source = CGImageSourceCreateWithData(data as CFData, nil) else {
             return UIImage(data: data)
         }
-        let type = (CGImageSourceGetType(source) as String?)?.lowercased() ?? ""
-        let count = CGImageSourceGetCount(source)
-        if count <= 1 {
-            if let cg = CGImageSourceCreateImageAtIndex(source, 0, nil) {
-                return UIImage(cgImage: cg, scale: UIScreen.main.scale, orientation: .up)
+        let imageSourceType = (CGImageSourceGetType(source) as String?)?.lowercased() ?? ""
+        let frameCount = CGImageSourceGetCount(source)
+        if frameCount <= 1 {
+            if let cgImage = CGImageSourceCreateImageAtIndex(source, 0, nil) {
+                return UIImage(cgImage: cgImage, scale: UIScreen.main.scale, orientation: .up)
             }
             return UIImage(data: data)
         }
-        let cap = min(count, Self.maxAnimFrames)
-        var images: [UIImage] = []
-        var total: Double = 0
-        for i in 0..<cap {
-            guard let cg = CGImageSourceCreateImageAtIndex(source, i, nil) else { continue }
-            let dt = frameDelay(source: source, index: i)
-            total += dt
-            images.append(UIImage(cgImage: cg, scale: UIScreen.main.scale, orientation: .up))
+        let maxFrameCountToDecode = min(frameCount, Self.maxAnimFrames)
+        var decodedFrames: [UIImage] = []
+        var totalAnimationDuration: Double = 0
+        for frameIndex in 0..<maxFrameCountToDecode {
+            guard let cgImage = CGImageSourceCreateImageAtIndex(source, frameIndex, nil) else { continue }
+            let frameDuration = frameDelay(source: source, index: frameIndex)
+            totalAnimationDuration += frameDuration
+            decodedFrames.append(UIImage(cgImage: cgImage, scale: UIScreen.main.scale, orientation: .up))
         }
-        if images.isEmpty { return UIImage(data: data) }
-        if images.count == 1 { return images[0] }
-        if type.contains("gif") || type.contains("png") {
-            return UIImage.animatedImage(with: images, duration: max(total, 0.15))
+        if decodedFrames.isEmpty { return UIImage(data: data) }
+        if decodedFrames.count == 1 { return decodedFrames[0] }
+        if imageSourceType.contains("gif") || imageSourceType.contains("png") {
+            return UIImage.animatedImage(with: decodedFrames, duration: max(totalAnimationDuration, 0.15))
         }
-        return UIImage.animatedImage(with: images, duration: max(total / Double(images.count), 0.1))
+        return UIImage.animatedImage(
+            with: decodedFrames,
+            duration: max(totalAnimationDuration / Double(decodedFrames.count), 0.1)
+        )
     }
 
     private static func frameDelay(source: CGImageSource, index: Int) -> Double {
