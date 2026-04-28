@@ -11,6 +11,43 @@
 - (void)updateCurrentScreen:(NSString *)screenName;
 @end
 
+static BOOL DSDK_ShouldIgnoreScreenName(NSString *name) {
+    if (name == nil || name.length == 0) { return YES; }
+    
+    if ([name hasPrefix:@"UI"] ||
+        [name hasPrefix:@"_UI"] ||
+        [name isEqualToString:@"UINavigationController"] ||
+        [name isEqualToString:@"UITabBarController"] ||
+        [name hasPrefix:@"SwiftUI."] ||
+        [name containsString:@"UIHostingController"] ||
+        [name containsString:@"SwiftUI"] ||
+        [name hasPrefix:@"_TtGC7SwiftUI"]) {
+        return YES;
+    }
+    
+    NSString *lower = [name lowercaseString];
+    if ([lower containsString:@"remoteviewcontroller"]) { return YES; }
+    if ([lower rangeOfString:@"remote"].location != NSNotFound
+        && [lower rangeOfString:@"sheet"].location != NSNotFound) { return YES; }
+    if ([lower containsString:@"_uiremote"] || [lower containsString:@"sheetpresentation"] || [lower containsString:@"remotekeyboard"]) { return YES; }
+    if ([name hasPrefix:@"SH"]) { return YES; }
+    if ([lower rangeOfString:@"siri"].location != NSNotFound || [lower rangeOfString:@"carplay"].location != NSNotFound) { return YES; }
+    if ([lower hasPrefix:@"rpb"] || [lower hasPrefix:@"rpsystem"] || [name hasPrefix:@"RPScreen"] || [name hasPrefix:@"RPSystem"]) { return YES; }
+    
+    static NSString * const prefixes[] = {
+        @"DOC", @"DPU", @"QL", @"PUP", @"SFS", @"SFAuthentication",
+        @"SLCompose", @"PK", @"MF", @"SKStore", @"INUI", @"CNC", @"EK", @"CPS",
+    };
+    static const size_t nPrefixes = sizeof(prefixes) / sizeof(prefixes[0]);
+    for (size_t i = 0; i < nPrefixes; i++) {
+        if ([name hasPrefix:prefixes[i]]) { return YES; }
+    }
+    
+    if ([name hasPrefix:@"_"] && ![name hasPrefix:@"_TtC"]) { return YES; }
+    
+    return NO;
+}
+
 @implementation UIViewController (DiagnosticSDK)
 
 + (void)diagnostic_swizzleLifecycle {
@@ -59,22 +96,7 @@
 /// I extract the screen name and forward it to our Swift singleton.
 - (void)updateDiagnosticContext {
     NSString *screenName = NSStringFromClass([self class]);
-    
-    // I filter out Apple's private and structural UI components to maintain clean logs.
-    if ([screenName hasPrefix:@"UI"] ||
-        [screenName hasPrefix:@"_UI"] ||
-        [screenName isEqualToString:@"UINavigationController"] ||
-        [screenName isEqualToString:@"UITabBarController"] ||
-        // SwiftUI hosting containers are structural; tagging them breaks attribution for mixed UIKit/SwiftUI apps.
-        // SwiftUI-only apps should explicitly set the screen via the Swift API (provided by the SDK UI layer).
-        [screenName hasPrefix:@"SwiftUI."] ||
-        [screenName containsString:@"UIHostingController"] ||
-        // SwiftUI-mangled runtime names (e.g. _TtGC7SwiftUI...StyleContextSplitViewNavigationController...)
-        [screenName containsString:@"SwiftUI"] ||
-        [screenName hasPrefix:@"_TtGC7SwiftUI"]) {
-        return;
-    }
-    
+    if (DSDK_ShouldIgnoreScreenName(screenName)) { return; }
     // Dynamically invoke the Swift singleton
     DiagnosticContext *context = [DiagnosticContext shared];
     [context updateCurrentScreen:screenName];

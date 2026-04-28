@@ -13,6 +13,7 @@ final class LiveSessionViewModel: ObservableObject {
     @Published var statusFilter: TraceHTTPStatusFilter = .all
     @Published var methodFilter: TraceHTTPMethodFilter = .all
     @Published var shareItem: LiveSessionShareItem?
+    @Published var exportErrorMessage: String?
     
     private var lastSignature: Signature?
     private var updateCancellable: AnyCancellable?
@@ -56,6 +57,15 @@ final class LiveSessionViewModel: ObservableObject {
     
     func exportCurrentSession() {
         guard let exportedURL = store.exportSessionToDisk() else { return }
+        shareItem = LiveSessionShareItem(url: exportedURL)
+    }
+    
+    func exportCurrentSessionSafely(password: String) {
+        exportErrorMessage = nil
+        guard let exportedURL = store.exportSessionSafelyToTemporary(password: password) else {
+            exportErrorMessage = "Safe export failed. Check password and try again."
+            return
+        }
         shareItem = LiveSessionShareItem(url: exportedURL)
     }
     

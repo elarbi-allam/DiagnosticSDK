@@ -4,6 +4,8 @@ import UIKit
 
 struct LiveSessionView: View {
     @StateObject private var viewModel = LiveSessionViewModel()
+    @State private var isExportOptionsPresented = false
+    @State private var isSafeExportDialogPresented = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -49,9 +51,50 @@ struct LiveSessionView: View {
             }
         }
         .navigationBarItems(leading: exportButton)
+        .confirmationDialog("Choose export type", isPresented: $isExportOptionsPresented, titleVisibility: .visible) {
+            Button("Export") {
+                viewModel.exportCurrentSession()
+            }
+            Button("Safe Export") {
+                isSafeExportDialogPresented = true
+            }
+            Button("Cancel", role: .cancel) {}
+        }
         .sheet(item: $viewModel.shareItem) { item in
             ActivityView(activityItems: [item.url])
         }
+        .background(
+            DiagnosticPasswordPrompt(
+                isPresented: $isSafeExportDialogPresented,
+                title: "Safe Export",
+                message: "Enter a password to encrypt the exported file.",
+                placeholder: "Password",
+                confirmTitle: "Export",
+                cancelTitle: "Cancel",
+                onConfirm: { password in
+                    let normalized = password.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !normalized.isEmpty else { return }
+                    viewModel.exportCurrentSessionSafely(password: normalized)
+                },
+                onCancel: {}
+            )
+            .frame(width: 0, height: 0)
+        )
+        .alert(
+            "Export failed",
+            isPresented: Binding(
+                get: { viewModel.exportErrorMessage != nil },
+                set: { if !$0 { viewModel.exportErrorMessage = nil } }
+            ),
+            actions: {
+                Button("OK", role: .cancel) {
+                    viewModel.exportErrorMessage = nil
+                }
+            },
+            message: {
+                Text(viewModel.exportErrorMessage ?? "")
+            }
+        )
     }
     
     private var liveControlsBar: some View {
@@ -74,7 +117,7 @@ struct LiveSessionView: View {
     
     private var exportButton: some View {
         Button {
-            viewModel.exportCurrentSession()
+            isExportOptionsPresented = true
         } label: {
             Image(systemName: "square.and.arrow.up")
         }

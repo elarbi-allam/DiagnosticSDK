@@ -5,6 +5,7 @@ struct TraceInspectorView: View {
     let file: DiagnosticTraceFileInfo
     
     @StateObject private var viewModel: TraceInspectorViewModel
+    @State private var isPasswordPromptPresented = false
     
     init(file: DiagnosticTraceFileInfo) {
         self.file = file
@@ -44,10 +45,33 @@ struct TraceInspectorView: View {
                 }
             }
         }
-        .navigationBarTitle(file.fileName, displayMode: .inline)
+        .navigationBarTitle(file.displayFileName, displayMode: .inline)
         .onAppear {
-            viewModel.load()
+            viewModel.loadIfNeeded()
         }
+        .onChange(of: viewModel.passwordPromptRequestID) { requestID in
+            guard requestID > 0 else { return }
+            isPasswordPromptPresented = true
+        }
+        .background(
+            DiagnosticPasswordPrompt(
+                isPresented: $isPasswordPromptPresented,
+                title: "Encrypted trace",
+                message: viewModel.passwordPromptMessage,
+                placeholder: "Password",
+                confirmTitle: "Unlock",
+                cancelTitle: "Cancel",
+                onConfirm: { password in
+                    let normalized = password.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !normalized.isEmpty else { return }
+                    viewModel.unlockEncryptedTrace(password: normalized)
+                },
+                onCancel: {
+                    viewModel.cancelUnlock()
+                }
+            )
+            .frame(width: 0, height: 0)
+        )
     }
     
     private var historySummaryBar: some View {
@@ -55,6 +79,17 @@ struct TraceInspectorView: View {
             Label("Total Requests: \(viewModel.totalRequests)", systemImage: "network")
                 .font(.subheadline.weight(.semibold))
                 .foregroundColor(.primary)
+            
+            if viewModel.isViewingDecryptedSafeTrace {
+                Image(systemName: "lock.shield.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(.indigo)
+                    .padding(7)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(Color.indigo.opacity(0.14))
+                    )
+            }
             
             Spacer()
         }
@@ -115,4 +150,5 @@ struct TraceInspectorView: View {
                 .navigationBarTitle("Request Detail", displayMode: .inline)
         }
     }
+    
 }
