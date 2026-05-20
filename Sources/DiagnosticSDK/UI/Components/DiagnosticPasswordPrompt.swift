@@ -24,7 +24,10 @@ struct DiagnosticPasswordPrompt: UIViewControllerRepresentable {
         let coordinator = context.coordinator
         
         if !isPresented {
-            if uiViewController.presentedViewController != nil {
+            // Only dismiss the alert instance managed by this coordinator.
+            // Never dismiss unrelated presentations owned by other flows.
+            if let activeAlert = coordinator.activeAlert,
+               uiViewController.presentedViewController === activeAlert {
                 uiViewController.dismiss(animated: true)
             }
             coordinator.activeAlert = nil

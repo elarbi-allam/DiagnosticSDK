@@ -1,5 +1,5 @@
-import Combine
 import Foundation
+import Combine
 
 struct SessionHistoryShareItem: Identifiable {
     let id = UUID()
@@ -20,6 +20,7 @@ enum SessionHistorySourceFilter: Hashable {
     }
 }
 
+@MainActor
 final class SessionHistoryViewModel: ObservableObject {
     @Published private(set) var files: [DiagnosticTraceFileInfo] = []
     @Published private(set) var isScanning = false
@@ -28,6 +29,21 @@ final class SessionHistoryViewModel: ObservableObject {
     @Published var exportErrorMessage: String?
     @Published var shareItem: SessionHistoryShareItem?
     @Published var sourceFilter: SessionHistorySourceFilter = .all
+    @Published var replayErrorMessage: String?
+    @Published private(set) var isActivatingReplay = false
+
+    private var replayActivationTask: Task<Void, Never>?
+    private var replayActivationGeneration: UInt64 = 0
+    private let fileManager: SessionHistoryFileManaging
+    private let replayCoordinator: SessionReplayCoordinating
+
+    init(
+        fileManager: SessionHistoryFileManaging,
+        replayCoordinator: SessionReplayCoordinating? = nil
+    ) {
+        self.fileManager = fileManager
+        self.replayCoordinator = replayCoordinator ?? SessionReplayCoordinator()
+    }
     
     var visibleFiles: [DiagnosticTraceFileInfo] {
         switch sourceFilter {
@@ -43,9 +59,9 @@ final class SessionHistoryViewModel: ObservableObject {
     func refresh() {
         isScanning = true
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            let result = Result { try SessionHistoryFileService.listTraceFiles() }
+            guard let self else { return }
+            let result = Result { try self.fileManager.listTraceFiles() }
             DispatchQueue.main.async {
-                guard let self else { return }
                 self.isScanning = false
                 switch result {
                 case .success(let list):
@@ -62,115 +78,27 @@ final class SessionHistoryViewModel: ObservableObject {
             guard visibleFiles.indices.contains(index) else { return nil }
             return visibleFiles[index]
         }
-        guard !filesToDelete.isEmpty else { return }
-        
-        let ids = Set(filesToDelete.map(\.id))
-        files.removeAll { ids.contains($0.id) }
-        
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            for file in filesToDelete {
-                do {
-                    print("[DiagnosticSDK] Delete requested for: \(file.fileName) at \(file.url.path)")
-                    let report = try SessionHistoryFileService.deleteFile(at: file.url)
-                    if report.deleted {
-                        print("✅ [DiagnosticSDK] Deleted trace JSON: \(file.fileName)")
-                        print("[DiagnosticSDK] \(report.debugMessage)")
-                    } else {
-                        print("[DiagnosticSDK] Delete skipped (file not found): \(file.fileName)")
-                        print("[DiagnosticSDK] \(report.debugMessage)")
-                        DispatchQueue.main.async {
-                            self?.deleteErrorMessage = "File not found on disk: \(file.fileName)"
-                        }
-                    }
-                } catch {
-                    print("❌ [DiagnosticSDK] Failed to delete trace JSON \(file.fileName): \(error.localizedDescription)")
-                    DispatchQueue.main.async {
-                        self?.deleteErrorMessage = error.localizedDescription
-                    }
-                }
-            }
-            DispatchQueue.main.async {
-                self?.refresh()
-            }
-        }
+        delete(filesToDelete)
     }
     
     func delete(file: DiagnosticTraceFileInfo) {
-        files.removeAll { $0.id == file.id }
-        
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            do {
-                print("[DiagnosticSDK] Delete requested for: \(file.fileName) at \(file.url.path)")
-                let report = try SessionHistoryFileService.deleteFile(at: file.url)
-                if report.deleted {
-                    print("✅ [DiagnosticSDK] Deleted trace JSON: \(file.fileName)")
-                    print("[DiagnosticSDK] \(report.debugMessage)")
-                } else {
-                    print("[DiagnosticSDK] Delete skipped (file not found): \(file.fileName)")
-                    print("[DiagnosticSDK] \(report.debugMessage)")
-                    DispatchQueue.main.async {
-                        self?.deleteErrorMessage = "File not found on disk: \(file.fileName)"
-                    }
-                }
-            } catch {
-                print("❌ [DiagnosticSDK] Failed to delete trace JSON \(file.fileName): \(error.localizedDescription)")
-                DispatchQueue.main.async {
-                    self?.deleteErrorMessage = error.localizedDescription
-                }
-            }
-            DispatchQueue.main.async {
-                self?.refresh()
-            }
-        }
+        delete([file])
     }
     
     func clearAllFiles() {
         let filesToDelete = files
-        guard !filesToDelete.isEmpty else { return }
-        
-        files.removeAll()
-        
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            var firstErrorMessage: String?
-            
-            for file in filesToDelete {
-                do {
-                    print("[DiagnosticSDK] Delete requested for: \(file.fileName) at \(file.url.path)")
-                    let report = try SessionHistoryFileService.deleteFile(at: file.url)
-                    if report.deleted {
-                        print("✅ [DiagnosticSDK] Deleted trace JSON: \(file.fileName)")
-                        print("[DiagnosticSDK] \(report.debugMessage)")
-                    } else if firstErrorMessage == nil {
-                        firstErrorMessage = "File not found on disk: \(file.fileName)"
-                    }
-                } catch {
-                    print("❌ [DiagnosticSDK] Failed to delete trace JSON \(file.fileName): \(error.localizedDescription)")
-                    if firstErrorMessage == nil {
-                        firstErrorMessage = error.localizedDescription
-                    }
-                }
-            }
-            
-            DispatchQueue.main.async {
-                if let firstErrorMessage {
-                    self?.deleteErrorMessage = firstErrorMessage
-                }
-                self?.refresh()
-            }
-        }
+        delete(filesToDelete)
     }
     
     func importExternalTrace(from sourceURL: URL) {
         let startedAccess = sourceURL.startAccessingSecurityScopedResource()
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            let result = Result {
-                try SessionHistoryFileService.copyImportedJSONToDocuments(from: sourceURL)
-            }
+            guard let self else { return }
+            let result = Result { try self.fileManager.copyImportedTrace(from: sourceURL) }
             DispatchQueue.main.async {
                 if startedAccess {
                     sourceURL.stopAccessingSecurityScopedResource()
                 }
-                guard let self else { return }
                 switch result {
                 case .success(let importedURL):
                     print("✅ [DiagnosticSDK] Imported trace JSON: \(importedURL.lastPathComponent)")
@@ -187,6 +115,45 @@ final class SessionHistoryViewModel: ObservableObject {
         sourceFilter = filter
     }
 
+    func activateReplay(for file: DiagnosticTraceFileInfo, queryMode: ReplayQueryMatchingMode) {
+        replayActivationTask?.cancel()
+
+        replayActivationGeneration += 1
+        let generation = replayActivationGeneration
+
+        replayErrorMessage = nil
+        isActivatingReplay = true
+
+        replayActivationTask = Task { [weak self] in
+            guard let self else { return }
+
+            defer {
+                if generation == self.replayActivationGeneration {
+                    self.isActivatingReplay = false
+                }
+            }
+
+            guard !Task.isCancelled else { return }
+
+            do {
+                try Task.checkCancellation()
+                try await self.replayCoordinator.activateReplay(for: file, queryMode: queryMode)
+                self.replayErrorMessage = nil
+            } catch {
+                guard !(error is CancellationError) else { return }
+                self.replayErrorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    func stopReplay() {
+        replayCoordinator.stopReplay()
+    }
+
+    func isReplaySelected(_ file: DiagnosticTraceFileInfo) -> Bool {
+        replayCoordinator.isReplaySelected(file)
+    }
+
     func prepareShare(for file: DiagnosticTraceFileInfo) {
         shareItem = SessionHistoryShareItem(url: file.url)
     }
@@ -194,15 +161,10 @@ final class SessionHistoryViewModel: ObservableObject {
     func prepareSafeShare(for file: DiagnosticTraceFileInfo, password: String) {
         exportErrorMessage = nil
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            let result = Result {
-                try SessionHistoryFileService.createSafeExportTemporaryFile(
-                    from: file.url,
-                    password: password
-                )
-            }
+            guard let self else { return }
+            let result = Result { try self.fileManager.createSafeExportTemporaryFile(from: file.url, password: password) }
             
             DispatchQueue.main.async {
-                guard let self else { return }
                 switch result {
                 case .success(let safeURL):
                     self.exportErrorMessage = nil
@@ -212,5 +174,48 @@ final class SessionHistoryViewModel: ObservableObject {
                 }
             }
         }
+    }
+
+    private func delete(_ filesToDelete: [DiagnosticTraceFileInfo]) {
+        guard !filesToDelete.isEmpty else { return }
+        replayCoordinator.deactivateReplayIfNeeded(for: filesToDelete)
+
+        let idsToDelete = Set(filesToDelete.map(\.id))
+        files.removeAll { idsToDelete.contains($0.id) }
+
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self else { return }
+            let firstErrorMessage = self.executeDelete(filesToDelete)
+            DispatchQueue.main.async {
+                self.deleteErrorMessage = firstErrorMessage
+                self.refresh()
+            }
+        }
+    }
+
+    private func executeDelete(_ filesToDelete: [DiagnosticTraceFileInfo]) -> String? {
+        var firstErrorMessage: String?
+
+        for file in filesToDelete {
+            do {
+                print("[DiagnosticSDK] Delete requested for: \(file.fileName) at \(file.url.path)")
+                let report = try fileManager.deleteTraceFile(at: file.url)
+                if report.deleted {
+                    print("✅ [DiagnosticSDK] Deleted trace JSON: \(file.fileName)")
+                    print("[DiagnosticSDK] \(report.debugMessage)")
+                } else if firstErrorMessage == nil {
+                    print("[DiagnosticSDK] Delete skipped (file not found): \(file.fileName)")
+                    print("[DiagnosticSDK] \(report.debugMessage)")
+                    firstErrorMessage = "File not found on disk: \(file.fileName)"
+                }
+            } catch {
+                print("❌ [DiagnosticSDK] Failed to delete trace JSON \(file.fileName): \(error.localizedDescription)")
+                if firstErrorMessage == nil {
+                    firstErrorMessage = error.localizedDescription
+                }
+            }
+        }
+
+        return firstErrorMessage
     }
 }

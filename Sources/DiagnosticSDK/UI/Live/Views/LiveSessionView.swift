@@ -20,6 +20,10 @@ struct LiveSessionView: View {
                     )
                 } else {
                     List {
+                        Section {
+                            TraceSearchField(text: $viewModel.searchText)
+                        }
+
                         TraceSessionHeaderSection(
                             sessionTitle: "Live session",
                             sessionId: viewModel.snapshot.sessionId,
@@ -46,11 +50,14 @@ struct LiveSessionView: View {
                         }
                     }
                     .listStyle(InsetGroupedListStyle())
-                    .searchable(text: $viewModel.searchText, placement: .navigationBarDrawer(displayMode: .always))
                 }
             }
         }
-        .navigationBarItems(leading: exportButton)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                exportButton
+            }
+        }
         .confirmationDialog("Choose export type", isPresented: $isExportOptionsPresented, titleVisibility: .visible) {
             Button("Export") {
                 viewModel.exportCurrentSession()

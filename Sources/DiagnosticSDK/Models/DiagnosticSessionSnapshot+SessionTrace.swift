@@ -11,7 +11,8 @@ extension DiagnosticSessionSnapshot {
                     durationMs: interaction.durationMs,
                     method: interaction.request.method,
                     url: interaction.request.url,
-                    status: interaction.response?.status
+                    status: interaction.response?.status,
+                    isMocked: false
                 )
             }
             return Screen(

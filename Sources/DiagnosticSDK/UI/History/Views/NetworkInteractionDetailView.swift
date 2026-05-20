@@ -13,6 +13,7 @@ struct NetworkInteractionDetailView: View {
     @State private var interaction: NetworkInteraction?
     @State private var isImagePreviewPresented = false
     @StateObject private var imagePreviewLoader = NonInterceptedImageLoader()
+    @State private var selectedDecodedToken: DecodedTokenItem?
     
     init(interactionId: String, store: DiagnosticSessionStore = .shared) {
         self.interactionId = interactionId
@@ -64,6 +65,9 @@ struct NetworkInteractionDetailView: View {
             }
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.86), value: isImagePreviewPresented)
+        .sheet(item: $selectedDecodedToken) { token in
+            DecodedTokenPreviewSheet(token: token)
+        }
     }
     
     @ViewBuilder
@@ -164,6 +168,12 @@ struct NetworkInteractionDetailView: View {
         Section("Request") {
             headersBlock(title: "Headers", headers: interaction.request.headers)
             bodyBlock(title: "Body", rawValue: interaction.request.bodyBase64)
+            tokenDecoderBlock(
+                title: "Token Decoder",
+                headers: interaction.request.headers,
+                bodyRawValue: interaction.request.bodyBase64,
+                sourcePrefix: "Request"
+            )
         }
     }
     
@@ -172,6 +182,12 @@ struct NetworkInteractionDetailView: View {
             if let response = interaction.response {
                 headersBlock(title: "Headers", headers: response.headers)
                 bodyBlock(title: "Body", rawValue: response.bodyBase64)
+                tokenDecoderBlock(
+                    title: "Token Decoder",
+                    headers: response.headers,
+                    bodyRawValue: response.bodyBase64,
+                    sourcePrefix: "Response"
+                )
                 if let errorText = response.errorDescription, !errorText.isEmpty {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Error")
@@ -243,6 +259,62 @@ struct NetworkInteractionDetailView: View {
                 .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: multiline)
                 .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func tokenDecoderBlock(
+        title: String,
+        headers: [String: String]?,
+        bodyRawValue: String?,
+        sourcePrefix: String
+    ) -> some View {
+        let decodedTokens = DecodedTokenExtractor.extract(
+            headers: headers,
+            bodyRawValue: bodyRawValue,
+            sourcePrefix: sourcePrefix
+        )
+
+        return VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundColor(.secondary)
+
+            if decodedTokens.isEmpty {
+                Text("No decodable JWT token found.")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+            } else {
+                Text("Detected tokens: \(decodedTokens.count)")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+
+                ForEach(decodedTokens) { token in
+                    Button {
+                        selectedDecodedToken = token
+                    } label: {
+                        HStack(spacing: 10) {
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(token.source)
+                                    .font(.footnote.weight(.semibold))
+                                    .foregroundColor(.primary)
+                                    .lineLimit(2)
+                                Text(token.rawToken)
+                                    .font(.caption.monospaced())
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                            }
+                            Spacer(minLength: 0)
+                            Image(systemName: "chevron.right")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.vertical, 6)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         }
         .padding(.vertical, 4)
     }
@@ -341,5 +413,40 @@ struct NetworkInteractionDetailView: View {
         }
         return .json(prettyString)
     }
-    
+}
+
+private struct DecodedTokenPreviewSheet: View {
+    let token: DecodedTokenItem
+    @Environment(\.presentationMode) private var presentationMode
+
+    var body: some View {
+        NavigationView {
+            Form {
+                Section("Detected Value") {
+                    DiagnosticReadableTextBlock(
+                        text: token.rawToken,
+                        kind: .plain,
+                        sheetTitle: "\(token.source) Token",
+                        maxCharactersBeforeFull: 280,
+                        previewLineLimit: 2
+                    )
+                }
+
+                Section("Decoded Token") {
+                    DiagnosticJSONPreviewBlock(
+                        prettyJSON: token.decodedJSON,
+                        sheetTitle: "\(token.source) Decoded Token"
+                    )
+                }
+            }
+            .navigationBarTitle(token.source, displayMode: .inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                }
+            }
+        }
+    }
 }

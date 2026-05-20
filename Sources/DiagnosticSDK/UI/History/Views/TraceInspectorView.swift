@@ -102,6 +102,10 @@ struct TraceInspectorView: View {
     private var traceList: some View {
         if let snapshot = viewModel.snapshot {
             List {
+                Section {
+                    TraceSearchField(text: $viewModel.searchText)
+                }
+
                 TraceSessionHeaderSection(
                     sessionTitle: "Recorded trace",
                     sessionId: snapshot.sessionId,
@@ -136,7 +140,6 @@ struct TraceInspectorView: View {
                 }
             }
             .listStyle(InsetGroupedListStyle())
-            .searchable(text: $viewModel.searchText, placement: .navigationBarDrawer(displayMode: .always))
         }
     }
     

@@ -17,6 +17,7 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
     
     /// Maps a screen visit id to the corresponding screen node index.
     private var screenIndexByVisitId: [Int: Int] = [:]
+    private var mockedInteractionIds: Set<String> = []
     private var backgroundObserver: NSObjectProtocol?
     
     // MARK: - Initialization
@@ -49,6 +50,7 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
             guard let self else { return }
             self.currentSession.screens.removeAll(keepingCapacity: false)
             self.screenIndexByVisitId.removeAll(keepingCapacity: false)
+            self.mockedInteractionIds.removeAll(keepingCapacity: false)
             NotificationCenter.default.post(name: .diagnosticSessionStoreDidUpdate, object: self)
         }
     }
@@ -59,6 +61,9 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
     private func processAndAppend(event: NetworkEvent) {
         let targetScreenName = event.request.screenName ?? "Background"
         let interaction = mapToInteraction(event)
+        if event.isMocked {
+            mockedInteractionIds.insert(interaction.id)
+        }
         let visitId = event.request.screenVisitId
         
         // Attach by screen visit when available to preserve navigation chronology.
@@ -253,6 +258,7 @@ public struct DiagnosticSessionSnapshot: Sendable, Equatable {
         public let method: String
         public let url: String
         public let status: Int?
+        public let isMocked: Bool
     }
     
     public let sessionId: String
@@ -295,7 +301,8 @@ extension DiagnosticSessionStore {
                         durationMs: interaction.durationMs,
                         method: interaction.request.method,
                         url: interaction.request.url,
-                        status: interaction.response?.status
+                        status: interaction.response?.status,
+                        isMocked: mockedInteractionIds.contains(interaction.id)
                     )
                 }
                 

@@ -7,6 +7,8 @@ class CustomURLProtocol: URLProtocol {
     static var interceptor: URLSessionInterceptor?
     private static let handledKey = "DiagnosticSDK_RequestHandledKey"
     private static let session = URLSession(configuration: .default)
+    private static let replayMatchEngine = ReplayMatchEngine()
+    private static let replayDeliveryService = ReplayDeliveryService()
     
     private var datatask: URLSessionDataTask?
     private var requestId: String?
@@ -39,6 +41,34 @@ class CustomURLProtocol: URLProtocol {
         
         startTime = Date()
         requestId = interceptor.handleRequest(request)
+
+        let replayState = ReplayNetworking.captureSynchronouslyForURLIntercept()
+
+        if
+            replayState.isReplayActive,
+            let trace = replayState.activeTrace,
+            let matchedInteraction = Self.replayMatchEngine.findMatch(
+                for: request,
+                in: trace,
+                disabledInteractionIDs: replayState.disabledInteractionIDs,
+                queryMatchingMode: replayState.queryMatchingMode
+            ),
+            let mockedPayload = Self.replayDeliveryService.makePayload(
+                request: request,
+                interaction: matchedInteraction
+            )
+        {
+            if let requestId, let startTime {
+                interceptor.handleMockResponse(
+                    id: requestId,
+                    response: mockedPayload.response,
+                    data: mockedPayload.bodyData,
+                    startTime: startTime
+                )
+            }
+            Self.replayDeliveryService.deliver(payload: mockedPayload, via: self)
+            return
+        }
         
         guard let mutableRequest = (request as NSURLRequest).mutableCopy() as? NSMutableURLRequest else {
             if let requestId {

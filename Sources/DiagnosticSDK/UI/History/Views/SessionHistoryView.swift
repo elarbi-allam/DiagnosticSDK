@@ -3,96 +3,37 @@ import UniformTypeIdentifiers
 import UIKit
 
 struct SessionHistoryView: View {
-    @StateObject private var viewModel = SessionHistoryViewModel()
+    @StateObject private var viewModel: SessionHistoryViewModel
+
+    init() {
+        let fileService = LiveSessionHistoryFileService()
+        _viewModel = StateObject(wrappedValue: SessionHistoryViewModel(
+            fileManager: SessionHistoryFileManager(fileService: fileService)
+        ))
+    }
+
+    @ObservedObject private var replayManager = ReplayManager.shared
     @State private var isImportPickerPresented = false
     @State private var isClearAllConfirmationPresented = false
     @State private var isExportOptionsPresented = false
     @State private var exportTargetFile: DiagnosticTraceFileInfo?
     @State private var isSafeExportDialogPresented = false
+    @State private var replayTargetFile: DiagnosticTraceFileInfo?
+    @State private var isReplayModeDialogPresented = false
     
     var body: some View {
-        Group {
-            if viewModel.isScanning && viewModel.files.isEmpty {
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if viewModel.files.isEmpty {
-                DiagnosticEmptyStateView(
-                    title: "No saved traces",
-                    systemImage: "doc.text",
-                    message: "Exported sessions appear under Dx_* in Documents (for example when the app backgrounds)."
-                )
-            } else {
-                List {
-                    Section {
-                        historyFilterBar
-                    }
-                    
-                    if viewModel.visibleFiles.isEmpty {
-                        Section {
-                            Text("No trace matches current filter.")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                    } else {
-                        ForEach(viewModel.visibleFiles) { file in
-                            NavigationLink {
-                                TraceInspectorView(file: file)
-                            } label: {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    HStack(spacing: 8) {
-                                        SourceBadge(source: file.source)
-                                        Text(file.displayFileName)
-                                            .font(.subheadline.weight(.semibold))
-                                            .foregroundColor(.primary)
-                                            .lineLimit(2)
-                                    }
-                                    
-                                    Text(file.source == .imported ? "Imported trace file" : "Recorded session trace")
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
-                                    
-                                    HStack(spacing: 6) {
-                                        Text(
-                                            file.recordingDate.formatted(date: .abbreviated, time: .standard)
-                                        )
-                                        Text("·")
-                                            .foregroundColor(.secondary)
-                                        Text(file.formattedByteCount)
-                                    }
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                            .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                                Button {
-                                    exportTargetFile = file
-                                    isExportOptionsPresented = true
-                                } label: {
-                                    Label("Share", systemImage: "square.and.arrow.up")
-                                }
-                                .tint(.accentColor)
-                            }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                Button(role: .destructive) {
-                                    viewModel.delete(file: file)
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                            }
-                        }
-                    }
-                }
-                .listStyle(InsetGroupedListStyle())
-            }
-        }
+        contentView
         .onAppear {
             viewModel.refresh()
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
             viewModel.refresh()
         }
-        .navigationBarItems(leading: clearAllButton)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                clearAllButton
+            }
+        }
         .safeAreaInset(edge: .bottom) {
             Button {
                 isImportPickerPresented = true
@@ -122,6 +63,32 @@ struct SessionHistoryView: View {
         }
         .sheet(item: $viewModel.shareItem) { item in
             ActivityView(activityItems: [item.url])
+        }
+        .confirmationDialog(
+            "Choose replay mode",
+            isPresented: $isReplayModeDialogPresented,
+            titleVisibility: .visible
+        ) {
+            if let target = replayTargetFile, viewModel.isReplaySelected(target) {
+                Button("Stop Replay", role: .destructive) {
+                    viewModel.stopReplay()
+                    replayTargetFile = nil
+                }
+            } else {
+                Button("Replay (strict)") {
+                    guard let target = replayTargetFile else { return }
+                    viewModel.activateReplay(for: target, queryMode: .strict)
+                    replayTargetFile = nil
+                }
+                Button("Replay (ignore query)") {
+                    guard let target = replayTargetFile else { return }
+                    viewModel.activateReplay(for: target, queryMode: .ignore)
+                    replayTargetFile = nil
+                }
+            }
+            Button("Cancel", role: .cancel) {
+                replayTargetFile = nil
+            }
         }
         .confirmationDialog(
             "Choose export type",
@@ -219,6 +186,99 @@ struct SessionHistoryView: View {
                 Text(viewModel.exportErrorMessage ?? "")
             }
         )
+        .alert(
+            "Replay activation failed",
+            isPresented: Binding(
+                get: { viewModel.replayErrorMessage != nil },
+                set: { if !$0 { viewModel.replayErrorMessage = nil } }
+            ),
+            actions: {
+                Button("OK", role: .cancel) {
+                    viewModel.replayErrorMessage = nil
+                }
+            },
+            message: {
+                Text(viewModel.replayErrorMessage ?? "")
+            }
+        )
+    }
+
+    @ViewBuilder
+    private var contentView: some View {
+        if viewModel.isScanning && viewModel.files.isEmpty {
+            ProgressView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if viewModel.files.isEmpty {
+            DiagnosticEmptyStateView(
+                title: "No saved traces",
+                systemImage: "doc.text",
+                message: "Exported sessions appear under Dx_* in Documents (for example when the app backgrounds)."
+            )
+        } else {
+            historyList
+        }
+    }
+
+    private var historyList: some View {
+        List {
+            if replayManager.isReplayActive, replayManager.activeTrace != nil {
+                ReplayActiveBannerSection {
+                    viewModel.stopReplay()
+                }
+            }
+
+            Section {
+                historyFilterBar
+            }
+            
+            if viewModel.visibleFiles.isEmpty {
+                Section {
+                    Text("No trace matches current filter.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+            } else {
+                ForEach(viewModel.visibleFiles) { file in
+                    rowNavigation(for: file)
+                }
+            }
+        }
+        .listStyle(InsetGroupedListStyle())
+    }
+
+    private func rowNavigation(for file: DiagnosticTraceFileInfo) -> some View {
+        NavigationLink {
+            TraceInspectorView(file: file)
+        } label: {
+            SessionHistoryRow(
+                file: file,
+                isReplaySelected: viewModel.isReplaySelected(file)
+            )
+        }
+        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+            Button {
+                exportTargetFile = file
+                isExportOptionsPresented = true
+            } label: {
+                Label("Share", systemImage: "square.and.arrow.up")
+            }
+            .tint(.accentColor)
+
+            Button {
+                replayTargetFile = file
+                isReplayModeDialogPresented = true
+            } label: {
+                Label("Replay", systemImage: "play.fill")
+            }
+            .tint(.purple)
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button(role: .destructive) {
+                viewModel.delete(file: file)
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
     }
     
     private var clearAllButton: some View {
@@ -264,6 +324,106 @@ struct SessionHistoryView: View {
         case .thisPhone: return .blue
         case .imported: return .purple
         }
+    }
+}
+
+private struct ReplayLivePill: View {
+    private let replayRed = Color(red: 0.86, green: 0.16, blue: 0.22)
+
+    var body: some View {
+        HStack(spacing: 5) {
+            Circle()
+                .fill(Color.white)
+                .frame(width: 5, height: 5)
+            Text("REPLAY")
+                .font(.caption2.weight(.black))
+                .foregroundColor(.white)
+                .tracking(0.2)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(replayRed)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(replayRed.opacity(0.7), lineWidth: 0.8)
+        )
+    }
+}
+
+private struct ReplayActiveBannerSection: View {
+    let onStop: () -> Void
+
+    var body: some View {
+        Section {
+            HStack(spacing: 12) {
+                ReplayLivePill()
+                Text("Replay mode is active")
+                    .font(.subheadline.weight(.semibold))
+                Spacer()
+                Button("Stop", action: onStop)
+                    .font(.subheadline.weight(.bold))
+            }
+            .padding(.vertical, 4)
+        }
+    }
+}
+
+private struct SessionHistoryRow: View {
+    let file: DiagnosticTraceFileInfo
+    let isReplaySelected: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                SourceBadge(source: file.source)
+                Text(file.displayFileName)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(.primary)
+                    .lineLimit(2)
+                Spacer(minLength: 0)
+                if isReplaySelected {
+                    ReplaySelectedSessionIndicator()
+                }
+            }
+            
+            Text(file.source == .imported ? "Imported trace file" : "Recorded session trace")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            
+            HStack(spacing: 6) {
+                Text(
+                    file.recordingDate.formatted(date: .abbreviated, time: .standard)
+                )
+                Text("·")
+                    .foregroundColor(.secondary)
+                Text(file.formattedByteCount)
+            }
+            .font(.caption)
+            .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct ReplaySelectedSessionIndicator: View {
+    private let replayRed = Color(red: 0.86, green: 0.16, blue: 0.22)
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(replayRed.opacity(0.16))
+                .frame(width: 24, height: 24)
+            Circle()
+                .stroke(replayRed, lineWidth: 1.1)
+                .frame(width: 24, height: 24)
+            Circle()
+                .fill(replayRed)
+                .frame(width: 8, height: 8)
+        }
+        .accessibilityLabel("Replay session selected")
     }
 }
 

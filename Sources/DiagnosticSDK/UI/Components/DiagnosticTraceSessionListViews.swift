@@ -194,6 +194,18 @@ struct TraceNetworkInteractionRow: View {
                     .font(.subheadline)
                     .lineLimit(3)
                     .frame(maxWidth: .infinity, alignment: .leading)
+
+                if interaction.isMocked {
+                    Text("REPLAY")
+                        .font(.caption2.weight(.bold))
+                        .foregroundColor(.orange)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .fill(Color.orange.opacity(0.14))
+                        )
+                }
                 
                 Text(interaction.startedAt.formatted(date: .omitted, time: .standard))
                     .font(.caption2)

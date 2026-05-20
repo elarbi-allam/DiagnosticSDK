@@ -50,6 +50,31 @@ final class URLSessionInterceptor {
         DiagnosticSessionStore.shared.save(event: event)
         store.save(event: event)
     }
+
+    func handleMockResponse(
+        id: String,
+        response: URLResponse?,
+        data: Data?,
+        startTime: Date,
+        error: Error? = nil
+    ) {
+        guard let pending = tracker.takeRequest(id: id) else { return }
+        let latency = Date().timeIntervalSince(startTime)
+
+        var event = NetworkEventBuilder.build(
+            request: pending.request,
+            response: response,
+            data: data,
+            latency: latency,
+            screenName: pending.screenName,
+            screenVisitId: pending.screenVisitId,
+            error: error
+        )
+        event.isMocked = true
+
+        DiagnosticSessionStore.shared.save(event: event)
+        store.save(event: event)
+    }
     
     func discardRequest(id: String) {
         tracker.removeRequest(id: id)
