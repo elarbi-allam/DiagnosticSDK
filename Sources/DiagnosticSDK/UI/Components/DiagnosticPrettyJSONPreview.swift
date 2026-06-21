@@ -32,22 +32,28 @@ enum DiagnosticJSONFormatting {
     }
 }
 
+private enum DiagnosticJSONPreviewLimits {
+    static let maxPreviewLines = 14
+    static let maxPreviewCharacters = 4_000
+    static let maxAttributeValueLength = 120
+}
+
 // MARK: - Line rendering (syntax-friendly)
 
 struct DiagnosticPrettyJSONLinesView: View {
     let prettyJSON: String
-    /// When set, only the first N complete lines are rendered (preview).
     var visibleLineCount: Int?
-    
+    var maxAttributeValueLength: Int?
+
     private var lines: [String] {
         prettyJSON.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
     }
-    
+
     private var displayedLineStrings: [String] {
         guard let cap = visibleLineCount, lines.count > cap else { return lines }
         return Array(lines.prefix(cap))
     }
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             ForEach(Array(displayedLineStrings.enumerated()), id: \.offset) { _, line in
@@ -56,12 +62,12 @@ struct DiagnosticPrettyJSONLinesView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
-    
+
     @ViewBuilder
     private func jsonLineView(_ line: String) -> some View {
         let leadingSpaces = line.prefix(while: { $0 == " " }).count
         let indent = CGFloat(leadingSpaces) * 3.5
-        
+
         if let parsed = parseJSONKeyValueLine(line) {
             HStack(alignment: .firstTextBaseline, spacing: 0) {
                 Text(parsed.keyDisplay)
@@ -72,11 +78,10 @@ struct DiagnosticPrettyJSONLinesView: View {
                     .font(.system(size: 12, design: .monospaced))
                     .fontWeight(.semibold)
                     .foregroundColor(.secondary)
-                Text(parsed.valueDisplayForUI)
+                Text(truncatedPreviewText(parsed.valueDisplayForUI))
                     .font(.system(size: 12, design: .monospaced))
                     .foregroundColor(.primary)
                     .textSelection(.enabled)
-                    .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(.leading, indent)
@@ -88,13 +93,18 @@ struct DiagnosticPrettyJSONLinesView: View {
                 .padding(.leading, indent)
                 .textSelection(.enabled)
         } else {
-            Text(line)
+            Text(truncatedPreviewText(line))
                 .font(.system(size: 12, design: .monospaced))
                 .foregroundColor(.primary)
                 .padding(.leading, indent)
                 .textSelection(.enabled)
-                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    private func truncatedPreviewText(_ text: String) -> String {
+        guard let maxAttributeValueLength, text.count > maxAttributeValueLength else { return text }
+        return String(text.prefix(maxAttributeValueLength)) + "…"
     }
 }
 
@@ -103,30 +113,33 @@ struct DiagnosticPrettyJSONLinesView: View {
 struct DiagnosticJSONPreviewBlock: View {
     let prettyJSON: String
     var sheetTitle: String = "JSON"
-    
-    private let maxPreviewLines = 14
-    private let maxPreviewCharacters = 4_000
-    
+
     @State private var isFullScreenPresented = false
-    
+
     private let copyActionTextGutter: CGFloat = 32
-    
+
     private var lineCount: Int {
         prettyJSON.split(separator: "\n", omittingEmptySubsequences: false).count
     }
-    
+
     private var needsFullScreen: Bool {
-        lineCount > maxPreviewLines || prettyJSON.count > maxPreviewCharacters
+        lineCount > DiagnosticJSONPreviewLimits.maxPreviewLines
+            || prettyJSON.count > DiagnosticJSONPreviewLimits.maxPreviewCharacters
+            || prettyJSONContainsOversizedAttributeValue(
+                prettyJSON,
+                limit: DiagnosticJSONPreviewLimits.maxAttributeValueLength
+            )
     }
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             DiagnosticPrettyJSONLinesView(
                 prettyJSON: prettyJSON,
-                visibleLineCount: needsFullScreen ? maxPreviewLines : nil
+                visibleLineCount: needsFullScreen ? DiagnosticJSONPreviewLimits.maxPreviewLines : nil,
+                maxAttributeValueLength: DiagnosticJSONPreviewLimits.maxAttributeValueLength
             )
             .padding(.trailing, copyActionTextGutter)
-            
+
             if needsFullScreen {
                 Button {
                     isFullScreenPresented = true
@@ -161,12 +174,16 @@ private struct DiagnosticJSONFullScreenSheet: View {
     let title: String
     let prettyJSON: String
     @Binding var isPresented: Bool
-    
+
     var body: some View {
         NavigationView {
             ScrollView {
-                DiagnosticPrettyJSONLinesView(prettyJSON: prettyJSON, visibleLineCount: nil)
-                    .padding()
+                DiagnosticPrettyJSONLinesView(
+                    prettyJSON: prettyJSON,
+                    visibleLineCount: nil,
+                    maxAttributeValueLength: nil
+                )
+                .padding()
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(Color(.systemBackground))
@@ -184,8 +201,7 @@ private struct DiagnosticJSONFullScreenSheet: View {
 private struct ParsedJSONKeyLine {
     let keyDisplay: String
     let valueDisplay: String
-    
-    /// After `:"`, Foundation pretty-JSON includes a space; if not, we insert one in the UI only.
+
     var valueDisplayForUI: String {
         if valueDisplay.isEmpty { return valueDisplay }
         if valueDisplay.first?.isWhitespace == true { return valueDisplay }
@@ -228,4 +244,18 @@ private func isJSONStructuralLine(_ line: String) -> Bool {
     if trimmedLine.contains("\"") { return false }
     let structuralLines: Set<String> = ["{", "}", "[", "]", "},", "],", "}]", "[{"]
     return structuralLines.contains(trimmedLine)
+}
+
+private func prettyJSONContainsOversizedAttributeValue(_ prettyJSON: String, limit: Int) -> Bool {
+    prettyJSON
+        .split(separator: "\n", omittingEmptySubsequences: false)
+        .contains { lineHasOversizedAttributeValue(String($0), limit: limit) }
+}
+
+private func lineHasOversizedAttributeValue(_ line: String, limit: Int) -> Bool {
+    if let parsed = parseJSONKeyValueLine(line) {
+        return parsed.valueDisplay.count > limit
+    }
+    guard !isJSONStructuralLine(line) else { return false }
+    return line.count > limit
 }

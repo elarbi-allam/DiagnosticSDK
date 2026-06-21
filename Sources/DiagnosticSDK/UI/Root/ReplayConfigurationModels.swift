@@ -20,6 +20,7 @@ struct ReplayInteractionItem: Identifiable, Equatable {
     let path: String
     let strictGroupingKey: String
     let ignoreGroupingKey: String
+    let originalInteraction: NetworkInteraction
     /// Only used when ReplayManager uses `.strict`; otherwise nil to avoid noisy UI.
     var queryDisplayLine: String? {
         normalizedQuerySorted.isEmpty ? nil : normalizedQuerySorted
@@ -35,7 +36,8 @@ struct ReplayInteractionItem: Identifiable, Equatable {
         path: String,
         strictGroupingKey: String,
         ignoreGroupingKey: String,
-        normalizedQuerySorted: String
+        normalizedQuerySorted: String,
+        originalInteraction: NetworkInteraction
     ) {
         self.id = id
         self.startedAt = startedAt
@@ -45,5 +47,12 @@ struct ReplayInteractionItem: Identifiable, Equatable {
         self.strictGroupingKey = strictGroupingKey
         self.ignoreGroupingKey = ignoreGroupingKey
         self.normalizedQuerySorted = normalizedQuerySorted
+        self.originalInteraction = originalInteraction
+    }
+
+    static func == (leftItem: ReplayInteractionItem, rightItem: ReplayInteractionItem) -> Bool {
+        leftItem.id == rightItem.id
     }
 }
+
+extension NetworkInteraction: Identifiable {}

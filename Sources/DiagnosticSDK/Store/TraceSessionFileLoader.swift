@@ -32,7 +32,22 @@ enum TraceSessionFileLoader {
         
         return .encrypted(wrapper)
     }
-    
+
+    /// Loads a `SessionTrace` from disk, using `password` when the file is encrypted.
+    /// - Throws: `TraceSessionFileLoaderError.passwordRequired` when the file is encrypted and `password` is nil or blank after trimming.
+    static func loadTrace(from fileURL: URL, password: String?) throws -> SessionTrace {
+        switch try decodeTraceContent(from: fileURL) {
+        case .plain(let trace):
+            return trace
+        case .encrypted(let wrapper):
+            let trimmed = password?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            guard !trimmed.isEmpty else {
+                throw TraceSessionFileLoaderError.passwordRequired
+            }
+            return try decryptSession(wrapper: wrapper, password: trimmed)
+        }
+    }
+
     static func decryptSession(wrapper: SecureTraceWrapper, password: String) throws -> SessionTrace {
         let decryptedData: Data
         do {

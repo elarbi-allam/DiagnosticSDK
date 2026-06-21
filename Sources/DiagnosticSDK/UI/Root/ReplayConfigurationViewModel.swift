@@ -7,6 +7,7 @@ final class ReplayConfigurationViewModel: ObservableObject {
     @Published private(set) var queryMatchingMode: ReplayQueryMatchingMode
     @Published private(set) var timelineInteractions: [ReplayInteractionItem] = []
     @Published private(set) var groups: [ReplayInteractionGroup] = []
+    @Published var selectedInteractionDetails: NetworkInteraction?
 
     var isStrictMatching: Bool {
         queryMatchingMode == .strict
@@ -33,6 +34,10 @@ final class ReplayConfigurationViewModel: ObservableObject {
 
     func setInteractionEnabled(_ interactionID: String, isEnabled: Bool) {
         replayManager.setInteractionEnabled(interactionID, isEnabled: isEnabled)
+    }
+
+    func selectInteractionForDetails(_ interaction: NetworkInteraction) {
+        selectedInteractionDetails = interaction
     }
 
     func toggleReplayState(isOn: Bool) {
@@ -125,7 +130,8 @@ final class ReplayConfigurationViewModel: ObservableObject {
             path: path,
             strictGroupingKey: strictGroupingKey,
             ignoreGroupingKey: ignoreGroupingKey,
-            normalizedQuerySorted: normalizedAndSortedQuery
+            normalizedQuerySorted: normalizedAndSortedQuery,
+            originalInteraction: interaction
         )
     }
 

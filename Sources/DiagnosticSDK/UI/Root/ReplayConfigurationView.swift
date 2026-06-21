@@ -32,6 +32,9 @@ struct ReplayConfigurationView: View {
                                     isEnabled: !replayManager.disabledInteractionIDs.contains(interaction.id),
                                     onToggle: { isEnabled in
                                         viewModel.setInteractionEnabled(interaction.id, isEnabled: isEnabled)
+                                    },
+                                    onSelectDetails: {
+                                        viewModel.selectInteractionForDetails(interaction.originalInteraction)
                                     }
                                 )
                             }
@@ -46,6 +49,9 @@ struct ReplayConfigurationView: View {
                                         isEnabled: !replayManager.disabledInteractionIDs.contains(interaction.id),
                                         onToggle: { isEnabled in
                                             viewModel.setInteractionEnabled(interaction.id, isEnabled: isEnabled)
+                                        },
+                                        onSelectDetails: {
+                                            viewModel.selectInteractionForDetails(interaction.originalInteraction)
                                         }
                                     )
                                 }
@@ -59,6 +65,19 @@ struct ReplayConfigurationView: View {
             }
         }
         .navigationBarTitle("Replay", displayMode: .inline)
+        .sheet(item: $viewModel.selectedInteractionDetails) { interaction in
+            NavigationView {
+                NetworkInteractionDetailView(archivedInteraction: interaction)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Done") {
+                                viewModel.selectedInteractionDetails = nil
+                            }
+                        }
+                    }
+            }
+            .navigationViewStyle(StackNavigationViewStyle())
+        }
     }
 
     /// Read-only replay state + current matching mode comes from ReplayManager only.

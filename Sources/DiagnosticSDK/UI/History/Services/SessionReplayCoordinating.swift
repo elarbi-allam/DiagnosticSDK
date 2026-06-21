@@ -2,7 +2,7 @@ import Foundation
 
 @MainActor
 protocol SessionReplayCoordinating {
-    func activateReplay(for file: DiagnosticTraceFileInfo, queryMode: ReplayQueryMatchingMode) async throws
+    func activateReplay(for file: DiagnosticTraceFileInfo, queryMode: ReplayQueryMatchingMode, password: String?) async throws
     func stopReplay()
     func isReplaySelected(_ file: DiagnosticTraceFileInfo) -> Bool
     func deactivateReplayIfNeeded(for filesToDelete: [DiagnosticTraceFileInfo])
@@ -16,14 +16,14 @@ struct SessionReplayCoordinator: SessionReplayCoordinating {
         self.replayManager = replayManager
     }
 
-    func activateReplay(for file: DiagnosticTraceFileInfo, queryMode: ReplayQueryMatchingMode) async throws {
+    func activateReplay(for file: DiagnosticTraceFileInfo, queryMode: ReplayQueryMatchingMode, password: String?) async throws {
         let decodedURL = file.url
         let traceFileID = file.id
 
         try Task.checkCancellation()
 
         let trace = try await Task(priority: .userInitiated) {
-            try SessionTraceJSONCodec.decodeFile(at: decodedURL)
+            try TraceSessionFileLoader.loadTrace(from: decodedURL, password: password)
         }.value
 
         try Task.checkCancellation()

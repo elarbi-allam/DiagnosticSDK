@@ -12,9 +12,7 @@ enum NetworkEventBuilder {
         error: Error? = nil
     ) -> NetworkEvent {
         
-        let filteredHeaders = SensitiveDataFilter.sanitize(
-            headers: request.allHTTPHeaderFields ?? [:]
-        )
+        let requestHeaders = request.allHTTPHeaderFields ?? [:]
         
         func contentType(from headers: [String: String]?) -> String? {
             guard let headers = headers else { return nil }
@@ -49,7 +47,7 @@ enum NetworkEventBuilder {
         let requestModel = RequestModel(
             url: request.url?.absoluteString ?? "",
             method: request.httpMethod ?? "UNKNOWN",
-            headers: filteredHeaders,
+            headers: requestHeaders,
             body: requestBody,
             screenName: screenName,
             screenVisitId: screenVisitId

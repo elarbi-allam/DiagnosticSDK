@@ -34,7 +34,13 @@ final class URLSessionInterceptor {
         return id
     }
     
-    func handleResponse(id: String, response: URLResponse?, data: Data?, startTime: Date) {
+    func handleResponse(
+        id: String,
+        response: URLResponse?,
+        data: Data?,
+        startTime: Date,
+        error: Error? = nil
+    ) {
         guard let pending = tracker.takeRequest(id: id) else { return }
         let latency = Date().timeIntervalSince(startTime)
 
@@ -44,7 +50,8 @@ final class URLSessionInterceptor {
             data: data,
             latency: latency,
             screenName: pending.screenName,
-            screenVisitId: pending.screenVisitId
+            screenVisitId: pending.screenVisitId,
+            error: error
         )
         
         DiagnosticSessionStore.shared.save(event: event)

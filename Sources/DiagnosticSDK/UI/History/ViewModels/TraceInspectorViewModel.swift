@@ -103,7 +103,7 @@ final class TraceInspectorViewModel: ObservableObject {
                         case .wrongPasswordOrCorruptedFile, .invalidEncryptedFile:
                             self.unlockErrorMessage = loaderError.localizedDescription
                             self.requestPasswordPrompt()
-                        case .fileReadFailed, .unsupportedFormat:
+                        case .fileReadFailed, .unsupportedFormat, .passwordRequired:
                             self.errorMessage = loaderError.localizedDescription
                             self.needsPassword = false
                         }

@@ -30,8 +30,11 @@ final class SessionHistoryViewModel: ObservableObject {
     @Published var shareItem: SessionHistoryShareItem?
     @Published var sourceFilter: SessionHistorySourceFilter = .all
     @Published var replayErrorMessage: String?
+    @Published var isReplayPasswordPromptPresented = false
     @Published private(set) var isActivatingReplay = false
 
+    private var pendingReplayFile: DiagnosticTraceFileInfo?
+    private var pendingReplayMode: ReplayQueryMatchingMode?
     private var replayActivationTask: Task<Void, Never>?
     private var replayActivationGeneration: UInt64 = 0
     private let fileManager: SessionHistoryFileManaging
@@ -115,7 +118,11 @@ final class SessionHistoryViewModel: ObservableObject {
         sourceFilter = filter
     }
 
-    func activateReplay(for file: DiagnosticTraceFileInfo, queryMode: ReplayQueryMatchingMode) {
+    func activateReplay(
+        for file: DiagnosticTraceFileInfo,
+        queryMode: ReplayQueryMatchingMode,
+        password: String? = nil
+    ) {
         replayActivationTask?.cancel()
 
         replayActivationGeneration += 1
@@ -137,13 +144,43 @@ final class SessionHistoryViewModel: ObservableObject {
 
             do {
                 try Task.checkCancellation()
-                try await self.replayCoordinator.activateReplay(for: file, queryMode: queryMode)
+                try await self.replayCoordinator.activateReplay(
+                    for: file,
+                    queryMode: queryMode,
+                    password: password
+                )
                 self.replayErrorMessage = nil
             } catch {
                 guard !(error is CancellationError) else { return }
+                if let loaderError = error as? TraceSessionFileLoaderError,
+                   case .passwordRequired = loaderError {
+                    self.pendingReplayFile = file
+                    self.pendingReplayMode = queryMode
+                    self.replayErrorMessage = nil
+                    self.isReplayPasswordPromptPresented = true
+                    return
+                }
                 self.replayErrorMessage = error.localizedDescription
             }
         }
+    }
+
+    func resumeReplayActivation(with password: String) {
+        guard let file = pendingReplayFile, let queryMode = pendingReplayMode else { return }
+        let normalized = password.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalized.isEmpty else { return }
+        clearPendingReplay()
+        activateReplay(for: file, queryMode: queryMode, password: normalized)
+    }
+
+    func cancelReplayPasswordPrompt() {
+        isReplayPasswordPromptPresented = false
+        clearPendingReplay()
+    }
+
+    private func clearPendingReplay() {
+        pendingReplayFile = nil
+        pendingReplayMode = nil
     }
 
     func stopReplay() {

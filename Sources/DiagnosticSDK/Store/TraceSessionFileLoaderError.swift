@@ -5,7 +5,9 @@ enum TraceSessionFileLoaderError: LocalizedError {
     case unsupportedFormat
     case invalidEncryptedFile
     case wrongPasswordOrCorruptedFile
-    
+    /// Encrypted trace on disk; caller must obtain a password and retry.
+    case passwordRequired
+
     var errorDescription: String? {
         switch self {
         case .fileReadFailed:
@@ -16,6 +18,8 @@ enum TraceSessionFileLoaderError: LocalizedError {
             return "Encrypted trace file is invalid or corrupted."
         case .wrongPasswordOrCorruptedFile:
             return "Unable to decrypt trace. Password may be incorrect or file may be corrupted."
+        case .passwordRequired:
+            return "This trace is encrypted. Enter the password to continue."
         }
     }
 }

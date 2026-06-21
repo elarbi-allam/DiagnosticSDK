@@ -108,24 +108,40 @@ struct SessionHistoryView: View {
             }
         }
         .background(
-            DiagnosticPasswordPrompt(
-                isPresented: $isSafeExportDialogPresented,
-                title: "Safe Export",
-                message: "Enter a password to encrypt the exported file.",
-                placeholder: "Password",
-                confirmTitle: "Export",
-                cancelTitle: "Cancel",
-                onConfirm: { password in
-                    let normalized = password.trimmingCharacters(in: .whitespacesAndNewlines)
-                    guard !normalized.isEmpty else { return }
-                    guard let target = exportTargetFile else { return }
-                    viewModel.prepareSafeShare(for: target, password: normalized)
-                    exportTargetFile = nil
-                },
-                onCancel: {
-                    exportTargetFile = nil
-                }
-            )
+            ZStack {
+                DiagnosticPasswordPrompt(
+                    isPresented: $isSafeExportDialogPresented,
+                    title: "Safe Export",
+                    message: "Enter a password to encrypt the exported file.",
+                    placeholder: "Password",
+                    confirmTitle: "Export",
+                    cancelTitle: "Cancel",
+                    onConfirm: { password in
+                        let normalized = password.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !normalized.isEmpty else { return }
+                        guard let target = exportTargetFile else { return }
+                        viewModel.prepareSafeShare(for: target, password: normalized)
+                        exportTargetFile = nil
+                    },
+                    onCancel: {
+                        exportTargetFile = nil
+                    }
+                )
+                DiagnosticPasswordPrompt(
+                    isPresented: $viewModel.isReplayPasswordPromptPresented,
+                    title: "Encrypted trace",
+                    message: "Enter the password to activate replay for this trace.",
+                    placeholder: "Password",
+                    confirmTitle: "Replay",
+                    cancelTitle: "Cancel",
+                    onConfirm: { password in
+                        viewModel.resumeReplayActivation(with: password)
+                    },
+                    onCancel: {
+                        viewModel.cancelReplayPasswordPrompt()
+                    }
+                )
+            }
             .frame(width: 0, height: 0)
         )
         .alert(

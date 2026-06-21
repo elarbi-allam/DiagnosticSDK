@@ -89,7 +89,8 @@ class CustomURLProtocol: URLProtocol {
                     id: id,
                     response: response,
                     data: data,
-                    startTime: startTime
+                    startTime: startTime,
+                    error: error
                 )
             }
             
