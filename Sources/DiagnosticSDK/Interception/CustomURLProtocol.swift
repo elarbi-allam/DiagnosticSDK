@@ -1,0 +1,120 @@
+import Foundation
+
+/// Exposed to Objective-C runtime for protocol injection.
+@objc(DiagnosticURLProtocol)
+class CustomURLProtocol: URLProtocol {
+    
+    static var interceptor: URLSessionInterceptor?
+    private static let handledKey = "DiagnosticSDK_RequestHandledKey"
+    private static let session = URLSession(configuration: .default)
+    private static let replayMatchEngine = ReplayMatchEngine()
+    private static let replayDeliveryService = ReplayDeliveryService()
+    
+    private var datatask: URLSessionDataTask?
+    private var requestId: String?
+    private var startTime: Date?
+    
+    override class func canInit(with request: URLRequest) -> Bool {
+        // A. Only handle real web requests (HTTP/HTTPS)
+        guard let scheme = request.url?.scheme?.lowercased(), ["http", "https"].contains(scheme) else {
+            return false
+        }
+        
+        // B. ANTI-LOOP SAFETY: If the request already has our tag, let Apple handle it.
+        if URLProtocol.property(forKey: handledKey, in: request) != nil {
+            return false
+        }
+        
+        // C. Otherwise, intercept it.
+        return true
+    }
+    
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        return request
+    }
+    
+    override func startLoading() {
+        guard let interceptor = Self.interceptor else {
+            client?.urlProtocolDidFinishLoading(self)
+            return
+        }
+        
+        startTime = Date()
+        requestId = interceptor.handleRequest(request)
+
+        let replayState = ReplayNetworking.captureSynchronouslyForURLIntercept()
+
+        if
+            replayState.isReplayActive,
+            let trace = replayState.activeTrace,
+            let matchedInteraction = Self.replayMatchEngine.findMatch(
+                for: request,
+                in: trace,
+                disabledInteractionIDs: replayState.disabledInteractionIDs,
+                queryMatchingMode: replayState.queryMatchingMode
+            ),
+            let mockedPayload = Self.replayDeliveryService.makePayload(
+                request: request,
+                interaction: matchedInteraction
+            )
+        {
+            if let requestId, let startTime {
+                interceptor.handleMockResponse(
+                    id: requestId,
+                    response: mockedPayload.response,
+                    data: mockedPayload.bodyData,
+                    startTime: startTime
+                )
+            }
+            Self.replayDeliveryService.deliver(payload: mockedPayload, via: self)
+            return
+        }
+        
+        guard let mutableRequest = (request as NSURLRequest).mutableCopy() as? NSMutableURLRequest else {
+            if let requestId {
+                interceptor.discardRequest(id: requestId)
+            }
+            client?.urlProtocolDidFinishLoading(self)
+            return
+        }
+        URLProtocol.setProperty(true, forKey: Self.handledKey, in: mutableRequest)
+        
+        
+        datatask = Self.session.dataTask(with: mutableRequest as URLRequest) { [weak self] data, response, error in
+            guard let self = self else { return }
+            
+            // Send response information to the tracker
+            if let id = self.requestId, let startTime = self.startTime {
+                interceptor.handleResponse(
+                    id: id,
+                    response: response,
+                    data: data,
+                    startTime: startTime,
+                    error: error
+                )
+            }
+            
+            // Keep delivery on the URLSession callback thread to avoid flooding main.
+            if let error = error {
+                self.client?.urlProtocol(self, didFailWithError: error)
+                return
+            }
+            
+            if let response = response {
+                self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .allowed)
+            }
+            
+            if let data = data {
+                self.client?.urlProtocol(self, didLoad: data)
+            }
+            
+            self.client?.urlProtocolDidFinishLoading(self)
+        }
+        
+        datatask?.resume()
+    }
+    
+    override func stopLoading() {
+        datatask?.cancel()
+    }
+}

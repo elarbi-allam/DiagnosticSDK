@@ -1,0 +1,143 @@
+import SwiftUI
+import Foundation
+import UIKit
+
+struct LiveSessionView: View {
+    @StateObject private var viewModel = LiveSessionViewModel()
+    @State private var isExportOptionsPresented = false
+    @State private var isSafeExportDialogPresented = false
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            liveControlsBar
+            
+            Group {
+                if viewModel.snapshot.screens.isEmpty {
+                    DiagnosticEmptyStateView(
+                        title: "No captured traffic yet",
+                        systemImage: "bolt.horizontal.circle",
+                        message: "Start using the app to see screens and network calls appear here."
+                    )
+                } else {
+                    List {
+                        Section {
+                            TraceSearchField(text: $viewModel.searchText)
+                        }
+
+                        TraceSessionHeaderSection(
+                            sessionTitle: "Live session",
+                            sessionId: viewModel.snapshot.sessionId,
+                            startedAt: viewModel.snapshot.startedAt,
+                            metadata: viewModel.snapshot.metadata
+                        )
+                        
+                        TraceSessionFilterBarSection(
+                            statusFilter: $viewModel.statusFilter,
+                            methodFilter: $viewModel.methodFilter
+                        )
+                        
+                        ForEach(viewModel.filteredScreens) { screen in
+                            Section(header: TraceScreenSectionHeader(screen: screen)) {
+                                ForEach(screen.interactions.reversed()) { interaction in
+                                    NavigationLink {
+                                        NetworkInteractionDetailView(interactionId: interaction.id)
+                                    } label: {
+                                        TraceNetworkInteractionRow(interaction: interaction)
+                                    }
+                                    .id(interaction.id)
+                                }
+                            }
+                        }
+                    }
+                    .listStyle(InsetGroupedListStyle())
+                }
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                exportButton
+            }
+        }
+        .confirmationDialog("Choose export type", isPresented: $isExportOptionsPresented, titleVisibility: .visible) {
+            Button("Export") {
+                viewModel.exportCurrentSession()
+            }
+            Button("Safe Export") {
+                isSafeExportDialogPresented = true
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+        .sheet(item: $viewModel.shareItem) { item in
+            ActivityView(activityItems: [item.url])
+        }
+        .background(
+            DiagnosticPasswordPrompt(
+                isPresented: $isSafeExportDialogPresented,
+                title: "Safe Export",
+                message: "Enter a password to encrypt the exported file.",
+                placeholder: "Password",
+                confirmTitle: "Export",
+                cancelTitle: "Cancel",
+                onConfirm: { password in
+                    let normalized = password.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !normalized.isEmpty else { return }
+                    viewModel.exportCurrentSessionSafely(password: normalized)
+                },
+                onCancel: {}
+            )
+            .frame(width: 0, height: 0)
+        )
+        .alert(
+            "Export failed",
+            isPresented: Binding(
+                get: { viewModel.exportErrorMessage != nil },
+                set: { if !$0 { viewModel.exportErrorMessage = nil } }
+            ),
+            actions: {
+                Button("OK", role: .cancel) {
+                    viewModel.exportErrorMessage = nil
+                }
+            },
+            message: {
+                Text(viewModel.exportErrorMessage ?? "")
+            }
+        )
+    }
+    
+    private var liveControlsBar: some View {
+        HStack(spacing: 12) {
+            Label("Total Requests: \(viewModel.totalRequests)", systemImage: "network")
+                .font(.subheadline.weight(.semibold))
+                .foregroundColor(.primary)
+            
+            Spacer()
+            
+            Button("Clear", role: .destructive) {
+                viewModel.clearCurrentSession()
+            }
+            .font(.subheadline.weight(.semibold))
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(Color(.secondarySystemBackground))
+    }
+    
+    private var exportButton: some View {
+        Button {
+            isExportOptionsPresented = true
+        } label: {
+            Image(systemName: "square.and.arrow.up")
+        }
+        .accessibilityLabel("Export current session")
+    }
+}
+
+private struct ActivityView: UIViewControllerRepresentable {
+    let activityItems: [Any]
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
