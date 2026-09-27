@@ -13,6 +13,15 @@
 
 static BOOL DSDK_ShouldIgnoreScreenName(NSString *name) {
     if (name == nil || name.length == 0) { return YES; }
+
+    // The SDK's own screens must never appear in a trace. Swift mangles private
+    // types as e.g. _TtC13DiagnosticSDKP33_<hash>38DiagnosticFloatingButtonViewController,
+    // so matching the module name inside the mangled string covers every case.
+    if ([name containsString:@"DiagnosticSDK"] ||
+        [name hasPrefix:@"Diagnostic"] ||
+        [name hasPrefix:@"DSDK"]) {
+        return YES;
+    }
     
     if ([name hasPrefix:@"UI"] ||
         [name hasPrefix:@"_UI"] ||

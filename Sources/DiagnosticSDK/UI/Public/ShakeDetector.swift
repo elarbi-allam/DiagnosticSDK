@@ -4,9 +4,12 @@ import UIKit
 extension UIWindow {
     open override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
         super.motionEnded(motion, with: event)
-        
-        if motion == .motionShake {
-            DiagnosticUIManager.shared.presentDashboard()
+
+        guard motion == .motionShake,
+              DiagnosticConfiguration.current.triggers.contains(.shake) else {
+            return
         }
+
+        DiagnosticUIManager.shared.presentDashboard()
     }
 }

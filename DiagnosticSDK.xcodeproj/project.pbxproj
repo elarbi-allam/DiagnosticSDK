@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		08C913DBB95D82B93B6245B5 /* DiagnosticFloatingButtonCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52911E923F4595EE6C3246C7 /* DiagnosticFloatingButtonCoordinator.swift */; };
 		204334442F9B5E41006CE9D9 /* CopyToastModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 204334432F9B5E41006CE9D9 /* CopyToastModifier.swift */; };
 		204334462F9B5E61006CE9D9 /* DiagnosticPrettyJSONPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 204334452F9B5E61006CE9D9 /* DiagnosticPrettyJSONPreview.swift */; };
 		204334482F9B5E7F006CE9D9 /* DiagnosticReadableTextBlock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 204334472F9B5E7F006CE9D9 /* DiagnosticReadableTextBlock.swift */; };
@@ -52,6 +53,7 @@
 		206E63D52F90EE1F0011E974 /* DiagnosticDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E63D42F90EE1F0011E974 /* DiagnosticDashboardView.swift */; };
 		206E63D72F90EE5A0011E974 /* DiagnosticUIManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E63D62F90EE5A0011E974 /* DiagnosticUIManager.swift */; };
 		206E63D92F90EE740011E974 /* ShakeDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E63D82F90EE740011E974 /* ShakeDetector.swift */; };
+		20AA10022F9A00010011E974 /* DiagnosticConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20AA10012F9A00010011E974 /* DiagnosticConfiguration.swift */; };
 		206E63E12F90F99B0011E974 /* LiveSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E63E02F90F99B0011E974 /* LiveSessionView.swift */; };
 		206E63E32F90F9A40011E974 /* DiagnosticEmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E63E22F90F9A40011E974 /* DiagnosticEmptyStateView.swift */; };
 		206E63E52F90F9AB0011E974 /* LiveSessionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E63E42F90F9AB0011E974 /* LiveSessionViewModel.swift */; };
@@ -143,6 +145,7 @@
 		206E63D42F90EE1F0011E974 /* DiagnosticDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticDashboardView.swift; sourceTree = "<group>"; };
 		206E63D62F90EE5A0011E974 /* DiagnosticUIManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticUIManager.swift; sourceTree = "<group>"; };
 		206E63D82F90EE740011E974 /* ShakeDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShakeDetector.swift; sourceTree = "<group>"; };
+		20AA10012F9A00010011E974 /* DiagnosticConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticConfiguration.swift; sourceTree = "<group>"; };
 		206E63E02F90F99B0011E974 /* LiveSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSessionView.swift; sourceTree = "<group>"; };
 		206E63E22F90F9A40011E974 /* DiagnosticEmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticEmptyStateView.swift; sourceTree = "<group>"; };
 		206E63E42F90F9AB0011E974 /* LiveSessionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSessionViewModel.swift; sourceTree = "<group>"; };
@@ -176,6 +179,7 @@
 		20BEDB002FA4C1000001725 /* ReplayNetworkingSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayNetworkingSnapshot.swift; sourceTree = "<group>"; };
 		20F102D62F8014470096C884 /* DiagnosticSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DiagnosticSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		20F102E12F8014470096C884 /* DiagnosticSDKTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DiagnosticSDKTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		52911E923F4595EE6C3246C7 /* DiagnosticFloatingButtonCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticFloatingButtonCoordinator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -217,6 +221,7 @@
 			isa = PBXGroup;
 			children = (
 				206E62642F8AD1A10011E974 /* NetworkInterceptor.swift */,
+				20AA10012F9A00010011E974 /* DiagnosticConfiguration.swift */,
 				206E62652F8AD1A10011E974 /* NetworkInterceptorProtocol.swift */,
 				206E630A2F8CE8DA0011E974 /* DiagnosticContext.swift */,
 			);
@@ -403,6 +408,7 @@
 				206E63D62F90EE5A0011E974 /* DiagnosticUIManager.swift */,
 				206E63D82F90EE740011E974 /* ShakeDetector.swift */,
 				20BEDA172FA163C100001725 /* ReplayGlobalIndicatorCoordinator.swift */,
+				52911E923F4595EE6C3246C7 /* DiagnosticFloatingButtonCoordinator.swift */,
 			);
 			path = Public;
 			sourceTree = "<group>";
@@ -653,6 +659,7 @@
 				206E630B2F8CE8DA0011E974 /* DiagnosticContext.swift in Sources */,
 				206E628F2F8AD1A10011E974 /* NetworkInterceptor.swift in Sources */,
 				206E63D92F90EE740011E974 /* ShakeDetector.swift in Sources */,
+				20AA10022F9A00010011E974 /* DiagnosticConfiguration.swift in Sources */,
 				2043346B2F9B8977006CE9D9 /* SecureTraceWrapper.swift in Sources */,
 				206E62902F8AD1A10011E974 /* DiagnosticSDK.m in Sources */,
 				2043347A2F9C3955006CE9D9 /* NetworkImagePreviewEligibility.swift in Sources */,
@@ -711,6 +718,7 @@
 				20BEDA142FA15A8900001725 /* TraceSearchField.swift in Sources */,
 				20BEDA162FA1604100001725 /* ReplayConfigurationView.swift in Sources */,
 				20BEDA182FA163C100001725 /* ReplayGlobalIndicatorCoordinator.swift in Sources */,
+				08C913DBB95D82B93B6245B5 /* DiagnosticFloatingButtonCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
