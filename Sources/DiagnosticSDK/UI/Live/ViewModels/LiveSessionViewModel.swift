@@ -77,12 +77,16 @@ final class LiveSessionViewModel: ObservableObject {
 private struct Signature: Equatable {
     let screensCount: Int
     let totalInteractions: Int
+    let completedInteractions: Int
     let lastScreenId: String?
     let lastScreenInteractions: Int
     
     init(snapshot: DiagnosticSessionSnapshot) {
         self.screensCount = snapshot.screens.count
         self.totalInteractions = snapshot.screens.reduce(into: 0) { $0 += $1.interactions.count }
+        self.completedInteractions = snapshot.screens.reduce(into: 0) { total, screen in
+            total += screen.interactions.filter { !$0.isPending }.count
+        }
         self.lastScreenId = snapshot.screens.last?.id
         self.lastScreenInteractions = snapshot.screens.last?.interactions.count ?? 0
     }

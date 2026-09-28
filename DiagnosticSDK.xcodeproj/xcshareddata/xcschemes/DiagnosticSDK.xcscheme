@@ -31,7 +31,8 @@
       <Testables>
          <TestableReference
             skipped = "NO"
-            parallelizable = "YES">
+            parallelizable = "YES"
+            useTestSelectionWhitelist = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "20F102E02F8014470096C884"

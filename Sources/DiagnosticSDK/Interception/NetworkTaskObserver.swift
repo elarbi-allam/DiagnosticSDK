@@ -29,6 +29,7 @@ final class NetworkTaskObserver: NSObject, DiagnosticSDKNetworkEventObserving {
 
         let channel = effectiveCaptureChannel(for: task)
         guard registry.beginCapture(pendingCapture, of: task, through: channel) else { return }
+        recorder.recordStart(of: pendingCapture)
 
         if channel == .stateObservation {
             observeCompletion(of: task)
@@ -48,6 +49,22 @@ final class NetworkTaskObserver: NSObject, DiagnosticSDKNetworkEventObserving {
         completeCapture(of: task, responseBody: nil, error: error)
     }
 
+    func networkTaskDidFinishTransfer(_ task: URLSessionTask) {
+        registry.markTransferFinished(of: task, at: currentUptime)
+    }
+
+    func networkTask(_ task: URLSessionTask, didFinishCollectingMetrics metrics: URLSessionTaskMetrics) {
+        let metricsSnapshot = TaskMetricsSnapshot(metrics: metrics)
+        guard case .receivedAfterCompletion(let timingContext) = registry.attachMetrics(metricsSnapshot, to: task) else {
+            return
+        }
+        recorder.recordLateMetrics(metricsSnapshot, for: timingContext)
+    }
+
+    private var currentUptime: TimeInterval {
+        ProcessInfo.processInfo.systemUptime
+    }
+
     private func makePendingCapture(for task: URLSessionTask) -> PendingNetworkCapture? {
         guard var request = task.originalRequest ?? task.currentRequest, request.url?.usesHTTPScheme == true else {
             return nil
@@ -58,8 +75,10 @@ final class NetworkTaskObserver: NSObject, DiagnosticSDKNetworkEventObserving {
         }
 
         return PendingNetworkCapture(
+            id: UUID().uuidString,
             request: request,
             startDate: Date(),
+            startUptime: currentUptime,
             screenName: screenContext.currentScreen,
             screenVisitId: screenContext.currentScreenVisitId
         )
@@ -83,10 +102,10 @@ final class NetworkTaskObserver: NSObject, DiagnosticSDKNetworkEventObserving {
     }
 
     private func completeCapture(of task: URLSessionTask, responseBody: Data?, error: Error?) {
-        guard let completedCapture = registry.finishCapture(of: task) else { return }
+        guard let completedCapture = registry.finishCapture(of: task, completedAt: currentUptime) else { return }
 
         recorder.record(
-            completedCapture.pendingCapture,
+            completedCapture,
             response: task.response,
             responseBody: responseBody ?? completedCapture.accumulatedResponseBody,
             error: error,

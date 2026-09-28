@@ -24,6 +24,12 @@ typedef NS_ENUM(NSInteger, DiagnosticSDKTaskCaptureChannel) {
 - (void)networkTask:(NSURLSessionTask *)task didCompleteInSessionDelegateWithError:(nullable NSError *)error
     NS_SWIFT_NAME(networkTask(_:didCompleteInSessionDelegateWithError:));
 
+- (void)networkTaskDidFinishTransfer:(NSURLSessionTask *)task
+    NS_SWIFT_NAME(networkTaskDidFinishTransfer(_:));
+
+- (void)networkTask:(NSURLSessionTask *)task didFinishCollectingMetrics:(NSURLSessionTaskMetrics *)metrics
+    NS_SWIFT_NAME(networkTask(_:didFinishCollectingMetrics:));
+
 @end
 
 @interface DiagnosticSDKNetworkHooks : NSObject

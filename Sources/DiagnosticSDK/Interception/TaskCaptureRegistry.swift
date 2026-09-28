@@ -12,10 +12,13 @@ final class TaskCaptureRegistry {
         let channel: DiagnosticSDKTaskCaptureChannel
         var accumulatedResponseBody = Data()
         var stateObservation: NSKeyValueObservation?
+        var transferEndUptime: TimeInterval?
+        var metrics: TaskMetricsSnapshot?
     }
 
     private let lock = NSLock()
     private var entriesByTask: [ObjectIdentifier: Entry] = [:]
+    private let timingContextsAwaitingMetrics = NSMapTable<URLSessionTask, FinishedCaptureTimingContext>.weakToStrongObjects()
 
     func beginCapture(
         _ pendingCapture: PendingNetworkCapture,
@@ -59,9 +62,41 @@ final class TaskCaptureRegistry {
         return true
     }
 
-    func finishCapture(of task: URLSessionTask) -> CompletedNetworkCapture? {
+    func markTransferFinished(of task: URLSessionTask, at uptime: TimeInterval) {
+        lock.lock()
+        defer { lock.unlock() }
+
+        let taskKey = ObjectIdentifier(task)
+        guard entriesByTask[taskKey] != nil, entriesByTask[taskKey]?.transferEndUptime == nil else { return }
+        entriesByTask[taskKey]?.transferEndUptime = uptime
+    }
+
+    func attachMetrics(_ metrics: TaskMetricsSnapshot, to task: URLSessionTask) -> TaskMetricsAttachment {
+        lock.lock()
+        defer { lock.unlock() }
+
+        let taskKey = ObjectIdentifier(task)
+        if entriesByTask[taskKey] != nil {
+            entriesByTask[taskKey]?.metrics = metrics
+            return .attachedToActiveCapture
+        }
+        guard let timingContext = timingContextsAwaitingMetrics.object(forKey: task) else { return .ignored }
+        timingContextsAwaitingMetrics.removeObject(forKey: task)
+        return .receivedAfterCompletion(timingContext)
+    }
+
+    func finishCapture(of task: URLSessionTask, completedAt completionUptime: TimeInterval) -> CompletedNetworkCapture? {
         lock.lock()
         let finishedEntry = entriesByTask.removeValue(forKey: ObjectIdentifier(task))
+        let transferEndUptime = finishedEntry?.transferEndUptime ?? completionUptime
+        if let finishedEntry, finishedEntry.metrics == nil {
+            let timingContext = FinishedCaptureTimingContext(
+                captureId: finishedEntry.pendingCapture.id,
+                startUptime: finishedEntry.pendingCapture.startUptime,
+                transferEndUptime: transferEndUptime
+            )
+            timingContextsAwaitingMetrics.setObject(timingContext, forKey: task)
+        }
         lock.unlock()
 
         guard let finishedEntry else { return nil }
@@ -70,7 +105,9 @@ final class TaskCaptureRegistry {
         let responseBody = finishedEntry.accumulatedResponseBody
         return CompletedNetworkCapture(
             pendingCapture: finishedEntry.pendingCapture,
-            accumulatedResponseBody: responseBody.isEmpty ? nil : responseBody
+            accumulatedResponseBody: responseBody.isEmpty ? nil : responseBody,
+            transferEndUptime: transferEndUptime,
+            metrics: finishedEntry.metrics
         )
     }
 }

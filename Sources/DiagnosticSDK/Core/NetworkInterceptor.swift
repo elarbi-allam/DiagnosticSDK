@@ -38,6 +38,7 @@ public final class NetworkInterceptor: NSObject, NetworkInterceptorProtocol {
         DiagnosticRuntimeState.isRunning.update(false)
         URLProtocol.unregisterClass(ReplayURLProtocol.self)
         DiagnosticSDKNetworkHooks.eventObserver = nil
+        trafficRecorder.interruptPendingCaptures()
 
         Task { @MainActor in
             DiagnosticFloatingButtonCoordinator.shared.stop()

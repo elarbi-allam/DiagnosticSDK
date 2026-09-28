@@ -44,6 +44,7 @@ struct LiveSessionView: View {
                                     } label: {
                                         TraceNetworkInteractionRow(interaction: interaction)
                                     }
+                                    .disabled(interaction.isPending)
                                     .id(interaction.id)
                                 }
                             }

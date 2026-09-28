@@ -18,7 +18,17 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
     /// Maps a screen visit id to the corresponding screen node index.
     private var screenIndexByVisitId: [Int: Int] = [:]
     private var mockedInteractionIds: Set<String> = []
+    private var interactionLocationsById: [String: InteractionLocation] = [:]
+    private var isUpdateNotificationScheduled = false
     private var backgroundObserver: NSObjectProtocol?
+    
+    private static let updateNotificationCoalescingInterval: TimeInterval = 0.15
+    private static let interruptedCaptureErrorDescription = "Capture stopped before the response was received"
+    
+    private struct InteractionLocation {
+        let screenIndex: Int
+        let interactionIndex: Int
+    }
     
     // MARK: - Initialization
     
@@ -39,8 +49,9 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
     /// - Parameter event: The raw network event intercepted from URLSession.
     public func save(event: NetworkEvent) {
         isolationQueue.async(flags: .barrier) { [weak self] in
-            self?.processAndAppend(event: event)
-            NotificationCenter.default.post(name: .diagnosticSessionStoreDidUpdate, object: self)
+            guard let self else { return }
+            self.storeCompletedInteraction(from: event)
+            self.scheduleUpdateNotification()
         }
     }
     
@@ -51,63 +62,140 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
             self.currentSession.screens.removeAll(keepingCapacity: false)
             self.screenIndexByVisitId.removeAll(keepingCapacity: false)
             self.mockedInteractionIds.removeAll(keepingCapacity: false)
-            NotificationCenter.default.post(name: .diagnosticSessionStoreDidUpdate, object: self)
+            self.interactionLocationsById.removeAll(keepingCapacity: false)
+            self.scheduleUpdateNotification()
+        }
+    }
+    
+    func beginInteraction(_ interactionStart: NetworkInteractionStart) {
+        isolationQueue.async(flags: .barrier) { [weak self] in
+            guard let self, self.interactionLocationsById[interactionStart.id] == nil else { return }
+            let requestModel = NetworkEventBuilder.makeRequestModel(
+                from: interactionStart.request,
+                screenName: interactionStart.screenName,
+                screenVisitId: interactionStart.screenVisitId
+            )
+            let pendingInteraction = NetworkInteraction(
+                id: interactionStart.id,
+                request: self.makeRequestDetails(from: requestModel),
+                screenName: interactionStart.screenName,
+                startedAt: interactionStart.startedAt
+            )
+            self.appendInteraction(
+                pendingInteraction,
+                screenName: interactionStart.screenName,
+                visitId: interactionStart.screenVisitId
+            )
+            self.scheduleUpdateNotification()
+        }
+    }
+    
+    func updateTiming(_ timing: NetworkTiming, forInteractionId interactionId: String) {
+        isolationQueue.async(flags: .barrier) { [weak self] in
+            guard let self, let location = self.interactionLocationsById[interactionId] else { return }
+            let screen = self.currentSession.screens[location.screenIndex]
+            screen.networkInteractions[location.interactionIndex].timing = timing
+            screen.networkInteractions[location.interactionIndex].durationMs = timing.preferredDurationMs
+            self.scheduleUpdateNotification()
+        }
+    }
+    
+    func interruptPendingInteractions() {
+        isolationQueue.async(flags: .barrier) { [weak self] in
+            guard let self else { return }
+            var hasInterruptedInteraction = false
+            for screen in self.currentSession.screens {
+                for interactionIndex in screen.networkInteractions.indices where screen.networkInteractions[interactionIndex].response == nil {
+                    screen.networkInteractions[interactionIndex].response = Self.makeInterruptedResponse()
+                    hasInterruptedInteraction = true
+                }
+            }
+            if hasInterruptedInteraction {
+                self.scheduleUpdateNotification()
+            }
+        }
+    }
+    
+    private static func makeInterruptedResponse() -> ResponseDetails {
+        ResponseDetails(
+            status: 0,
+            headers: nil,
+            bodyBase64: nil,
+            bodySizeBytes: 0,
+            errorDescription: interruptedCaptureErrorDescription
+        )
+    }
+    
+    private func scheduleUpdateNotification() {
+        guard !isUpdateNotificationScheduled else { return }
+        isUpdateNotificationScheduled = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.updateNotificationCoalescingInterval) { [weak self] in
+            self?.isolationQueue.async(flags: .barrier) {
+                guard let self else { return }
+                self.isUpdateNotificationScheduled = false
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(name: .diagnosticSessionStoreDidUpdate, object: self)
+                }
+            }
         }
     }
     
     // MARK: - Tree Building Logic
     
-    /// Processes the raw event and places it into the correct ScreenNode.
-    private func processAndAppend(event: NetworkEvent) {
-        let targetScreenName = event.request.screenName ?? "Background"
-        let interaction = mapToInteraction(event)
+    private func storeCompletedInteraction(from event: NetworkEvent) {
+        let completedInteraction = mapToInteraction(event)
         if event.isMocked {
-            mockedInteractionIds.insert(interaction.id)
+            mockedInteractionIds.insert(completedInteraction.id)
         }
-        let visitId = event.request.screenVisitId
-        
-        // Attach by screen visit when available to preserve navigation chronology.
+        if let location = interactionLocationsById[completedInteraction.id] {
+            currentSession.screens[location.screenIndex].networkInteractions[location.interactionIndex] = completedInteraction
+            return
+        }
+        appendInteraction(completedInteraction, screenName: event.request.screenName, visitId: event.request.screenVisitId)
+    }
+    
+    private func appendInteraction(_ interaction: NetworkInteraction, screenName: String?, visitId: Int?) {
+        let screenIndex = screenIndexForAppending(screenName: screenName ?? "Background", visitId: visitId)
+        let screen = currentSession.screens[screenIndex]
+        screen.networkInteractions.append(interaction)
+        interactionLocationsById[interaction.id] = InteractionLocation(
+            screenIndex: screenIndex,
+            interactionIndex: screen.networkInteractions.count - 1
+        )
+    }
+    
+    private func screenIndexForAppending(screenName: String, visitId: Int?) -> Int {
         if let visitId {
-            if let idx = screenIndexByVisitId[visitId], idx < currentSession.screens.count {
-                currentSession.screens[idx].networkInteractions.append(interaction)
-                return
+            if let screenIndex = screenIndexByVisitId[visitId], screenIndex < currentSession.screens.count {
+                return screenIndex
             }
-            
-            let newScreenNode = ScreenNode(name: targetScreenName)
-            newScreenNode.networkInteractions.append(interaction)
-            currentSession.screens.append(newScreenNode)
-            screenIndexByVisitId[visitId] = currentSession.screens.count - 1
-            return
+            let screenIndex = appendScreen(named: screenName)
+            screenIndexByVisitId[visitId] = screenIndex
+            return screenIndex
         }
-        
-        // Fallback path for events captured without a visit id.
-        if let idx = currentSession.screens.indices.last,
-           currentSession.screens[idx].name == targetScreenName {
-            currentSession.screens[idx].networkInteractions.append(interaction)
-            return
+        if let lastScreenIndex = currentSession.screens.indices.last,
+           currentSession.screens[lastScreenIndex].name == screenName {
+            return lastScreenIndex
         }
-        
-        let newScreenNode = ScreenNode(name: targetScreenName)
-        newScreenNode.networkInteractions.append(interaction)
-        currentSession.screens.append(newScreenNode)
+        return appendScreen(named: screenName)
+    }
+    
+    private func appendScreen(named screenName: String) -> Int {
+        currentSession.screens.append(ScreenNode(name: screenName))
+        return currentSession.screens.count - 1
     }
     
     // MARK: - Data Mapping
     
     /// Maps a flat NetworkEvent into the hierarchical NetworkInteraction format.
     private func mapToInteraction(_ event: NetworkEvent) -> NetworkInteraction {
-        let requestDetails = RequestDetails(
-            url: event.request.url,
-            method: event.request.method,
-            headers: event.request.headers,
-            bodyBase64: event.request.body,
-            bodySizeBytes: event.request.body?.utf8.count ?? 0
-        )
-        
         var interaction = NetworkInteraction(
-            request: requestDetails,
-            screenName: event.request.screenName
+            id: event.captureId ?? UUID().uuidString,
+            request: makeRequestDetails(from: event.request),
+            screenName: event.request.screenName,
+            startedAt: event.startedAt ?? event.timestamp
         )
+        interaction.timing = event.timing
         
         if let response = event.response {
             interaction.response = ResponseDetails(
@@ -122,6 +210,16 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
         }
         
         return interaction
+    }
+    
+    private func makeRequestDetails(from request: RequestModel) -> RequestDetails {
+        RequestDetails(
+            url: request.url,
+            method: request.method,
+            headers: request.headers,
+            bodyBase64: request.body,
+            bodySizeBytes: request.body?.utf8.count ?? 0
+        )
     }
 }
 
@@ -241,6 +339,7 @@ public struct DiagnosticSessionSnapshot: Sendable, Equatable {
         public let appVersion: String
         public let osVersion: String
         public let deviceModel: String
+        public let deviceName: String
     }
     
     public struct Screen: Identifiable, Sendable, Equatable {
@@ -259,6 +358,7 @@ public struct DiagnosticSessionSnapshot: Sendable, Equatable {
         public let url: String
         public let status: Int?
         public let isMocked: Bool
+        public let isPending: Bool
     }
     
     public let sessionId: String
@@ -280,12 +380,8 @@ extension DiagnosticSessionStore {
     /// This is used by detail screens where lightweight snapshots are insufficient.
     public func getInteraction(byId id: String) -> NetworkInteraction? {
         isolationQueue.sync {
-            for screen in currentSession.screens {
-                if let interaction = screen.networkInteractions.first(where: { $0.id == id }) {
-                    return interaction
-                }
-            }
-            return nil
+            guard let location = interactionLocationsById[id] else { return nil }
+            return currentSession.screens[location.screenIndex].networkInteractions[location.interactionIndex]
         }
     }
     
@@ -294,14 +390,9 @@ extension DiagnosticSessionStore {
     public func makeSnapshot() -> DiagnosticSessionSnapshot {
         isolationQueue.sync {
             let screens: [DiagnosticSessionSnapshot.Screen] = currentSession.screens.map { screen in
-                let interactions: [DiagnosticSessionSnapshot.Interaction] = screen.networkInteractions.map { interaction in
+                let interactions = screen.networkInteractions.map { interaction in
                     DiagnosticSessionSnapshot.Interaction(
-                        id: interaction.id,
-                        startedAt: interaction.startedAt,
-                        durationMs: interaction.durationMs,
-                        method: interaction.request.method,
-                        url: interaction.request.url,
-                        status: interaction.response?.status,
+                        interaction: interaction,
                         isMocked: mockedInteractionIds.contains(interaction.id)
                     )
                 }
@@ -318,11 +409,7 @@ extension DiagnosticSessionStore {
             return DiagnosticSessionSnapshot(
                 sessionId: currentSession.sessionId,
                 startedAt: currentSession.startedAt,
-                metadata: .init(
-                    appVersion: currentSession.metadata.appVersion,
-                    osVersion: currentSession.metadata.osVersion,
-                    deviceModel: currentSession.metadata.deviceModel
-                ),
+                metadata: DiagnosticSessionSnapshot.Metadata(traceMetadata: currentSession.metadata),
                 screens: screens
             )
         }

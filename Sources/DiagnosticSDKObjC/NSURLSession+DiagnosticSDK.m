@@ -36,9 +36,13 @@ static void DiagnosticSDKClassifyTaskWithoutCompletionHandler(NSURLSession *sess
 static DiagnosticSDKTaskCompletionHandler DiagnosticSDKObservingCompletionHandler(DiagnosticSDKTaskCompletionHandler completionHandler,
                                                                                    DiagnosticSDKWeakTaskReference *taskReference) {
     return ^(id _Nullable payload, NSURLResponse *_Nullable response, NSError *_Nullable error) {
+        NSURLSessionTask *completedTask = taskReference.task;
+        if (completedTask) {
+            [DiagnosticSDKNetworkHooks.eventObserver networkTaskDidFinishTransfer:completedTask];
+        }
+
         completionHandler(payload, response, error);
 
-        NSURLSessionTask *completedTask = taskReference.task;
         if (!completedTask) {
             return;
         }

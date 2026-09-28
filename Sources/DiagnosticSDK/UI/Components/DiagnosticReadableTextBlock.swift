@@ -14,13 +14,22 @@ struct DiagnosticReadableTextBlock: View {
     var maxCharactersBeforeFull: Int = 900
     var previewLineLimit: Int = 10
     
-    @State private var isFullScreenPresented = false
+    @Environment(\.diagnosticFullScreenPresenter) private var fullScreenPresenter
     @State private var urlMeasuredHeight: CGFloat = 0
     
     private let copyActionTextGutter: CGFloat = 32
     
     private var needsFullScreen: Bool {
         !text.isEmpty && text.count >= maxCharactersBeforeFull
+    }
+
+    private var fullScreenContent: DiagnosticFullScreenContent {
+        switch kind {
+        case .url:
+            return DiagnosticFullScreenContent(title: sheetTitle, kind: .url(text))
+        case .plain:
+            return DiagnosticFullScreenContent(title: sheetTitle, kind: .text(.plain(text)))
+        }
     }
     
     var body: some View {
@@ -46,31 +55,14 @@ struct DiagnosticReadableTextBlock: View {
             // Reserve trailing space so wrapped URL doesn’t run under the overlay copy control.
             urlPreviewBody
                 .padding(.trailing, copyActionTextGutter)
-            if needsFullScreen {
-                Button {
-                    isFullScreenPresented = true
-                } label: {
-                    HStack(spacing: 6) {
-                        Text("View full")
-                        Image(systemName: "arrow.up.left.and.arrow.down.right")
-                    }
-                    .font(.subheadline.weight(.semibold))
-                }
-                .buttonStyle(.borderless)
+            if needsFullScreen, let fullScreenPresenter {
+                DiagnosticViewFullButton { fullScreenPresenter(fullScreenContent) }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .blockChrome()
         .copyableOverlay(text: text, accessibilityLabel: "Copy URL")
-        .sheet(isPresented: $isFullScreenPresented) {
-            DiagnosticPlainFullScreenSheet(
-                title: sheetTitle,
-                text: text,
-                kind: kind,
-                isPresented: $isFullScreenPresented
-            )
-        }
     }
     
     @ViewBuilder
@@ -117,30 +109,13 @@ struct DiagnosticReadableTextBlock: View {
     private var plainPaddedBlock: some View {
         VStack(alignment: .leading, spacing: 10) {
             plainTextContent
-            if needsFullScreen {
-                Button {
-                    isFullScreenPresented = true
-                } label: {
-                    HStack(spacing: 6) {
-                        Text("View full")
-                        Image(systemName: "arrow.up.left.and.arrow.down.right")
-                    }
-                    .font(.subheadline.weight(.semibold))
-                }
-                .buttonStyle(.borderless)
+            if needsFullScreen, let fullScreenPresenter {
+                DiagnosticViewFullButton { fullScreenPresenter(fullScreenContent) }
             }
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .blockChrome()
-        .sheet(isPresented: $isFullScreenPresented) {
-            DiagnosticPlainFullScreenSheet(
-                title: sheetTitle,
-                text: text,
-                kind: kind,
-                isPresented: $isFullScreenPresented
-            )
-        }
     }
     
     @ViewBuilder

@@ -83,6 +83,7 @@ final class ReplayConfigurationViewModel: ObservableObject {
         let mode = replayManager.queryMatchingMode
         let interactions = trace.screens
             .flatMap(\.networkInteractions)
+            .filter { $0.response != nil }
             .sorted { $0.startedAt < $1.startedAt }
             .map { makeReplayInteractionItem(from: $0) }
         timelineInteractions = interactions

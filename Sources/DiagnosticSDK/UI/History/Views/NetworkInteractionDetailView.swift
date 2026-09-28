@@ -8,34 +8,32 @@ struct NetworkInteractionDetailView: View {
     private static let plainTextPreviewLineLimit = 10
     
     private let interactionId: String
-    private let store: DiagnosticSessionStore?
     
-    @State private var interaction: NetworkInteraction?
+    @StateObject private var viewModel: NetworkInteractionDetailViewModel
     @State private var isImagePreviewPresented = false
     @StateObject private var imagePreviewLoader = NonInterceptedImageLoader()
     @State private var selectedDecodedToken: DecodedTokenItem?
     
     init(interactionId: String, store: DiagnosticSessionStore = .shared) {
         self.interactionId = interactionId
-        self.store = store
-        _interaction = State(initialValue: nil)
+        _viewModel = StateObject(wrappedValue: NetworkInteractionDetailViewModel(interactionId: interactionId, store: store))
     }
     
     /// Static detail for an archived trace (no live store subscription).
     init(archivedInteraction: NetworkInteraction) {
         self.interactionId = archivedInteraction.id
-        self.store = nil
-        _interaction = State(initialValue: archivedInteraction)
+        _viewModel = StateObject(wrappedValue: NetworkInteractionDetailViewModel(archivedInteraction: archivedInteraction))
     }
     
     var body: some View {
         ZStack {
             Form {
-                if let interaction {
+                if let interaction = viewModel.interaction {
                     previewSection(interaction)
                     overviewSection(interaction)
-                    requestSection(interaction)
-                    responseSection(interaction)
+                    timingSection(content: viewModel.content)
+                    requestSection(content: viewModel.content)
+                    responseSection(interaction, content: viewModel.content)
                 } else {
                     Section("Interaction") {
                         Text("Unable to load details for this request.")
@@ -45,15 +43,12 @@ struct NetworkInteractionDetailView: View {
             }
             .navigationBarTitle("Request Detail", displayMode: .inline)
             .onAppear {
-                if interaction == nil, let store {
-                    interaction = store.getInteraction(byId: interactionId)
-                }
+                viewModel.start()
             }
             .onChange(of: interactionId) { _ in
                 imagePreviewLoader.reset()
             }
-            .overlay(storeUpdateOverlay)
-            if isImagePreviewPresented, let live = interaction, NetworkImagePreviewEligibility.canPreviewRequestImage(live) {
+            if isImagePreviewPresented, let live = viewModel.interaction, NetworkImagePreviewEligibility.canPreviewRequestImage(live) {
                 ImagePreviewToastOverlay(
                     image: imagePreviewLoader.image,
                     errorMessage: imagePreviewLoader.errorMessage,
@@ -65,20 +60,9 @@ struct NetworkInteractionDetailView: View {
             }
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.86), value: isImagePreviewPresented)
+        .presentsDiagnosticFullScreenContent()
         .sheet(item: $selectedDecodedToken) { token in
             DecodedTokenPreviewSheet(token: token)
-        }
-    }
-    
-    @ViewBuilder
-    private var storeUpdateOverlay: some View {
-        if let store {
-            Color.clear
-                .frame(width: 0, height: 0)
-                .accessibilityHidden(true)
-                .onReceive(NotificationCenter.default.publisher(for: .diagnosticSessionStoreDidUpdate)) { _ in
-                    interaction = store.getInteraction(byId: interactionId)
-                }
         }
     }
     
@@ -164,57 +148,92 @@ struct NetworkInteractionDetailView: View {
         .padding(.vertical, 4)
     }
     
-    private func requestSection(_ interaction: NetworkInteraction) -> some View {
-        Section("Request") {
-            headersBlock(title: "Headers", headers: interaction.request.headers)
-            bodyBlock(title: "Body", rawValue: interaction.request.bodyBase64)
-            tokenDecoderBlock(
-                title: "Token Decoder",
-                headers: interaction.request.headers,
-                bodyRawValue: interaction.request.bodyBase64,
-                sourcePrefix: "Request"
-            )
+    private func timingSection(content: NetworkInteractionDetailContent?) -> some View {
+        Section("Timing") {
+            if let content {
+                if content.timingRows.isEmpty {
+                    Text("No timing captured.")
+                        .foregroundColor(.secondary)
+                } else {
+                    ForEach(content.timingRows) { row in
+                        detailRow(title: row.title, value: row.value, titleStyle: .overview, valueStyle: .overview)
+                    }
+                }
+            } else {
+                contentFormattingRow
+            }
         }
     }
     
-    private func responseSection(_ interaction: NetworkInteraction) -> some View {
+    private func requestSection(content: NetworkInteractionDetailContent?) -> some View {
+        Section("Request") {
+            if let content {
+                headersBlock(title: "Headers", headers: content.requestHeaders)
+                bodyBlock(title: "Body", formattedBody: content.requestBody)
+                tokenDecoderBlock(title: "Token Decoder", decodedTokens: content.requestTokens)
+            } else {
+                contentFormattingRow
+            }
+        }
+    }
+    
+    private func responseSection(_ interaction: NetworkInteraction, content: NetworkInteractionDetailContent?) -> some View {
         Section("Response") {
-            if let response = interaction.response {
-                headersBlock(title: "Headers", headers: response.headers)
-                bodyBlock(title: "Body", rawValue: response.bodyBase64)
-                tokenDecoderBlock(
-                    title: "Token Decoder",
-                    headers: response.headers,
-                    bodyRawValue: response.bodyBase64,
-                    sourcePrefix: "Response"
-                )
-                if let errorText = response.errorDescription, !errorText.isEmpty {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Error")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundColor(.secondary)
-                        if let prettyError = DiagnosticJSONFormatting.prettyString(parsing: errorText) {
-                            DiagnosticJSONPreviewBlock(prettyJSON: prettyError, sheetTitle: "Error")
-                        } else {
-                            DiagnosticReadableTextBlock(
-                                text: errorText,
-                                kind: .plain,
-                                sheetTitle: "Error",
-                                maxCharactersBeforeFull: Self.plainTextFullViewCharacterThreshold,
-                                previewLineLimit: Self.plainTextPreviewLineLimit
-                            )
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, 4)
-                } else {
-                    detailRow(title: "Error", value: "None", titleStyle: .sectionLabel, valueStyle: .standard)
-                }
+            if interaction.response != nil, let content {
+                headersBlock(title: "Headers", headers: content.responseHeaders)
+                bodyBlock(title: "Body", formattedBody: content.responseBody)
+                tokenDecoderBlock(title: "Token Decoder", decodedTokens: content.responseTokens)
+                errorBlock(content.responseError)
+            } else if interaction.response != nil {
+                contentFormattingRow
             } else {
                 Text("No response captured yet.")
                     .foregroundColor(.secondary)
             }
         }
+    }
+    
+    @ViewBuilder
+    private func errorBlock(_ responseError: FormattedHTTPBody) -> some View {
+        switch responseError {
+        case .empty:
+            detailRow(title: "Error", value: "None", titleStyle: .sectionLabel, valueStyle: .standard)
+        case .json(let document):
+            errorContainer {
+                DiagnosticJSONPreviewBlock(document: document, sheetTitle: "Error")
+            }
+        case .plain(let errorText):
+            errorContainer {
+                DiagnosticReadableTextBlock(
+                    text: errorText,
+                    kind: .plain,
+                    sheetTitle: "Error",
+                    maxCharactersBeforeFull: Self.plainTextFullViewCharacterThreshold,
+                    previewLineLimit: Self.plainTextPreviewLineLimit
+                )
+            }
+        }
+    }
+    
+    private func errorContainer<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Error")
+                .font(.subheadline.weight(.semibold))
+                .foregroundColor(.secondary)
+            content()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 4)
+    }
+    
+    private var contentFormattingRow: some View {
+        HStack(spacing: 10) {
+            ProgressView()
+            Text("Formatting…")
+                .font(.footnote)
+                .foregroundColor(.secondary)
+        }
+        .padding(.vertical, 4)
     }
     
     private enum DetailLabelFontStyle {
@@ -263,19 +282,8 @@ struct NetworkInteractionDetailView: View {
         .padding(.vertical, 4)
     }
 
-    private func tokenDecoderBlock(
-        title: String,
-        headers: [String: String]?,
-        bodyRawValue: String?,
-        sourcePrefix: String
-    ) -> some View {
-        let decodedTokens = DecodedTokenExtractor.extract(
-            headers: headers,
-            bodyRawValue: bodyRawValue,
-            sourcePrefix: sourcePrefix
-        )
-
-        return VStack(alignment: .leading, spacing: 8) {
+    private func tokenDecoderBlock(title: String, decodedTokens: [DecodedTokenItem]) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.caption.weight(.semibold))
                 .foregroundColor(.secondary)
@@ -319,22 +327,21 @@ struct NetworkInteractionDetailView: View {
         .padding(.vertical, 4)
     }
     
-    private func headersBlock(title: String, headers: [String: String]?) -> some View {
+    private func headersBlock(title: String, headers: FormattedHTTPHeaders) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.subheadline.weight(.semibold))
                 .foregroundColor(.secondary)
             
-            if let headers, !headers.isEmpty {
-                if let pretty = prettyJSONObjectString(from: headers) {
-                    DiagnosticJSONPreviewBlock(prettyJSON: pretty, sheetTitle: title)
-                } else {
-                    Text("Unable to display headers")
-                        .font(.footnote)
-                        .foregroundColor(.secondary)
-                }
-            } else {
+            switch headers {
+            case .empty:
                 Text("No headers")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+            case .json(let document):
+                DiagnosticJSONPreviewBlock(document: document, sheetTitle: title)
+            case .unavailable:
+                Text("Unable to display headers")
                     .font(.footnote)
                     .foregroundColor(.secondary)
             }
@@ -342,76 +349,30 @@ struct NetworkInteractionDetailView: View {
         .padding(.vertical, 4)
     }
     
-    /// Renders header maps with the same JSON preview component as the body (sorted keys, colors, View full).
-    private func prettyJSONObjectString(from object: [String: String]) -> String? {
-        guard JSONSerialization.isValidJSONObject(object) else { return nil }
-        do {
-            let data = try JSONSerialization.data(
-                withJSONObject: object,
-                options: [.sortedKeys, .prettyPrinted]
-            )
-            return String(data: data, encoding: .utf8)
-        } catch {
-            return nil
-        }
-    }
-    
-    private func bodyBlock(title: String, rawValue: String?) -> some View {
+    private func bodyBlock(title: String, formattedBody: FormattedHTTPBody) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.subheadline.weight(.semibold))
                 .foregroundColor(.secondary)
             
-            switch bodyDisplayMode(rawValue) {
+            switch formattedBody {
             case .empty:
                 Text("No body")
                     .font(.footnote)
                     .foregroundColor(.secondary)
+            case .json(let document):
+                DiagnosticJSONPreviewBlock(document: document, sheetTitle: title)
             case .plain(let text):
-                if let pretty = DiagnosticJSONFormatting.prettyString(parsing: text) {
-                    DiagnosticJSONPreviewBlock(prettyJSON: pretty, sheetTitle: title)
-                } else {
-                    DiagnosticReadableTextBlock(
-                        text: text,
-                        kind: .plain,
-                        sheetTitle: title,
-                        maxCharactersBeforeFull: Self.plainTextFullViewCharacterThreshold,
-                        previewLineLimit: Self.plainTextPreviewLineLimit
-                    )
-                }
-            case .json(let pretty):
-                DiagnosticJSONPreviewBlock(prettyJSON: pretty, sheetTitle: title)
+                DiagnosticReadableTextBlock(
+                    text: text,
+                    kind: .plain,
+                    sheetTitle: title,
+                    maxCharactersBeforeFull: Self.plainTextFullViewCharacterThreshold,
+                    previewLineLimit: Self.plainTextPreviewLineLimit
+                )
             }
         }
         .padding(.vertical, 4)
-    }
-    
-    private enum BodyDisplayMode {
-        case empty
-        case plain(String)
-        case json(String)
-    }
-    
-    private func bodyDisplayMode(_ rawValue: String?) -> BodyDisplayMode {
-        guard let rawValue, !rawValue.isEmpty else { return .empty }
-        
-        let data = Data(base64Encoded: rawValue) ?? rawValue.data(using: .utf8)
-        guard let data else { return .plain(rawValue) }
-        
-        guard let jsonObject = try? JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed]) else {
-            return .plain(String(data: data, encoding: .utf8) ?? rawValue)
-        }
-        
-        guard JSONSerialization.isValidJSONObject(jsonObject) else {
-            return .plain(String(data: data, encoding: .utf8) ?? rawValue)
-        }
-        
-        let options: JSONSerialization.WritingOptions = [.prettyPrinted, .sortedKeys]
-        guard let prettyData = try? JSONSerialization.data(withJSONObject: jsonObject, options: options),
-              let prettyString = String(data: prettyData, encoding: .utf8) else {
-            return .plain(String(data: data, encoding: .utf8) ?? rawValue)
-        }
-        return .json(prettyString)
     }
 }
 
@@ -447,6 +408,7 @@ private struct DecodedTokenPreviewSheet: View {
                     }
                 }
             }
+            .presentsDiagnosticFullScreenContent()
         }
     }
 }

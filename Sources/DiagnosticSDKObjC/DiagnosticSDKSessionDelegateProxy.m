@@ -14,6 +14,7 @@
 
 + (BOOL)isObservedSelector:(SEL)selector {
     return sel_isEqual(selector, @selector(URLSession:dataTask:didReceiveData:))
+        || sel_isEqual(selector, @selector(URLSession:task:didFinishCollectingMetrics:))
         || sel_isEqual(selector, @selector(URLSession:task:didCompleteWithError:));
 }
 
@@ -68,7 +69,15 @@
     [DiagnosticSDKNetworkHooks.eventObserver networkTask:dataTask didReceiveResponseData:data];
 }
 
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didFinishCollectingMetrics:(NSURLSessionTaskMetrics *)metrics {
+    if ([_target respondsToSelector:_cmd]) {
+        [_target URLSession:session task:task didFinishCollectingMetrics:metrics];
+    }
+    [DiagnosticSDKNetworkHooks.eventObserver networkTask:task didFinishCollectingMetrics:metrics];
+}
+
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error {
+    [DiagnosticSDKNetworkHooks.eventObserver networkTaskDidFinishTransfer:task];
     if ([_target respondsToSelector:_cmd]) {
         [_target URLSession:session task:task didCompleteWithError:error];
     }
