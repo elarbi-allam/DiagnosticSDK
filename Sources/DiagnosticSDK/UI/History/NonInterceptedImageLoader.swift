@@ -48,7 +48,7 @@ final class NonInterceptedImageLoader: ObservableObject {
             isLoading = false
             return
         }
-        let session = URLSession(configuration: Self.makeEphemeralConfigurationExcludingInterception())
+        let session = DiagnosticInternalSessionFactory.makeEphemeralSession()
         self.session = session
         task = session.dataTask(with: url) { [weak self] data, response, error in
             DispatchQueue.main.async {
@@ -71,17 +71,5 @@ final class NonInterceptedImageLoader: ObservableObject {
             }
         }
         task?.resume()
-    }
-
-    private static func makeEphemeralConfigurationExcludingInterception() -> URLSessionConfiguration {
-        let config = URLSessionConfiguration.ephemeral
-        if let protocolClasses = config.protocolClasses {
-            config.protocolClasses = protocolClasses.filter { protocolClass in
-                NSStringFromClass(protocolClass) != "DiagnosticURLProtocol"
-            }
-        } else {
-            config.protocolClasses = []
-        }
-        return config
     }
 }

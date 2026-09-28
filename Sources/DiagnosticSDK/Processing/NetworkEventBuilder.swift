@@ -23,11 +23,6 @@ enum NetworkEventBuilder {
             return contentType
         }
         
-        func isJSONContentType(_ contentType: String?) -> Bool {
-            guard let contentType = contentType?.lowercased() else { return false }
-            return contentType.contains("application/json") || contentType.contains("+json")
-        }
-        
         func unsupportedContentTypeMessage(from headers: [String: String]?) -> String {
             let resolvedContentType = contentType(from: headers) ?? "unknown"
             return "can't save this type of content: \(resolvedContentType)"
@@ -35,7 +30,7 @@ enum NetworkEventBuilder {
         
         let requestBody: String?
         if let bodyData = request.httpBody, !bodyData.isEmpty {
-            if isJSONContentType(contentType(from: request.allHTTPHeaderFields)) {
+            if NetworkContentType.isJSON(contentType(from: request.allHTTPHeaderFields)) {
                 requestBody = String(data: bodyData, encoding: .utf8)
             } else {
                 requestBody = unsupportedContentTypeMessage(from: request.allHTTPHeaderFields)
@@ -60,7 +55,7 @@ enum NetworkEventBuilder {
         let bodySize = data?.count ?? 0
         
         if let responseData = data, !responseData.isEmpty {
-            if isJSONContentType(contentType(from: responseHeaders)) {
+            if NetworkContentType.isJSON(contentType(from: responseHeaders)) {
                 bodyBase64 = responseData.base64EncodedString()
             } else {
                 bodyBase64 = unsupportedContentTypeMessage(from: responseHeaders)

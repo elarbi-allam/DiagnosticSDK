@@ -3,7 +3,7 @@ import Foundation
 public final class ReplayMatchEngine {
     private let cacheLock = NSLock()
     private var cachedTraceKey: TraceCacheKey?
-    private var cachedPreparedInteractions: [PreparedInteraction] = []
+    private var cachedInteractionsByRoute: [ReplayRouteKey: [PreparedInteraction]] = [:]
 
     public init() {}
 
@@ -20,17 +20,15 @@ public final class ReplayMatchEngine {
             return nil
         }
 
-        let liveMethod = normalizedMethod(from: liveRequest.httpMethod)
-        let livePath = normalizedPath(from: liveComponents.path)
+        let liveRouteKey = ReplayRouteKey(
+            method: normalizedMethod(from: liveRequest.httpMethod),
+            path: normalizedPath(from: liveComponents.path)
+        )
         let liveQueryItems = normalizedQueryItems(from: liveComponents.queryItems)
-        let preparedInteractions = preparedInteractions(for: trace)
+        let routeCandidates = interactionsByRoute(for: trace)[liveRouteKey] ?? []
 
-        for prepared in preparedInteractions {
+        for prepared in routeCandidates {
             if disabledInteractionIDs.contains(prepared.id) {
-                continue
-            }
-
-            guard liveMethod == prepared.method, livePath == prepared.path else {
                 continue
             }
 
@@ -46,14 +44,14 @@ public final class ReplayMatchEngine {
         return nil
     }
 
-    private func preparedInteractions(for trace: SessionTrace) -> [PreparedInteraction] {
+    private func interactionsByRoute(for trace: SessionTrace) -> [ReplayRouteKey: [PreparedInteraction]] {
         let cacheKey = TraceCacheKey(sessionId: trace.sessionId, screenCount: trace.screens.count, interactionCount: trace.screens.reduce(0) { $0 + $1.networkInteractions.count })
 
         cacheLock.lock()
         defer { cacheLock.unlock() }
 
         if cachedTraceKey == cacheKey {
-            return cachedPreparedInteractions
+            return cachedInteractionsByRoute
         }
 
         let prepared = trace.screens
@@ -68,15 +66,19 @@ public final class ReplayMatchEngine {
 
                 return PreparedInteraction(
                     interaction: interaction,
-                    method: normalizedMethod(from: interaction.request.method),
-                    path: normalizedPath(from: components.path),
+                    routeKey: ReplayRouteKey(
+                        method: normalizedMethod(from: interaction.request.method),
+                        path: normalizedPath(from: components.path)
+                    ),
                     queryItems: normalizedQueryItems(from: components.queryItems)
                 )
             }
 
+        let preparedByRoute = Dictionary(grouping: prepared, by: \.routeKey)
+
         cachedTraceKey = cacheKey
-        cachedPreparedInteractions = prepared
-        return prepared
+        cachedInteractionsByRoute = preparedByRoute
+        return preparedByRoute
     }
 
     private func normalizedMethod(from method: String?) -> String {
@@ -145,17 +147,20 @@ public final class ReplayMatchEngine {
 private struct PreparedInteraction {
     let interaction: NetworkInteraction
     let id: String
-    let method: String
-    let path: String
+    let routeKey: ReplayRouteKey
     let queryItems: [QueryToken: Int]
 
-    init(interaction: NetworkInteraction, method: String, path: String, queryItems: [QueryToken: Int]) {
+    init(interaction: NetworkInteraction, routeKey: ReplayRouteKey, queryItems: [QueryToken: Int]) {
         self.interaction = interaction
         self.id = interaction.id
-        self.method = method
-        self.path = path
+        self.routeKey = routeKey
         self.queryItems = queryItems
     }
+}
+
+private struct ReplayRouteKey: Hashable {
+    let method: String
+    let path: String
 }
 
 private struct TraceCacheKey: Equatable {

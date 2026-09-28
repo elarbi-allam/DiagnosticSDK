@@ -6,6 +6,7 @@ extension UIWindow {
         super.motionEnded(motion, with: event)
 
         guard motion == .motionShake,
+              DiagnosticRuntimeState.isRunning.value,
               DiagnosticConfiguration.current.triggers.contains(.shake) else {
             return
         }
