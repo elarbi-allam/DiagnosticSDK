@@ -74,13 +74,14 @@ final class NetworkTaskObserver: NSObject, DiagnosticSDKNetworkEventObserving {
             request.httpBody = uploadBody
         }
 
+        let screenState = screenContext.currentScreenState
         return PendingNetworkCapture(
             id: UUID().uuidString,
             request: request,
             startDate: Date(),
             startUptime: currentUptime,
-            screenName: screenContext.currentScreen,
-            screenVisitId: screenContext.currentScreenVisitId
+            screenName: screenState.screenName,
+            screenVisitId: screenState.visitId
         )
     }
 
