@@ -82,3 +82,24 @@ public final class ReplayManager: ObservableObject {
         )
     }
 }
+
+extension ReplayManager: ReplaySessionStatusProviding {
+
+    var isReplaySessionRunning: Bool {
+        Self.isRunning(isReplayActive: isReplayActive, activeTrace: activeTrace)
+    }
+
+    var replaySessionRunningPublisher: AnyPublisher<Bool, Never> {
+        Publishers.CombineLatest($isReplayActive, $activeTrace)
+            .map { isReplayActive, activeTrace in
+                Self.isRunning(isReplayActive: isReplayActive, activeTrace: activeTrace)
+            }
+            .removeDuplicates()
+            .receive(on: RunLoop.main)
+            .eraseToAnyPublisher()
+    }
+
+    nonisolated private static func isRunning(isReplayActive: Bool, activeTrace: SessionTrace?) -> Bool {
+        isReplayActive && activeTrace != nil
+    }
+}

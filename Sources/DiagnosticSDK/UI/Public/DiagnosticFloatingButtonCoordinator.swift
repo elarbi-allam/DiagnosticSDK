@@ -1,3 +1,4 @@
+import Combine
 import UIKit
 
 /// Installs a draggable floating button in a dedicated overlay window,
@@ -11,14 +12,23 @@ import UIKit
 @MainActor
 final class DiagnosticFloatingButtonCoordinator {
 
-    static let shared = DiagnosticFloatingButtonCoordinator()
+    static let shared = DiagnosticFloatingButtonCoordinator(replaySessionStatus: ReplayManager.shared)
 
+    private let replaySessionStatus: ReplaySessionStatusProviding
     private var window: DiagnosticFloatingButtonWindow?
     private var observers: [NSObjectProtocol] = []
+    private var replaySessionCancellable: AnyCancellable?
     private var isStarted = false
     private var isSuspended = false
+    private var isReplaySessionRunning = false
 
-    private init() {}
+    private var buttonController: DiagnosticFloatingButtonViewController? {
+        window?.rootViewController as? DiagnosticFloatingButtonViewController
+    }
+
+    private init(replaySessionStatus: ReplaySessionStatusProviding) {
+        self.replaySessionStatus = replaySessionStatus
+    }
 
     // MARK: - Lifecycle
 
@@ -26,6 +36,7 @@ final class DiagnosticFloatingButtonCoordinator {
     func start() {
         guard !isStarted else { return }
         isStarted = true
+        observeReplaySession()
 
         // Observers are registered *before* the first attempt, so an activation
         // happening in between is never missed.
@@ -72,9 +83,12 @@ final class DiagnosticFloatingButtonCoordinator {
             NotificationCenter.default.removeObserver(observer)
         }
         observers.removeAll()
+        replaySessionCancellable?.cancel()
+        replaySessionCancellable = nil
         teardownWindow()
         isStarted = false
         isSuspended = false
+        isReplaySessionRunning = false
     }
 
     /// Hides the button while the dashboard itself is on screen, so it never
@@ -89,9 +103,20 @@ final class DiagnosticFloatingButtonCoordinator {
         if suspended {
             window?.interactiveFrame = .zero
         } else {
-            (window?.rootViewController as? DiagnosticFloatingButtonViewController)?
-                .refreshInteractiveFrame()
+            buttonController?.refreshInteractiveFrame()
         }
+    }
+
+    private func observeReplaySession() {
+        replaySessionCancellable = replaySessionStatus.replaySessionRunningPublisher
+            .sink { [weak self] isReplaySessionRunning in
+                self?.updateReplayIndicator(isReplaySessionRunning: isReplaySessionRunning)
+            }
+    }
+
+    private func updateReplayIndicator(isReplaySessionRunning: Bool) {
+        self.isReplaySessionRunning = isReplaySessionRunning
+        buttonController?.setReplayIndicatorVisible(isReplaySessionRunning)
     }
 
     // MARK: - Window management
@@ -139,6 +164,7 @@ final class DiagnosticFloatingButtonCoordinator {
         // Deliberately not `makeKeyAndVisible`: the host keeps key window status.
         overlay.isHidden = false
         controller.view.isHidden = isSuspended
+        controller.setReplayIndicatorVisible(isReplaySessionRunning)
         window = overlay
 
         print("✅ [DiagnosticSDK] Floating button installed — level \(overlay.windowLevel.rawValue), "
@@ -206,10 +232,14 @@ private final class DiagnosticFloatingButtonViewController: UIViewController {
 
     private enum Metrics {
         static let margin: CGFloat = 16
+        static let replayIndicatorDiameterRatio: CGFloat = 0.2875
+        static let replayIndicatorAnchorAngle: CGFloat = .pi / 4
+        static let replayIndicatorLayerElevation: CGFloat = 1
     }
 
     private static let positionXDefaultsKey = "com.diagnosticsdk.floatingButton.position.x"
     private static let positionYDefaultsKey = "com.diagnosticsdk.floatingButton.position.y"
+    private static let replaySessionAccessibilityValue = "Replay active"
 
     var onTap: (() -> Void)?
     var onInteractiveFrameChange: ((CGRect) -> Void)?
@@ -233,11 +263,29 @@ private final class DiagnosticFloatingButtonViewController: UIViewController {
         button.layer.shadowOpacity = 0.25
         button.layer.shadowRadius = 6
         button.layer.shadowOffset = CGSize(width: 0, height: 2)
+        button.layer.shadowPath = UIBezierPath(ovalIn: button.bounds).cgPath
         button.setImage(Self.resolveIcon(named: configuration.floatingButtonSystemImageName), for: .normal)
         button.accessibilityIdentifier = "diagnostic.floatingButton"
         button.accessibilityLabel = "Open diagnostics"
         button.addTarget(self, action: #selector(handleTap), for: .touchUpInside)
         return button
+    }()
+
+    private lazy var replayIndicator: DiagnosticRecordingIndicatorView = {
+        let radius = size / 2
+        let diameter = (size * Metrics.replayIndicatorDiameterRatio).rounded()
+        let anchor = CGPoint(
+            x: radius + radius * cos(Metrics.replayIndicatorAnchorAngle),
+            y: radius - radius * sin(Metrics.replayIndicatorAnchorAngle)
+        )
+        let indicator = DiagnosticRecordingIndicatorView(frame: CGRect(
+            x: anchor.x - diameter / 2,
+            y: anchor.y - diameter / 2,
+            width: diameter,
+            height: diameter
+        ))
+        indicator.layer.zPosition = Metrics.replayIndicatorLayerElevation
+        return indicator
     }()
 
     /// Falls back through a chain of symbols so an unknown name never yields an empty button.
@@ -270,6 +318,7 @@ private final class DiagnosticFloatingButtonViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.addSubview(button)
+        button.addSubview(replayIndicator)
 
         let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
         button.addGestureRecognizer(pan)
@@ -285,6 +334,11 @@ private final class DiagnosticFloatingButtonViewController: UIViewController {
             button.center = clamp(button.center)
         }
         publishInteractiveFrame()
+    }
+
+    func setReplayIndicatorVisible(_ isVisible: Bool) {
+        replayIndicator.isActive = isVisible
+        button.accessibilityValue = isVisible ? Self.replaySessionAccessibilityValue : nil
     }
 
     // MARK: - Interaction

@@ -87,6 +87,8 @@
 		20BEDA3B2FA3B02000001725 /* SessionReplayCoordinating.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20BEDA3A2FA3B02000001725 /* SessionReplayCoordinating.swift */; };
 		20BEDA3D2FA3C0100001725 /* SessionHistoryFileServicing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20BEDA3C2FA3C0100001725 /* SessionHistoryFileServicing.swift */; };
 		20BEDB012FA4C1000001725 /* ReplayNetworkingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20BEDB002FA4C1000001725 /* ReplayNetworkingState.swift */; };
+		20D5458AF404EEB96DE61B0D /* ReplaySessionStatusProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20D5C9E4D7BF209DEEE415FD /* ReplaySessionStatusProviding.swift */; };
+		20D576549D9403D49F314187 /* DiagnosticRecordingIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20D587ADFF60554523E2158A /* DiagnosticRecordingIndicatorView.swift */; };
 		20F102E22F8014470096C884 /* DiagnosticSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20F102D62F8014470096C884 /* DiagnosticSDK.framework */; };
 		2BF2CC9F3871B93760D59B28 /* ReplayURLProtocolTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766C1CB283CCE7E085266F90 /* ReplayURLProtocolTests.swift */; };
 		3243E8A85A07C488EDFB9293 /* NetworkInteractionStart.swift in Sources */ = {isa = PBXBuildFile; fileRef = C322A27D1A7B0247A3B4F088 /* NetworkInteractionStart.swift */; };
@@ -210,6 +212,8 @@
 		20BEDA3A2FA3B02000001725 /* SessionReplayCoordinating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionReplayCoordinating.swift; sourceTree = "<group>"; };
 		20BEDA3C2FA3C0100001725 /* SessionHistoryFileServicing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionHistoryFileServicing.swift; sourceTree = "<group>"; };
 		20BEDB002FA4C1000001725 /* ReplayNetworkingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayNetworkingState.swift; sourceTree = "<group>"; };
+		20D5C9E4D7BF209DEEE415FD /* ReplaySessionStatusProviding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplaySessionStatusProviding.swift; sourceTree = "<group>"; };
+		20D587ADFF60554523E2158A /* DiagnosticRecordingIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticRecordingIndicatorView.swift; sourceTree = "<group>"; };
 		20F102D62F8014470096C884 /* DiagnosticSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DiagnosticSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		20F102E12F8014470096C884 /* DiagnosticSDKTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DiagnosticSDKTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2793F0CECF1274ED6CA9CCF4 /* DiagnosticFullScreenContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticFullScreenContent.swift; sourceTree = "<group>"; };
@@ -334,6 +338,7 @@
 			isa = PBXGroup;
 			children = (
 				20BEDA0B2FA0CB8500001725 /* ReplayManager.swift */,
+				20D5C9E4D7BF209DEEE415FD /* ReplaySessionStatusProviding.swift */,
 				20BEDA0D2FA0D13000001725 /* ReplayMatchEngine.swift */,
 				20BEDB002FA4C1000001725 /* ReplayNetworkingState.swift */,
 				20BEDA0F2FA0EF0700001725 /* ReplayDeliveryService.swift */,
@@ -585,6 +590,7 @@
 				2793F0CECF1274ED6CA9CCF4 /* DiagnosticFullScreenContent.swift */,
 				ADC45E4FF9C379CE8004173C /* DiagnosticFullScreenTextSheet.swift */,
 				A23C9A5B7A69C54DFAAAA78D /* DiagnosticURLFullScreenSheet.swift */,
+				20D587ADFF60554523E2158A /* DiagnosticRecordingIndicatorView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -792,6 +798,8 @@
 				204334462F9B5E61006CE9D9 /* DiagnosticPrettyJSONPreview.swift in Sources */,
 				206E629A2F8AD1A10011E974 /* NetworkEvent.swift in Sources */,
 				20BEDA0C2FA0CB8500001725 /* ReplayManager.swift in Sources */,
+				20D5458AF404EEB96DE61B0D /* ReplaySessionStatusProviding.swift in Sources */,
+				20D576549D9403D49F314187 /* DiagnosticRecordingIndicatorView.swift in Sources */,
 				206E629B2F8AD1A10011E974 /* ResponseModel.swift in Sources */,
 				206E65072F9180000011E974 /* DiagnosticSessionSnapshot+SessionTrace.swift in Sources */,
 				204334602F9B7000006CE9D9 /* URLCharacterWrappingLabel.swift in Sources */,

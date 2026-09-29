@@ -4,31 +4,30 @@ import Combine
 
 @MainActor
 final class ReplayGlobalIndicatorCoordinator {
-    static let shared = ReplayGlobalIndicatorCoordinator()
+    static let shared = ReplayGlobalIndicatorCoordinator(replaySessionStatus: ReplayManager.shared)
 
+    private let replaySessionStatus: ReplaySessionStatusProviding
     private var replayCancellable: AnyCancellable?
     private var indicatorWindow: UIWindow?
     private var isStarted = false
 
-    private init() {}
+    private init(replaySessionStatus: ReplaySessionStatusProviding) {
+        self.replaySessionStatus = replaySessionStatus
+    }
 
     func start(in scene: UIWindowScene? = nil) {
         guard !isStarted else { return }
         isStarted = true
 
-        replayCancellable = Publishers.CombineLatest(
-            ReplayManager.shared.$isReplayActive,
-            ReplayManager.shared.$activeTrace
-        )
-        .receive(on: RunLoop.main)
-        .sink { [weak self] isActive, trace in
-            guard let self else { return }
-            if isActive, trace != nil {
-                self.showIndicator(in: scene)
-            } else {
-                self.hideIndicator()
+        replayCancellable = replaySessionStatus.replaySessionRunningPublisher
+            .sink { [weak self] isReplaySessionRunning in
+                guard let self else { return }
+                if isReplaySessionRunning {
+                    self.showIndicator(in: scene)
+                } else {
+                    self.hideIndicator()
+                }
             }
-        }
     }
 
     func stop() {

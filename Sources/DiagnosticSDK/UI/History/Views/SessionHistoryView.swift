@@ -237,7 +237,7 @@ struct SessionHistoryView: View {
 
     private var historyList: some View {
         List {
-            if replayManager.isReplayActive, replayManager.activeTrace != nil {
+            if replayManager.isReplaySessionRunning {
                 ReplayActiveBannerSection {
                     viewModel.stopReplay()
                 }
