@@ -83,34 +83,14 @@ public final class DiagnosticUIManager {
         }
     }
 
-    /// Window of the host application, excluding the SDK overlay window.
+    /// Window of the host application, excluding the SDK overlay windows.
     private func resolveHostWindow() -> UIWindow? {
-        let scenes = UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .sorted { lhs, rhs in
-                (lhs.activationState == .foregroundActive ? 0 : 1) <
-                (rhs.activationState == .foregroundActive ? 0 : 1)
-            }
+        let presentationHostWindowResolver = PresentationHostWindowResolver()
 
-        for scene in scenes {
-            let candidates = scene.windows.filter { window in
-                !(window is DiagnosticFloatingButtonWindow) &&
-                !window.isHidden &&
-                window.rootViewController != nil
-            }
-
-            if let keyWindow = candidates.first(where: { $0.isKeyWindow }) {
-                return keyWindow
-            }
-            if let normalWindow = candidates.first(where: { $0.windowLevel == .normal }) {
-                return normalWindow
-            }
-            if let anyWindow = candidates.first {
-                return anyWindow
-            }
-        }
-
-        return nil
+        return HostWindowCatalog.windowScenesByActivationPriority()
+            .lazy
+            .compactMap { presentationHostWindowResolver.resolvePresentationHost(among: HostWindowCatalog.hostWindows(in: $0)) }
+            .first
     }
     
     private func isDashboardAlreadyPresented(from root: UIViewController) -> Bool {

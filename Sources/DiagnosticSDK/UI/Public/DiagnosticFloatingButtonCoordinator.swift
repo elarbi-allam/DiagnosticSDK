@@ -21,6 +21,9 @@ final class DiagnosticFloatingButtonCoordinator {
     private var isStarted = false
     private var isSuspended = false
     private var isReplaySessionRunning = false
+    private lazy var hostWindowStackObserver = HostWindowStackObserver { [weak self] in
+        self?.restackOverlayWindow()
+    }
 
     private var buttonController: DiagnosticFloatingButtonViewController? {
         window?.rootViewController as? DiagnosticFloatingButtonViewController
@@ -37,6 +40,7 @@ final class DiagnosticFloatingButtonCoordinator {
         guard !isStarted else { return }
         isStarted = true
         observeReplaySession()
+        hostWindowStackObserver.start()
 
         // Observers are registered *before* the first attempt, so an activation
         // happening in between is never missed.
@@ -83,6 +87,7 @@ final class DiagnosticFloatingButtonCoordinator {
             NotificationCenter.default.removeObserver(observer)
         }
         observers.removeAll()
+        hostWindowStackObserver.stop()
         replaySessionCancellable?.cancel()
         replaySessionCancellable = nil
         teardownWindow()
@@ -137,9 +142,9 @@ final class DiagnosticFloatingButtonCoordinator {
         let configuration = DiagnosticConfiguration.current
         let overlay: DiagnosticFloatingButtonWindow
 
-        if let scene = resolveWindowScene() {
+        if let scene = HostWindowCatalog.foregroundWindowScene() {
             overlay = DiagnosticFloatingButtonWindow(windowScene: scene)
-        } else if let hostWindow = legacyHostWindow() {
+        } else if let hostWindow = HostWindowCatalog.firstHostWindowWithRootViewController() {
             // Application without scenes: mirror the host window's geometry.
             overlay = DiagnosticFloatingButtonWindow(frame: hostWindow.frame)
         } else {
@@ -149,8 +154,7 @@ final class DiagnosticFloatingButtonCoordinator {
         }
 
         overlay.backgroundColor = .clear
-        // Above the application content, below system alerts and the status bar.
-        overlay.windowLevel = .statusBar - 1
+        overlay.stackAboveHostWindows(using: .floatingButton)
 
         let controller = DiagnosticFloatingButtonViewController(configuration: configuration)
         controller.onInteractiveFrameChange = { [weak overlay] frame in
@@ -171,15 +175,6 @@ final class DiagnosticFloatingButtonCoordinator {
               + "frame \(overlay.frame), scene \(String(describing: overlay.windowScene))")
     }
 
-    /// Any window of the host application, used when no scene can be resolved.
-    private func legacyHostWindow() -> UIWindow? {
-        let sceneWindows = UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap(\.windows)
-
-        return sceneWindows.first(where: { !($0 is DiagnosticFloatingButtonWindow) && $0.rootViewController != nil })
-    }
-
     private func handleSceneDisconnection(_ scene: UIWindowScene?) {
         guard let scene, window?.windowScene === scene else { return }
         teardownWindow()
@@ -192,30 +187,15 @@ final class DiagnosticFloatingButtonCoordinator {
         window = nil
     }
 
-    private func resolveWindowScene() -> UIWindowScene? {
-        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
-
-        if let keyWindowScene = scenes.first(where: { scene in
-            scene.activationState == .foregroundActive &&
-            scene.windows.contains(where: \.isKeyWindow)
-        }) {
-            return keyWindowScene
-        }
-
-        if let activeScene = scenes.first(where: { $0.activationState == .foregroundActive }) {
-            return activeScene
-        }
-
-        // Legacy applications (no scene manifest) expose a compatibility scene whose
-        // activation state may never become `.foregroundActive`.
-        return scenes.first(where: { !$0.windows.isEmpty })
+    private func restackOverlayWindow() {
+        window?.stackAboveHostWindows(using: .floatingButton)
     }
 }
 
 // MARK: - Overlay window
 
 /// Overlay window that only captures touches inside `interactiveFrame`.
-final class DiagnosticFloatingButtonWindow: UIWindow {
+final class DiagnosticFloatingButtonWindow: UIWindow, DiagnosticOverlayWindow {
 
     /// Frame of the button, in window coordinates. Everything outside falls through.
     var interactiveFrame: CGRect = .zero
