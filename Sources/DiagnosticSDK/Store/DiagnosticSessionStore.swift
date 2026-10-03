@@ -23,7 +23,6 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
     private var backgroundObserver: NSObjectProtocol?
     
     private static let updateNotificationCoalescingInterval: TimeInterval = 0.15
-    private static let interruptedCaptureErrorDescription = "Capture stopped before the response was received"
     
     private struct InteractionLocation {
         let screenIndex: Int
@@ -106,7 +105,7 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
             var hasInterruptedInteraction = false
             for screen in self.currentSession.screens {
                 for interactionIndex in screen.networkInteractions.indices where screen.networkInteractions[interactionIndex].response == nil {
-                    screen.networkInteractions[interactionIndex].response = Self.makeInterruptedResponse()
+                    screen.networkInteractions[interactionIndex].response = .interruptedCapture()
                     hasInterruptedInteraction = true
                 }
             }
@@ -114,16 +113,6 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
                 self.scheduleUpdateNotification()
             }
         }
-    }
-    
-    private static func makeInterruptedResponse() -> ResponseDetails {
-        ResponseDetails(
-            status: 0,
-            headers: nil,
-            bodyBase64: nil,
-            bodySizeBytes: 0,
-            errorDescription: interruptedCaptureErrorDescription
-        )
     }
     
     private func scheduleUpdateNotification() {
@@ -358,7 +347,11 @@ public struct DiagnosticSessionSnapshot: Sendable, Equatable {
         public let url: String
         public let status: Int?
         public let isMocked: Bool
-        public let isPending: Bool
+        public let responseAvailability: ResponseAvailability
+
+        public var isPending: Bool {
+            responseAvailability == .awaiting
+        }
     }
     
     public let sessionId: String
@@ -393,7 +386,8 @@ extension DiagnosticSessionStore {
                 let interactions = screen.networkInteractions.map { interaction in
                     DiagnosticSessionSnapshot.Interaction(
                         interaction: interaction,
-                        isMocked: mockedInteractionIds.contains(interaction.id)
+                        isMocked: mockedInteractionIds.contains(interaction.id),
+                        captureSource: .liveSession
                     )
                 }
                 

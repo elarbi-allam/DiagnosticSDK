@@ -161,19 +161,22 @@ struct TraceScreenSectionHeader: View {
 }
 
 struct TraceNetworkInteractionRow: View {
-    private static let pendingOpacity: Double = 0.45
+    private static let unresolvedOpacity: Double = 0.45
     
     let interaction: DiagnosticSessionSnapshot.Interaction
     
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             VStack(alignment: .leading, spacing: 6) {
-                if interaction.isPending {
+                switch interaction.responseAvailability {
+                case .received:
+                    TraceStatusPill(status: interaction.status)
+                case .awaiting:
                     ProgressView()
                         .controlSize(.small)
                         .accessibilityLabel("Request in progress")
-                } else {
-                    TraceStatusPill(status: interaction.status)
+                case .neverReceived:
+                    EmptyView()
                 }
                 
                 Text(interaction.method.uppercased())
@@ -223,8 +226,8 @@ struct TraceNetworkInteractionRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.vertical, 4)
-        .opacity(interaction.isPending ? Self.pendingOpacity : 1)
-        .animation(.easeInOut(duration: 0.25), value: interaction.isPending)
+        .opacity(interaction.responseAvailability == .received ? 1 : Self.unresolvedOpacity)
+        .animation(.easeInOut(duration: 0.25), value: interaction.responseAvailability)
     }
     
     private func hostAndPath(from urlString: String) -> String {
@@ -261,7 +264,7 @@ struct TraceStatusPill: View {
     }
     
     private var statusText: String {
-        guard let status else { return "—" }
+        guard let status else { return TraceValuePlaceholder.unavailable }
         return "\(status)"
     }
     
@@ -276,7 +279,7 @@ struct TraceStatusPill: View {
     }
     
     private var accessibilityLabelText: String {
-        guard let status else { return "No response yet" }
+        guard let status else { return "No response" }
         return "Status \(status)"
     }
 }

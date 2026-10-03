@@ -133,7 +133,6 @@ struct TraceInspectorView: View {
                                 } label: {
                                     TraceNetworkInteractionRow(interaction: interaction)
                                 }
-                                .disabled(interaction.isPending)
                                 .id(interaction.id)
                             }
                         }

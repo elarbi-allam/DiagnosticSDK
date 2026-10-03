@@ -9,7 +9,7 @@ extension DiagnosticSessionSnapshot {
                 name: screen.name,
                 enteredAt: screen.enteredAt,
                 exitedAt: screen.exitedAt,
-                interactions: screen.networkInteractions.map { Interaction(interaction: $0, isMocked: false) }
+                interactions: screen.networkInteractions.map { Interaction(interaction: $0, isMocked: false, captureSource: .archivedTrace) }
             )
         }
         self.init(
@@ -22,16 +22,17 @@ extension DiagnosticSessionSnapshot {
 }
 
 extension DiagnosticSessionSnapshot.Interaction {
-    init(interaction: NetworkInteraction, isMocked: Bool) {
+    init(interaction: NetworkInteraction, isMocked: Bool, captureSource: TraceCaptureSource) {
+        let responseAvailability = ResponseAvailability(response: interaction.response, captureSource: captureSource)
         self.init(
             id: interaction.id,
             startedAt: interaction.startedAt,
             durationMs: interaction.durationMs,
             method: interaction.request.method,
             url: interaction.request.url,
-            status: interaction.response?.status,
+            status: responseAvailability == .received ? interaction.response?.status : nil,
             isMocked: isMocked,
-            isPending: interaction.response == nil
+            responseAvailability: responseAvailability
         )
     }
 }

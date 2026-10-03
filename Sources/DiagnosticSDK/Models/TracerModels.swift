@@ -127,3 +127,22 @@ public struct ResponseDetails: Codable {
         self.errorDescription = errorDescription
     }
 }
+
+extension ResponseDetails {
+
+    static let interruptedCaptureErrorDescription = "Capture stopped before the response was received"
+
+    static func interruptedCapture() -> ResponseDetails {
+        ResponseDetails(
+            status: 0,
+            headers: nil,
+            bodyBase64: nil,
+            bodySizeBytes: 0,
+            errorDescription: interruptedCaptureErrorDescription
+        )
+    }
+
+    var isInterruptedCapture: Bool {
+        errorDescription == Self.interruptedCaptureErrorDescription
+    }
+}

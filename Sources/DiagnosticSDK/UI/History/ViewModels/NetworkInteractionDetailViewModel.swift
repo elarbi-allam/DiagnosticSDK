@@ -40,6 +40,7 @@ final class NetworkInteractionDetailViewModel: ObservableObject {
 
     private let interactionId: String
     private let store: DiagnosticSessionStore?
+    private let captureSource: TraceCaptureSource
     private var storeUpdateCancellable: AnyCancellable?
     private var contentFormattingTask: Task<Void, Never>?
     private var hasStarted = false
@@ -47,12 +48,25 @@ final class NetworkInteractionDetailViewModel: ObservableObject {
     init(interactionId: String, store: DiagnosticSessionStore) {
         self.interactionId = interactionId
         self.store = store
+        self.captureSource = .liveSession
     }
 
     init(archivedInteraction: NetworkInteraction) {
         self.interactionId = archivedInteraction.id
         self.store = nil
+        self.captureSource = .archivedTrace
         self.interaction = archivedInteraction
+    }
+
+    func responseAvailability(of interaction: NetworkInteraction) -> ResponseAvailability {
+        ResponseAvailability(response: interaction.response, captureSource: captureSource)
+    }
+
+    func displayedStatus(of interaction: NetworkInteraction) -> String {
+        guard responseAvailability(of: interaction) == .received, let response = interaction.response else {
+            return TraceValuePlaceholder.unavailable
+        }
+        return "\(response.status)"
     }
 
     func start() {

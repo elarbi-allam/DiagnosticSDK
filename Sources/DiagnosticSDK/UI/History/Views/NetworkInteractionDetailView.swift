@@ -33,7 +33,10 @@ struct NetworkInteractionDetailView: View {
                     overviewSection(interaction)
                     timingSection(content: viewModel.content)
                     requestSection(content: viewModel.content)
-                    responseSection(interaction, content: viewModel.content)
+                    responseSection(
+                        responseAvailability: viewModel.responseAvailability(of: interaction),
+                        content: viewModel.content
+                    )
                 } else {
                     Section("Interaction") {
                         Text("Unable to load details for this request.")
@@ -112,13 +115,13 @@ struct NetworkInteractionDetailView: View {
             )
             detailRow(
                 title: "Status",
-                value: interaction.response.map { "\($0.status)" } ?? "Pending",
+                value: viewModel.displayedStatus(of: interaction),
                 titleStyle: .overview,
                 valueStyle: .overview
             )
             detailRow(
                 title: "Duration",
-                value: interaction.durationMs.map { "\($0) ms" } ?? "—",
+                value: interaction.durationMs.map { "\($0) ms" } ?? TraceValuePlaceholder.unavailable,
                 titleStyle: .overview,
                 valueStyle: .overview
             )
@@ -177,17 +180,25 @@ struct NetworkInteractionDetailView: View {
         }
     }
     
-    private func responseSection(_ interaction: NetworkInteraction, content: NetworkInteractionDetailContent?) -> some View {
+    private func responseSection(
+        responseAvailability: ResponseAvailability,
+        content: NetworkInteractionDetailContent?
+    ) -> some View {
         Section("Response") {
-            if interaction.response != nil, let content {
-                headersBlock(title: "Headers", headers: content.responseHeaders)
-                bodyBlock(title: "Body", formattedBody: content.responseBody)
-                tokenDecoderBlock(title: "Token Decoder", decodedTokens: content.responseTokens)
-                errorBlock(content.responseError)
-            } else if interaction.response != nil {
-                contentFormattingRow
-            } else {
-                Text("No response captured yet.")
+            switch responseAvailability {
+            case .received:
+                if let content {
+                    headersBlock(title: "Headers", headers: content.responseHeaders)
+                    bodyBlock(title: "Body", formattedBody: content.responseBody)
+                    tokenDecoderBlock(title: "Token Decoder", decodedTokens: content.responseTokens)
+                    errorBlock(content.responseError)
+                } else {
+                    contentFormattingRow
+                }
+            case .awaiting:
+                progressRow(message: "Waiting for response…")
+            case .neverReceived:
+                Text("No response received before the session ended.")
                     .foregroundColor(.secondary)
             }
         }
@@ -227,9 +238,13 @@ struct NetworkInteractionDetailView: View {
     }
     
     private var contentFormattingRow: some View {
+        progressRow(message: "Formatting…")
+    }
+
+    private func progressRow(message: String) -> some View {
         HStack(spacing: 10) {
             ProgressView()
-            Text("Formatting…")
+            Text(message)
                 .font(.footnote)
                 .foregroundColor(.secondary)
         }
