@@ -115,7 +115,8 @@ struct TraceSessionMetadataDetailView: View {
             Section("Environment") {
                 metadataRow("App Version", metadata.appVersion)
                 metadataRow("OS Version", metadata.osVersion)
-                metadataRow("Device Model", metadata.deviceModel)
+                metadataRow("Device", metadata.deviceName)
+                metadataRow("Hardware identifier", metadata.deviceModel)
             }
         }
         .navigationBarTitle("Session Details", displayMode: .inline)
@@ -160,12 +161,23 @@ struct TraceScreenSectionHeader: View {
 }
 
 struct TraceNetworkInteractionRow: View {
+    private static let unresolvedOpacity: Double = 0.45
+    
     let interaction: DiagnosticSessionSnapshot.Interaction
     
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             VStack(alignment: .leading, spacing: 6) {
-                TraceStatusPill(status: interaction.status)
+                switch interaction.responseAvailability {
+                case .received:
+                    TraceStatusPill(status: interaction.status)
+                case .awaiting:
+                    ProgressView()
+                        .controlSize(.small)
+                        .accessibilityLabel("Request in progress")
+                case .neverReceived:
+                    EmptyView()
+                }
                 
                 Text(interaction.method.uppercased())
                     .font(.caption2.weight(.bold))
@@ -214,6 +226,8 @@ struct TraceNetworkInteractionRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.vertical, 4)
+        .opacity(interaction.responseAvailability == .received ? 1 : Self.unresolvedOpacity)
+        .animation(.easeInOut(duration: 0.25), value: interaction.responseAvailability)
     }
     
     private func hostAndPath(from urlString: String) -> String {
@@ -250,7 +264,7 @@ struct TraceStatusPill: View {
     }
     
     private var statusText: String {
-        guard let status else { return "—" }
+        guard let status else { return TraceValuePlaceholder.unavailable }
         return "\(status)"
     }
     
@@ -265,7 +279,7 @@ struct TraceStatusPill: View {
     }
     
     private var accessibilityLabelText: String {
-        guard let status else { return "No response yet" }
+        guard let status else { return "No response" }
         return "Status \(status)"
     }
 }

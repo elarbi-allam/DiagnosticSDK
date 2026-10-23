@@ -40,3 +40,7 @@ secrets.json
 # macOS
 .DS_Store
 Tests/.build/
+
+# Cadmus build data
+.cadmus/
+buildServer.json

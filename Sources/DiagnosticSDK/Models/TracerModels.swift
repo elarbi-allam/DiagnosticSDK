@@ -25,6 +25,7 @@ public struct TraceMetadata: Codable {
     public let appVersion: String
     public let osVersion: String
     public let deviceModel: String
+    public let isSimulator: Bool?
     
     /// Generates metadata based on current device and bundle information.
     public static func current() -> TraceMetadata {
@@ -38,7 +39,13 @@ public struct TraceMetadata: Codable {
             $0.withMemoryRebound(to: CChar.self, capacity: 1) { ptr in String(validatingUTF8: ptr) }
         } ?? UIDevice.current.model
         
-        return TraceMetadata(appVersion: appVersion, osVersion: osVersion, deviceModel: modelCode)
+        let simulatorModelIdentifier = ProcessInfo.processInfo.environment["SIMULATOR_MODEL_IDENTIFIER"]
+        return TraceMetadata(
+            appVersion: appVersion,
+            osVersion: osVersion,
+            deviceModel: simulatorModelIdentifier ?? modelCode,
+            isSimulator: simulatorModelIdentifier != nil
+        )
     }
 }
 
@@ -72,10 +79,16 @@ public struct NetworkInteraction: Codable {
     public let screenName: String?
     public let request: RequestDetails
     public var response: ResponseDetails?
+    public var timing: NetworkTiming?
     
-    public init(id: String = UUID().uuidString, request: RequestDetails, screenName: String? = nil) {
+    public init(
+        id: String = UUID().uuidString,
+        request: RequestDetails,
+        screenName: String? = nil,
+        startedAt: Date = Date()
+    ) {
         self.id = id
-        self.startedAt = Date()
+        self.startedAt = startedAt
         self.request = request
         self.screenName = screenName
     }
@@ -112,5 +125,24 @@ public struct ResponseDetails: Codable {
         self.bodyBase64 = bodyBase64
         self.bodySizeBytes = bodySizeBytes
         self.errorDescription = errorDescription
+    }
+}
+
+extension ResponseDetails {
+
+    static let interruptedCaptureErrorDescription = "Capture stopped before the response was received"
+
+    static func interruptedCapture() -> ResponseDetails {
+        ResponseDetails(
+            status: 0,
+            headers: nil,
+            bodyBase64: nil,
+            bodySizeBytes: 0,
+            errorDescription: interruptedCaptureErrorDescription
+        )
+    }
+
+    var isInterruptedCapture: Bool {
+        errorDescription == Self.interruptedCaptureErrorDescription
     }
 }

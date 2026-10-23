@@ -55,4 +55,64 @@
     }
 }
 
++ (BOOL)replaceInstanceMethod:(SEL)selector
+                      ofClass:(Class)cls
+             withBlockFactory:(DiagnosticSDKImplementationBlockFactory)blockFactory {
+    Method method = class_getInstanceMethod(cls, selector);
+    if (!method) {
+        return NO;
+    }
+
+    IMP originalImplementation = method_getImplementation(method);
+    IMP replacementImplementation = imp_implementationWithBlock(blockFactory(originalImplementation));
+
+    if (!class_addMethod(cls, selector, replacementImplementation, method_getTypeEncoding(method))) {
+        method_setImplementation(method, replacementImplementation);
+    }
+    return YES;
+}
+
++ (BOOL)replaceClassMethod:(SEL)selector
+                   ofClass:(Class)cls
+          withBlockFactory:(DiagnosticSDKImplementationBlockFactory)blockFactory {
+    return [self replaceInstanceMethod:selector ofClass:object_getClass(cls) withBlockFactory:blockFactory];
+}
+
++ (NSArray<Class> *)classesInheritingFromClass:(Class)baseClass {
+    NSMutableArray<Class> *inheritingClasses = [NSMutableArray array];
+    unsigned int classCount = 0;
+    Class *classList = objc_copyClassList(&classCount);
+
+    for (unsigned int classIndex = 0; classIndex < classCount; classIndex++) {
+        if ([self isClass:classList[classIndex] inheritingFromClass:baseClass]) {
+            [inheritingClasses addObject:classList[classIndex]];
+        }
+    }
+
+    free(classList);
+    return inheritingClasses;
+}
+
++ (BOOL)doesClass:(Class)cls declareInstanceMethod:(SEL)selector {
+    unsigned int methodCount = 0;
+    Method *methodList = class_copyMethodList(cls, &methodCount);
+    BOOL isDeclared = NO;
+
+    for (unsigned int methodIndex = 0; methodIndex < methodCount && !isDeclared; methodIndex++) {
+        isDeclared = sel_isEqual(method_getName(methodList[methodIndex]), selector);
+    }
+
+    free(methodList);
+    return isDeclared;
+}
+
++ (BOOL)isClass:(Class)candidateClass inheritingFromClass:(Class)baseClass {
+    for (Class currentClass = candidateClass; currentClass; currentClass = class_getSuperclass(currentClass)) {
+        if (currentClass == baseClass) {
+            return YES;
+        }
+    }
+    return NO;
+}
+
 @end

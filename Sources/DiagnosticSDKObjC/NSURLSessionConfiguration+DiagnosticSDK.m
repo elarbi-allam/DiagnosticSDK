@@ -32,7 +32,7 @@
 
 + (void)diagnosticSDK_injectProtocol:(NSURLSessionConfiguration *)config {
     // Dynamically resolve the Swift interceptor class.
-    Class interceptorClass = NSClassFromString(@"DiagnosticURLProtocol");
+    Class interceptorClass = NSClassFromString(@"DiagnosticReplayURLProtocol");
     
     if (interceptorClass) {
         NSMutableArray *protocols = [NSMutableArray arrayWithArray:config.protocolClasses];

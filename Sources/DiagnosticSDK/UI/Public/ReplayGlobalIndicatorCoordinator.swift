@@ -4,31 +4,33 @@ import Combine
 
 @MainActor
 final class ReplayGlobalIndicatorCoordinator {
-    static let shared = ReplayGlobalIndicatorCoordinator()
+    static let shared = ReplayGlobalIndicatorCoordinator(replaySessionStatus: ReplayManager.shared)
 
+    private let replaySessionStatus: ReplaySessionStatusProviding
     private var replayCancellable: AnyCancellable?
-    private var indicatorWindow: UIWindow?
+    private var indicatorWindow: ReplayIndicatorWindow?
     private var isStarted = false
+    private lazy var hostWindowStackObserver = HostWindowStackObserver { [weak self] in
+        self?.restackIndicatorWindow()
+    }
 
-    private init() {}
+    private init(replaySessionStatus: ReplaySessionStatusProviding) {
+        self.replaySessionStatus = replaySessionStatus
+    }
 
     func start(in scene: UIWindowScene? = nil) {
         guard !isStarted else { return }
         isStarted = true
 
-        replayCancellable = Publishers.CombineLatest(
-            ReplayManager.shared.$isReplayActive,
-            ReplayManager.shared.$activeTrace
-        )
-        .receive(on: RunLoop.main)
-        .sink { [weak self] isActive, trace in
-            guard let self else { return }
-            if isActive, trace != nil {
-                self.showIndicator(in: scene)
-            } else {
-                self.hideIndicator()
+        replayCancellable = replaySessionStatus.replaySessionRunningPublisher
+            .sink { [weak self] isReplaySessionRunning in
+                guard let self else { return }
+                if isReplaySessionRunning {
+                    self.showIndicator(in: scene)
+                } else {
+                    self.hideIndicator()
+                }
             }
-        }
     }
 
     func stop() {
@@ -40,42 +42,33 @@ final class ReplayGlobalIndicatorCoordinator {
 
     private func showIndicator(in preferredScene: UIWindowScene?) {
         guard indicatorWindow == nil else { return }
-        guard let scene = preferredScene ?? resolveForegroundWindowScene() else { return }
+        guard let scene = preferredScene ?? HostWindowCatalog.foregroundWindowScene() else { return }
 
-        let window = PassthroughWindow(windowScene: scene)
+        let window = ReplayIndicatorWindow(windowScene: scene)
         window.backgroundColor = .clear
-        window.windowLevel = .statusBar + 1
+        window.stackAboveHostWindows(using: .replayIndicator)
 
         let root = UIHostingController(rootView: ReplayGlobalIndicatorView())
         root.view.backgroundColor = .clear
         window.rootViewController = root
         window.isHidden = false
         indicatorWindow = window
+        hostWindowStackObserver.start()
     }
 
     private func hideIndicator() {
         guard let window = indicatorWindow else { return }
+        hostWindowStackObserver.stop()
         window.isHidden = true
         indicatorWindow = nil
     }
 
-    private func resolveForegroundWindowScene() -> UIWindowScene? {
-        if let keyWindowScene = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .first(where: { scene in
-                scene.activationState == .foregroundActive &&
-                scene.windows.contains(where: \.isKeyWindow)
-            }) {
-            return keyWindowScene
-        }
-
-        return UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first(where: { $0.activationState == .foregroundActive })
+    private func restackIndicatorWindow() {
+        indicatorWindow?.stackAboveHostWindows(using: .replayIndicator)
     }
 }
 
-private final class PassthroughWindow: UIWindow {
+private final class ReplayIndicatorWindow: UIWindow, DiagnosticOverlayWindow {
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
         // Keep the overlay fully non-interactive so it never blocks app UI.
         false

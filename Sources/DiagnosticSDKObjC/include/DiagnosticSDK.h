@@ -16,6 +16,7 @@ FOUNDATION_EXPORT const unsigned char DiagnosticSDKVersionString[];
     #import <DiagnosticSDK/DiagnosticSDKMethodSwizzling.h>
     #import <DiagnosticSDK/NSURLSessionConfiguration+DiagnosticSDK.h>
     #import <DiagnosticSDK/UIViewController+DiagnosticSDK.h>
+    #import <DiagnosticSDK/DiagnosticSDKNetworkHooks.h>
 
 // 2. If we compile through Swift Package Manager
 // SPM builds a "flat" module, so files are imported directly with quotes " "
@@ -25,5 +26,6 @@ FOUNDATION_EXPORT const unsigned char DiagnosticSDKVersionString[];
     #import "DiagnosticSDKMethodSwizzling.h"
     #import "NSURLSessionConfiguration+DiagnosticSDK.h"
     #import "UIViewController+DiagnosticSDK.h"
+    #import "DiagnosticSDKNetworkHooks.h"
 
 #endif

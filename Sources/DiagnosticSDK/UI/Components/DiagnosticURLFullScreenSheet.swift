@@ -1,43 +1,33 @@
 import SwiftUI
 
-struct DiagnosticPlainFullScreenSheet: View {
+struct DiagnosticURLFullScreenSheet: View {
     let title: String
-    let text: String
-    var kind: DiagnosticReadableTextBlock.Kind
-    @Binding var isPresented: Bool
+    let url: String
+
+    @Environment(\.dismiss) private var dismiss
     @State private var urlHeight: CGFloat = 0
-    
+
     var body: some View {
         NavigationView {
             ScrollView {
-                Group {
-                    switch kind {
-                    case .url:
-                        fullScreenURLLabel
-                    case .plain:
-                        Text(text)
-                            .font(.system(size: 12, design: .monospaced))
-                    }
-                }
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
+                fullScreenURLLabel
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(Color(.systemBackground))
-            .if(kind == .url) { view in
-                view.copyableOverlay(text: text, accessibilityLabel: "Copy URL")
-            }
+            .copyableOverlay(text: url, accessibilityLabel: "Copy URL")
             .navigationBarTitle(title, displayMode: .inline)
-            .navigationBarItems(trailing: Button("Done") { isPresented = false })
+            .navigationBarItems(trailing: Button("Done") { dismiss() })
         }
     }
-    
+
     private var fullScreenURLLabel: some View {
         GeometryReader { geometryProxy in
             let availableWidth = max(0, geometryProxy.size.width)
             URLCharacterWrappingLabel(
-                text: text,
+                text: url,
                 maxWidth: availableWidth,
                 numberOfLines: 0
             ) { measuredHeight in

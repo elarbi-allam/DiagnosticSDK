@@ -1,6 +1,7 @@
 #import "DiagnosticSDKBootstrapper.h"
 #import "NSURLSessionConfiguration+DiagnosticSDK.h"
 #import "UIViewController+DiagnosticSDK.h"
+#import "DiagnosticSDKNetworkHooks.h"
 
 @implementation DiagnosticSDKBootstrapper
 
@@ -12,6 +13,7 @@
         
         // Initialize the network interception engine
         [NSURLSessionConfiguration diagnosticSDK_swizzleNSURLSessionClasses];
+        [DiagnosticSDKNetworkHooks installHooks];
         
         // Initialize the UI navigation tracker
         [UIViewController diagnostic_swizzleLifecycle];
