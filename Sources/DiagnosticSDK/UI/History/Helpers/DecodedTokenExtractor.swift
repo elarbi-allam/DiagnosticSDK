@@ -1,7 +1,9 @@
 import Foundation
 
 enum DecodedTokenExtractor {
-    private static let jwtPattern = #"[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+"#
+    private static let jwtRegularExpression = try? NSRegularExpression(
+        pattern: #"(?<![A-Za-z0-9_-])[A-Za-z0-9_-]++\.[A-Za-z0-9_-]++\.[A-Za-z0-9_-]++"#
+    )
 
     static func extract(
         headers: [String: String]?,
@@ -132,7 +134,7 @@ enum DecodedTokenExtractor {
     }
 
     private static func jwtCandidate(in text: String) -> String? {
-        guard let regex = try? NSRegularExpression(pattern: jwtPattern) else {
+        guard let regex = jwtRegularExpression else {
             return nil
         }
         let nsRange = NSRange(text.startIndex..<text.endIndex, in: text)

@@ -33,7 +33,7 @@ struct NetworkInteractionDetailContent {
 
 @MainActor
 final class NetworkInteractionDetailViewModel: ObservableObject {
-    private static let synchronousFormattingByteLimit = 256 * 1024
+    private static let synchronousFormattingByteLimit = 16 * 1024
 
     @Published private(set) var interaction: NetworkInteraction?
     @Published private(set) var content: NetworkInteractionDetailContent?
