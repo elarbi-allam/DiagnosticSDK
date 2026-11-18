@@ -270,42 +270,43 @@ extension DiagnosticSessionStore {
         }
     }
     
-    /// Performs the standard export to Documents first, then creates an encrypted export in Temporary.
+    /// Creates an encrypted export in Temporary without writing a plain copy to Documents.
     /// The temporary encrypted file is intended for sharing and should not appear in session history listings.
     /// - Parameter password: User-provided password used to derive the encryption key.
     /// - Returns: The URL of the encrypted temporary file, or `nil` if any step fails.
     @discardableResult
     public func exportSessionSafelyToTemporary(password: String) -> URL? {
-        var encryptedURL: URL?
         isolationQueue.sync {
-            guard let (_, jsonData) = self.writeCurrentSessionToDocumentsReturningData() else {
-                print("❌ [DiagnosticSDK] Safe export aborted: normal export failed.")
-                return
-            }
-            do {
-                let wrapped = try TraceEncryptionService.encryptTraceJSON(jsonData, password: password)
-                let wrapperData = try JSONEncoder().encode(wrapped)
-                let fileName = self.safeExportFileName(for: self.currentSession)
-                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
-                try wrapperData.write(to: tempURL, options: .atomic)
-                encryptedURL = tempURL
-                print("✅ [DiagnosticSDK] Safe export created in temporary directory: \(tempURL.path)")
-            } catch let error as TraceEncryptionServiceError {
-                print("❌ [DiagnosticSDK] Safe export failed: \(error.localizedDescription)")
-            } catch {
-                print("❌ [DiagnosticSDK] Safe export failed: \(error.localizedDescription)")
+            writeEncryptedCurrentSessionToTemporaryDirectory(password: password)
+        }
+    }
+
+    func exportSessionSafely(password: String, completion: @escaping (URL?) -> Void) {
+        isolationQueue.async { [weak self] in
+            let encryptedURL = self?.writeEncryptedCurrentSessionToTemporaryDirectory(password: password)
+            DispatchQueue.main.async {
+                completion(encryptedURL)
             }
         }
-        return encryptedURL
+    }
+
+    private func writeEncryptedCurrentSessionToTemporaryDirectory(password: String) -> URL? {
+        do {
+            let jsonData = try SessionTraceJSONCodec.encode(currentSession)
+            let wrapped = try TraceEncryptionService.encryptTraceJSON(jsonData, password: password)
+            let wrapperData = try JSONEncoder().encode(wrapped)
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(safeExportFileName(for: currentSession))
+            try wrapperData.write(to: tempURL, options: .atomic)
+            print("✅ [DiagnosticSDK] Safe export created in temporary directory: \(tempURL.path)")
+            return tempURL
+        } catch {
+            print("❌ [DiagnosticSDK] Safe export failed: \(error.localizedDescription)")
+            return nil
+        }
     }
     
     /// Single encode + write to Documents. Call only on `isolationQueue`.
     private func writeCurrentSessionToDocuments() -> URL? {
-        guard let (url, _) = writeCurrentSessionToDocumentsReturningData() else { return nil }
-        return url
-    }
-    
-    private func writeCurrentSessionToDocumentsReturningData() -> (url: URL, data: Data)? {
         do {
             let jsonData = try SessionTraceJSONCodec.encode(self.currentSession)
             let fileName = self.exportFileName(for: self.currentSession)
@@ -316,7 +317,7 @@ extension DiagnosticSessionStore {
             let filePath = documentsPath.appendingPathComponent(fileName)
             try jsonData.write(to: filePath, options: .atomic)
             print("✅ [DiagnosticSDK] Session exported successfully to: \(filePath.path)")
-            return (filePath, jsonData)
+            return filePath
         } catch let error as SessionTraceJSONCodecError {
             print("❌ [DiagnosticSDK] Failed to export session to disk: \(error.localizedDescription)")
         } catch {

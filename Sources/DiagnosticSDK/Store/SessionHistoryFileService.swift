@@ -140,8 +140,8 @@ enum SessionHistoryFileService {
     
     /// Creates an encrypted shareable trace file in Temporary from a history trace file.
     static func createSafeExportTemporaryFile(from traceFileURL: URL, password: String) throws -> URL {
-        let trace = try SessionTraceJSONCodec.decodeFile(at: traceFileURL)
-        let plainJSONData = try SessionTraceJSONCodec.encode(trace)
+        let plainJSONData = try Data(contentsOf: traceFileURL, options: [.mappedIfSafe])
+        _ = try SessionTraceJSONCodec.decode(from: plainJSONData)
         let wrapper = try TraceEncryptionService.encryptTraceJSON(plainJSONData, password: password)
         
         let wrapperData = try JSONEncoder().encode(wrapper)

@@ -57,8 +57,10 @@ final class LiveSessionViewModel: ObservableObject {
     }
     
     func exportCurrentSession() {
-        guard let exportedURL = store.exportSessionToDisk() else { return }
-        shareItem = LiveSessionShareItem(url: exportedURL)
+        store.saveSessionToHistory { [weak self] exportedURL in
+            guard let exportedURL else { return }
+            self?.shareItem = LiveSessionShareItem(url: exportedURL)
+        }
     }
     
     func saveCurrentSessionToHistory() {
@@ -70,11 +72,13 @@ final class LiveSessionViewModel: ObservableObject {
     
     func exportCurrentSessionSafely(password: String) {
         exportErrorMessage = nil
-        guard let exportedURL = store.exportSessionSafelyToTemporary(password: password) else {
-            exportErrorMessage = "Safe export failed. Check password and try again."
-            return
+        store.exportSessionSafely(password: password) { [weak self] exportedURL in
+            guard let exportedURL else {
+                self?.exportErrorMessage = "Safe export failed. Check password and try again."
+                return
+            }
+            self?.shareItem = LiveSessionShareItem(url: exportedURL)
         }
-        shareItem = LiveSessionShareItem(url: exportedURL)
     }
     
     func clearCurrentSession() {
