@@ -10,7 +10,7 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
     // MARK: - State
     
     /// The current hierarchical session trace held entirely in RAM.
-    private(set) var currentSession: SessionTrace
+    private var currentSession: SessionTrace
     
     /// A concurrent dispatch queue acting as a read-write lock to prevent race conditions.
     private let isolationQueue = DispatchQueue(label: "com.diagnosticsdk.sessionstore.isolation", attributes: .concurrent)

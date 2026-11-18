@@ -9,9 +9,6 @@ typedef id _Nonnull (^DiagnosticSDKImplementationBlockFactory)(IMP originalImple
 /// Swaps the implementation of two class methods (+) safely using the metaclass.
 + (void)swizzleClassMethod:(SEL)originalSelector withMethod:(SEL)swizzledSelector forClass:(Class)cls;
 
-/// Swaps the implementation of two instance methods (-).
-+ (void)swizzleInstanceMethod:(SEL)originalSelector withMethod:(SEL)swizzledSelector forClass:(Class)cls;
-
 + (BOOL)replaceInstanceMethod:(SEL)selector
                       ofClass:(Class)cls
              withBlockFactory:(DiagnosticSDKImplementationBlockFactory)blockFactory;
