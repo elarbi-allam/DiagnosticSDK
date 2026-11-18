@@ -46,6 +46,7 @@
 		206E62992F8AD1A10011E974 /* NetworkStoreProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62752F8AD1A10011E974 /* NetworkStoreProtocol.swift */; };
 		206E629A2F8AD1A10011E974 /* NetworkEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E626A2F8AD1A10011E974 /* NetworkEvent.swift */; };
 		206E629B2F8AD1A10011E974 /* ResponseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E626C2F8AD1A10011E974 /* ResponseModel.swift */; };
+		3A72839B85CFD2F525043B6F /* CapturedBodyEncoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6918DF46AC2B34D6C588F469 /* CapturedBodyEncoding.swift */; };
 		206E62A62F8AD2160011E974 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62A42F8AD2160011E974 /* Extensions.swift */; };
 		206E62AB2F8AD2340011E974 /* DiagnosticSDKTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62A82F8AD2340011E974 /* DiagnosticSDKTests.swift */; };
 		206E630B2F8CE8DA0011E974 /* DiagnosticContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E630A2F8CE8DA0011E974 /* DiagnosticContext.swift */; };
@@ -92,12 +93,14 @@
 		20D576549D9403D49F314187 /* DiagnosticRecordingIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20D587ADFF60554523E2158A /* DiagnosticRecordingIndicatorView.swift */; };
 		20F102E22F8014470096C884 /* DiagnosticSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20F102D62F8014470096C884 /* DiagnosticSDK.framework */; };
 		26AFA30A5DF1A341D92A6779 /* ResponseAvailabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D29051E39D1138B0972AAC /* ResponseAvailabilityTests.swift */; };
+		5E422C37FB03604F08FB88ED /* CapturedBodyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45E9A51700BCF9C4690D19EB /* CapturedBodyTests.swift */; };
 		2BF2CC9F3871B93760D59B28 /* ReplayURLProtocolTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766C1CB283CCE7E085266F90 /* ReplayURLProtocolTests.swift */; };
 		3243E8A85A07C488EDFB9293 /* NetworkInteractionStart.swift in Sources */ = {isa = PBXBuildFile; fileRef = C322A27D1A7B0247A3B4F088 /* NetworkInteractionStart.swift */; };
 		3B428E51C98D41AE849ACF33 /* NetworkTimingBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929EBFA8E4848562BE1D5FD2 /* NetworkTimingBuilder.swift */; };
 		3D4A45DBD9008D8144F032AC /* NetworkInteractionDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 321F2EA95E12C05E47194EC2 /* NetworkInteractionDetailViewModel.swift */; };
 		40FCB50C6DDFB458A8930272 /* LockedValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA692B444E3C2F393C79FC0F /* LockedValue.swift */; };
 		42612FC1B41E49AE74ADD64B /* NetworkContentType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75D2F7C718C7682A8722CDB5 /* NetworkContentType.swift */; };
+		8F8246ECD003F8BD564DFAC4 /* CapturedBody.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F011F0DD38B4A864B7FFFEE /* CapturedBody.swift */; };
 		459786004E4E3B6F4EA62331 /* DiagnosticOverlayWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58BF2AE81A51F747DC64823 /* DiagnosticOverlayWindow.swift */; };
 		4EBE59E0377FADDBB4D20A0F /* DiagnosticJSONTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7AFF0B3AB816C3672605711 /* DiagnosticJSONTheme.swift */; };
 		547541314F91BFD42A5E050E /* OverlayWindowLevelPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 941977984F73FF2F1826B9FF /* OverlayWindowLevelPolicyTests.swift */; };
@@ -165,6 +168,7 @@
 		206E626A2F8AD1A10011E974 /* NetworkEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkEvent.swift; sourceTree = "<group>"; };
 		206E626B2F8AD1A10011E974 /* RequestModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestModel.swift; sourceTree = "<group>"; };
 		206E626C2F8AD1A10011E974 /* ResponseModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResponseModel.swift; sourceTree = "<group>"; };
+		6918DF46AC2B34D6C588F469 /* CapturedBodyEncoding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapturedBodyEncoding.swift; sourceTree = "<group>"; };
 		206E626D2F8AD1A10011E974 /* TracerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracerModels.swift; sourceTree = "<group>"; };
 		206E62702F8AD1A10011E974 /* NetworkEventBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkEventBuilder.swift; sourceTree = "<group>"; };
 		206E62752F8AD1A10011E974 /* NetworkStoreProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkStoreProtocol.swift; sourceTree = "<group>"; };
@@ -237,6 +241,7 @@
 		6F407A5AFB7AF0A44D0A881A /* NetworkTimingRowsBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkTimingRowsBuilder.swift; sourceTree = "<group>"; };
 		70FF7F1F9938CA99E72C452E /* ReplayMatchEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayMatchEngineTests.swift; sourceTree = "<group>"; };
 		75D2F7C718C7682A8722CDB5 /* NetworkContentType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkContentType.swift; sourceTree = "<group>"; };
+		2F011F0DD38B4A864B7FFFEE /* CapturedBody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapturedBody.swift; sourceTree = "<group>"; };
 		766C1CB283CCE7E085266F90 /* ReplayURLProtocolTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayURLProtocolTests.swift; sourceTree = "<group>"; };
 		7ABE61BF68A6110F72CAADC6 /* NSURLSession+DiagnosticSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSURLSession+DiagnosticSDK.m"; sourceTree = "<group>"; };
 		7C793381C965EB87BA5F3680 /* NetworkTaskObserverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkTaskObserverTests.swift; sourceTree = "<group>"; };
@@ -255,6 +260,7 @@
 		C7AFF0B3AB816C3672605711 /* DiagnosticJSONTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticJSONTheme.swift; sourceTree = "<group>"; };
 		CA692B444E3C2F393C79FC0F /* LockedValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockedValue.swift; sourceTree = "<group>"; };
 		D0D29051E39D1138B0972AAC /* ResponseAvailabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResponseAvailabilityTests.swift; sourceTree = "<group>"; };
+		45E9A51700BCF9C4690D19EB /* CapturedBodyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapturedBodyTests.swift; sourceTree = "<group>"; };
 		D1A602D851B570FEBF371612 /* DiagnosticSDKSessionDelegateProxy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticSDKSessionDelegateProxy.h; sourceTree = "<group>"; };
 		D1A658DB598AABB879DE17EC /* DiagnosticSDKNetworkHooks+Internal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "DiagnosticSDKNetworkHooks+Internal.h"; sourceTree = "<group>"; };
 		D1A664ED0562479020D1B4B8 /* DiagnosticSDKNetworkHooks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticSDKNetworkHooks.h; sourceTree = "<group>"; };
@@ -329,6 +335,7 @@
 				206E626A2F8AD1A10011E974 /* NetworkEvent.swift */,
 				206E626B2F8AD1A10011E974 /* RequestModel.swift */,
 				206E626C2F8AD1A10011E974 /* ResponseModel.swift */,
+				6918DF46AC2B34D6C588F469 /* CapturedBodyEncoding.swift */,
 				206E626D2F8AD1A10011E974 /* TracerModels.swift */,
 				206E65012F9180000011E974 /* DiagnosticSessionSnapshot+SessionTrace.swift */,
 				2043346A2F9B8977006CE9D9 /* SecureTraceWrapper.swift */,
@@ -346,6 +353,7 @@
 				204334772F9C392F006CE9D9 /* DiagnosticImageDataDecoder.swift */,
 				204334792F9C3955006CE9D9 /* NetworkImagePreviewEligibility.swift */,
 				75D2F7C718C7682A8722CDB5 /* NetworkContentType.swift */,
+				2F011F0DD38B4A864B7FFFEE /* CapturedBody.swift */,
 				AB1262204B4340A9C9CC8439 /* HTTPPayloadFormatter.swift */,
 				929EBFA8E4848562BE1D5FD2 /* NetworkTimingBuilder.swift */,
 			);
@@ -466,6 +474,7 @@
 				941977984F73FF2F1826B9FF /* OverlayWindowLevelPolicyTests.swift */,
 				39EE16732C7D17B1F7F53D5A /* PresentationHostWindowResolverTests.swift */,
 				D0D29051E39D1138B0972AAC /* ResponseAvailabilityTests.swift */,
+				45E9A51700BCF9C4690D19EB /* CapturedBodyTests.swift */,
 			);
 			path = DiagnosticSDKTests;
 			sourceTree = "<group>";
@@ -840,6 +849,7 @@
 				20D5458AF404EEB96DE61B0D /* ReplaySessionStatusProviding.swift in Sources */,
 				20D576549D9403D49F314187 /* DiagnosticRecordingIndicatorView.swift in Sources */,
 				206E629B2F8AD1A10011E974 /* ResponseModel.swift in Sources */,
+				3A72839B85CFD2F525043B6F /* CapturedBodyEncoding.swift in Sources */,
 				206E65072F9180000011E974 /* DiagnosticSessionSnapshot+SessionTrace.swift in Sources */,
 				204334602F9B7000006CE9D9 /* URLCharacterWrappingLabel.swift in Sources */,
 				206E65082F9180000011E974 /* TraceSessionFileLoader.swift in Sources */,
@@ -863,6 +873,7 @@
 				40FCB50C6DDFB458A8930272 /* LockedValue.swift in Sources */,
 				97C3310DCC1EFF06C578F55A /* URL+HTTPScheme.swift in Sources */,
 				42612FC1B41E49AE74ADD64B /* NetworkContentType.swift in Sources */,
+				8F8246ECD003F8BD564DFAC4 /* CapturedBody.swift in Sources */,
 				D1A647086CE439F597869618 /* NetworkTaskObserver.swift in Sources */,
 				D1A63AB1626AACFF0AE28067 /* PendingNetworkCapture.swift in Sources */,
 				D1A657FFB9E6554C6B69F925 /* DiagnosticInternalSessionFactory.swift in Sources */,
@@ -899,6 +910,7 @@
 				547541314F91BFD42A5E050E /* OverlayWindowLevelPolicyTests.swift in Sources */,
 				9B6F039BD12AFC99B37E29F3 /* PresentationHostWindowResolverTests.swift in Sources */,
 				26AFA30A5DF1A341D92A6779 /* ResponseAvailabilityTests.swift in Sources */,
+				5E422C37FB03604F08FB88ED /* CapturedBodyTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

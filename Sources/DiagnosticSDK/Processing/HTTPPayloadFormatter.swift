@@ -40,13 +40,13 @@ enum DiagnosticJSONFormatting {
 }
 
 enum HTTPPayloadFormatter {
-    static func format(rawBody: String?) -> FormattedHTTPBody {
-        guard let rawBody, !rawBody.isEmpty else { return .empty }
-        let bodyData = Data(base64Encoded: rawBody) ?? Data(rawBody.utf8)
+    static func format(bodyData: Data?) -> FormattedHTTPBody {
+        guard let bodyData, !bodyData.isEmpty else { return .empty }
         if let prettyJSON = DiagnosticJSONFormatting.prettyString(from: bodyData) {
             return .json(DiagnosticJSONDocument(prettyJSON: prettyJSON))
         }
-        return format(text: String(data: bodyData, encoding: .utf8) ?? rawBody)
+        guard let text = String(data: bodyData, encoding: .utf8) else { return .empty }
+        return .plain(text)
     }
 
     static func format(text: String?) -> FormattedHTTPBody {

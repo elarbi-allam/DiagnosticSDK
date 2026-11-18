@@ -183,7 +183,10 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
                 headers: response.headers,
                 bodyBase64: response.bodyBase64,
                 bodySizeBytes: response.bodySizeBytes,
-                errorDescription: response.errorDescription
+                errorDescription: response.errorDescription,
+                bodyEncoding: response.bodyEncoding,
+                isBodyTruncated: response.isBodyTruncated,
+                bodyOmission: response.bodyOmission
             )
             
             interaction.durationMs = event.durationMs
@@ -198,7 +201,10 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
             method: request.method,
             headers: request.headers,
             bodyBase64: request.body,
-            bodySizeBytes: request.body?.utf8.count ?? 0
+            bodySizeBytes: request.bodySizeBytes ?? request.body?.utf8.count ?? 0,
+            bodyEncoding: request.bodyEncoding,
+            isBodyTruncated: request.isBodyTruncated,
+            bodyOmission: request.bodyOmission
         )
     }
 }

@@ -29,17 +29,6 @@ public final class ReplayResponseFactory {
             return nil
         }
 
-        let bodyData = decodeBody(from: interaction.response?.bodyBase64)
-        return ReplayMockPayload(response: response, bodyData: bodyData)
-    }
-
-    private func decodeBody(from bodyBase64: String?) -> Data? {
-        guard let bodyBase64 else { return nil }
-
-        if let decodedBody = Data(base64Encoded: bodyBase64) {
-            return decodedBody
-        }
-
-        return bodyBase64.data(using: .utf8)
+        return ReplayMockPayload(response: response, bodyData: interaction.response?.bodyData)
     }
 }

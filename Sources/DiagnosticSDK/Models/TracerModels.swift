@@ -101,13 +101,28 @@ public struct RequestDetails: Codable {
     public let headers: [String: String]?
     public let bodyBase64: String?
     public let bodySizeBytes: Int
+    public let bodyEncoding: CapturedBodyEncoding?
+    public let isBodyTruncated: Bool?
+    public let bodyOmission: CapturedBodyOmission?
     
-    public init(url: String, method: String, headers: [String: String]?, bodyBase64: String?, bodySizeBytes: Int) {
+    public init(
+        url: String,
+        method: String,
+        headers: [String: String]?,
+        bodyBase64: String?,
+        bodySizeBytes: Int,
+        bodyEncoding: CapturedBodyEncoding? = nil,
+        isBodyTruncated: Bool? = nil,
+        bodyOmission: CapturedBodyOmission? = nil
+    ) {
         self.url = url
         self.method = method
         self.headers = headers
         self.bodyBase64 = bodyBase64
         self.bodySizeBytes = bodySizeBytes
+        self.bodyEncoding = bodyEncoding
+        self.isBodyTruncated = isBodyTruncated
+        self.bodyOmission = bodyOmission
     }
 }
 
@@ -118,13 +133,28 @@ public struct ResponseDetails: Codable {
     public let bodyBase64: String?
     public let bodySizeBytes: Int
     public let errorDescription: String?
+    public let bodyEncoding: CapturedBodyEncoding?
+    public let isBodyTruncated: Bool?
+    public let bodyOmission: CapturedBodyOmission?
     
-    public init(status: Int, headers: [String: String]?, bodyBase64: String?, bodySizeBytes: Int, errorDescription: String?) {
+    public init(
+        status: Int,
+        headers: [String: String]?,
+        bodyBase64: String?,
+        bodySizeBytes: Int,
+        errorDescription: String?,
+        bodyEncoding: CapturedBodyEncoding? = nil,
+        isBodyTruncated: Bool? = nil,
+        bodyOmission: CapturedBodyOmission? = nil
+    ) {
         self.status = status
         self.headers = headers
         self.bodyBase64 = bodyBase64
         self.bodySizeBytes = bodySizeBytes
         self.errorDescription = errorDescription
+        self.bodyEncoding = bodyEncoding
+        self.isBodyTruncated = isBodyTruncated
+        self.bodyOmission = bodyOmission
     }
 }
 

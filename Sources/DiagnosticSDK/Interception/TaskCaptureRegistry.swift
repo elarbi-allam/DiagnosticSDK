@@ -11,6 +11,7 @@ final class TaskCaptureRegistry {
         let pendingCapture: PendingNetworkCapture
         let channel: DiagnosticSDKTaskCaptureChannel
         var accumulatedResponseBody = Data()
+        var receivedResponseByteCount = 0
         var stateObservation: NSKeyValueObservation?
         var transferEndUptime: TimeInterval?
         var metrics: TaskMetricsSnapshot?
@@ -46,13 +47,17 @@ final class TaskCaptureRegistry {
     }
 
     func appendResponseData(_ data: Data, to task: URLSessionTask) {
-        guard NetworkContentType.isJSON(task.response?.mimeType) else { return }
+        let declaredContentKind = NetworkContentType.kind(ofDeclaredContentType: task.response?.mimeType)
+        let isResponseBodyCapturable = declaredContentKind?.isCapturable ?? true
 
         lock.lock()
         defer { lock.unlock() }
 
         guard let entry = activeEntry(of: task), entry.channel == .sessionDelegate else { return }
-        entry.accumulatedResponseBody.append(data)
+        entry.receivedResponseByteCount += data.count
+        let remainingCapacity = CapturedBody.maximumStoredByteCount + 1 - entry.accumulatedResponseBody.count
+        guard isResponseBodyCapturable, remainingCapacity > 0 else { return }
+        entry.accumulatedResponseBody.append(data.prefix(remainingCapacity))
     }
 
     func attachStateObservation(_ stateObservation: NSKeyValueObservation, to task: URLSessionTask) -> Bool {
@@ -107,6 +112,7 @@ final class TaskCaptureRegistry {
         return CompletedNetworkCapture(
             pendingCapture: finishedEntry.pendingCapture,
             accumulatedResponseBody: responseBody.isEmpty ? nil : responseBody,
+            receivedResponseByteCount: finishedEntry.receivedResponseByteCount,
             transferEndUptime: transferEndUptime,
             metrics: finishedEntry.metrics
         )

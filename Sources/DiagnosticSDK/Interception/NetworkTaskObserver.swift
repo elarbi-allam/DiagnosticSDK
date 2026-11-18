@@ -110,6 +110,7 @@ final class NetworkTaskObserver: NSObject, DiagnosticSDKNetworkEventObserving {
             completedCapture,
             response: task.response,
             responseBody: responseBody ?? completedCapture.accumulatedResponseBody,
+            receivedResponseByteCount: responseBody?.count ?? completedCapture.receivedResponseByteCount,
             error: error,
             isMocked: DiagnosticSDKNetworkHooks.isTaskReplayed(task)
         )

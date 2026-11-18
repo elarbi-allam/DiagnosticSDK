@@ -15,16 +15,16 @@ struct NetworkInteractionDetailContent {
         let request = interaction.request
         let response = interaction.response
         requestHeaders = HTTPPayloadFormatter.format(headers: request.headers)
-        requestBody = HTTPPayloadFormatter.format(rawBody: request.bodyBase64)
+        requestBody = HTTPPayloadFormatter.format(bodyData: request.bodyData)
         requestTokens = DecodedTokenExtractor.extract(
             headers: request.headers,
-            bodyRawValue: request.bodyBase64,
+            bodyData: request.bodyData,
             sourcePrefix: "Request"
         )
         responseHeaders = HTTPPayloadFormatter.format(headers: response?.headers)
-        responseBody = HTTPPayloadFormatter.format(rawBody: response?.bodyBase64)
+        responseBody = HTTPPayloadFormatter.format(bodyData: response?.bodyData)
         responseTokens = response.map {
-            DecodedTokenExtractor.extract(headers: $0.headers, bodyRawValue: $0.bodyBase64, sourcePrefix: "Response")
+            DecodedTokenExtractor.extract(headers: $0.headers, bodyData: $0.bodyData, sourcePrefix: "Response")
         } ?? []
         responseError = HTTPPayloadFormatter.format(text: response?.errorDescription)
         timingRows = NetworkTimingRowsBuilder.makeRows(for: interaction.timing)

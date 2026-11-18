@@ -82,6 +82,7 @@ private final class NetworkTrafficRecorderSpy: NetworkTrafficRecording {
         _ completedCapture: CompletedNetworkCapture,
         response: URLResponse?,
         responseBody: Data?,
+        receivedResponseByteCount: Int,
         error: Error?,
         isMocked: Bool
     ) {}

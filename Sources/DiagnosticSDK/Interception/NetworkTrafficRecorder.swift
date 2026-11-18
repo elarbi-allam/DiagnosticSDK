@@ -7,6 +7,7 @@ protocol NetworkTrafficRecording: AnyObject {
         _ completedCapture: CompletedNetworkCapture,
         response: URLResponse?,
         responseBody: Data?,
+        receivedResponseByteCount: Int,
         error: Error?,
         isMocked: Bool
     )
@@ -20,6 +21,7 @@ final class NetworkTrafficRecorder: NetworkTrafficRecording {
 
     private let store: NetworkStoreProtocol
     private let sessionStore: DiagnosticSessionStore
+    private let processingQueue = DispatchQueue(label: "com.diagnosticsdk.traffic.processing", qos: .utility)
 
     init(store: NetworkStoreProtocol, sessionStore: DiagnosticSessionStore = .shared) {
         self.store = store
@@ -40,39 +42,45 @@ final class NetworkTrafficRecorder: NetworkTrafficRecording {
         _ completedCapture: CompletedNetworkCapture,
         response: URLResponse?,
         responseBody: Data?,
+        receivedResponseByteCount: Int,
         error: Error?,
         isMocked: Bool
     ) {
-        let pendingCapture = completedCapture.pendingCapture
-        let timing = NetworkTimingBuilder.makeTiming(
-            startUptime: pendingCapture.startUptime,
-            transferEndUptime: completedCapture.transferEndUptime,
-            metrics: completedCapture.metrics
-        )
-        var event = NetworkEventBuilder.build(
-            request: pendingCapture.request,
-            response: response,
-            data: responseBody,
-            captureId: pendingCapture.id,
-            startedAt: pendingCapture.startDate,
-            timing: timing,
-            screenName: pendingCapture.screenName,
-            screenVisitId: pendingCapture.screenVisitId,
-            error: error
-        )
-        event.isMocked = isMocked
+        processingQueue.async { [store, sessionStore] in
+            let pendingCapture = completedCapture.pendingCapture
+            let timing = NetworkTimingBuilder.makeTiming(
+                startUptime: pendingCapture.startUptime,
+                transferEndUptime: completedCapture.transferEndUptime,
+                metrics: completedCapture.metrics
+            )
+            var event = NetworkEventBuilder.build(
+                request: pendingCapture.request,
+                response: response,
+                data: responseBody,
+                receivedByteCount: receivedResponseByteCount,
+                captureId: pendingCapture.id,
+                startedAt: pendingCapture.startDate,
+                timing: timing,
+                screenName: pendingCapture.screenName,
+                screenVisitId: pendingCapture.screenVisitId,
+                error: error
+            )
+            event.isMocked = isMocked
 
-        sessionStore.save(event: event)
-        store.save(event: event)
+            sessionStore.save(event: event)
+            store.save(event: event)
+        }
     }
 
     func recordLateMetrics(_ metrics: TaskMetricsSnapshot, for timingContext: FinishedCaptureTimingContext) {
-        let timing = NetworkTimingBuilder.makeTiming(
-            startUptime: timingContext.startUptime,
-            transferEndUptime: timingContext.transferEndUptime,
-            metrics: metrics
-        )
-        sessionStore.updateTiming(timing, forInteractionId: timingContext.captureId)
+        processingQueue.async { [sessionStore] in
+            let timing = NetworkTimingBuilder.makeTiming(
+                startUptime: timingContext.startUptime,
+                transferEndUptime: timingContext.transferEndUptime,
+                metrics: metrics
+            )
+            sessionStore.updateTiming(timing, forInteractionId: timingContext.captureId)
+        }
     }
 
     func interruptPendingCaptures() {

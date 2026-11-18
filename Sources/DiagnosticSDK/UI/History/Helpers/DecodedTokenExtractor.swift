@@ -5,7 +5,7 @@ enum DecodedTokenExtractor {
 
     static func extract(
         headers: [String: String]?,
-        bodyRawValue: String?,
+        bodyData: Data?,
         sourcePrefix: String
     ) -> [DecodedTokenItem] {
         var orderedResults: [DecodedTokenItem] = []
@@ -23,7 +23,7 @@ enum DecodedTokenExtractor {
             }
         }
 
-        if let bodyData = normalizedBodyData(from: bodyRawValue) {
+        if let bodyData, !bodyData.isEmpty {
             if let jsonObject = try? JSONSerialization.jsonObject(with: bodyData, options: [.fragmentsAllowed]) {
                 traverseJSONObject(jsonObject, path: "\(sourcePrefix) Body") { nodePath, key, value in
                     guard let key, key.lowercased().contains("token") else { return }
@@ -142,14 +142,6 @@ enum DecodedTokenExtractor {
             return nil
         }
         return String(text[range])
-    }
-
-    private static func normalizedBodyData(from rawValue: String?) -> Data? {
-        guard let rawValue, !rawValue.isEmpty else { return nil }
-        if let data = Data(base64Encoded: rawValue) {
-            return data
-        }
-        return rawValue.data(using: .utf8)
     }
 
     private static func stringifyTokenCandidate(_ value: Any) -> String {

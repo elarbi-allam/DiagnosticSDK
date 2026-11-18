@@ -12,6 +12,7 @@ struct PendingNetworkCapture {
 struct CompletedNetworkCapture {
     let pendingCapture: PendingNetworkCapture
     let accumulatedResponseBody: Data?
+    let receivedResponseByteCount: Int
     let transferEndUptime: TimeInterval
     let metrics: TaskMetricsSnapshot?
 }
