@@ -24,10 +24,12 @@ public final class NetworkInterceptor: NSObject, NetworkInterceptorProtocol {
     public func start(configuration: DiagnosticConfiguration) {
         DiagnosticConfiguration.current = configuration
 
+        let wasAlreadyRunning = DiagnosticRuntimeState.isRunning.exchange(with: true)
+        guard !wasAlreadyRunning else { return }
+
         DiagnosticSDKBootstrapper.start()
         DiagnosticSDKNetworkHooks.eventObserver = NetworkTaskObserver(recorder: trafficRecorder)
         URLProtocol.registerClass(ReplayURLProtocol.self)
-        DiagnosticRuntimeState.isRunning.update(true)
 
         installFloatingButtonIfNeeded(configuration)
 

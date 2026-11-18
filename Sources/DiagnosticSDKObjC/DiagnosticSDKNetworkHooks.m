@@ -30,7 +30,9 @@ static BOOL DiagnosticSDKHasFlag(id object, const void *key) {
 }
 
 + (void)setEventObserver:(id<DiagnosticSDKNetworkEventObserving>)eventObserver {
+    __attribute__((objc_precise_lifetime)) id<DiagnosticSDKNetworkEventObserving> replacedEventObserver = nil;
     os_unfair_lock_lock(&DiagnosticSDKEventObserverLock);
+    replacedEventObserver = DiagnosticSDKCurrentEventObserver;
     DiagnosticSDKCurrentEventObserver = eventObserver;
     os_unfair_lock_unlock(&DiagnosticSDKEventObserverLock);
 }

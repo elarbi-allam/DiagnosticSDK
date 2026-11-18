@@ -23,6 +23,7 @@ final class NetworkTaskObserver: NSObject, DiagnosticSDKNetworkEventObserving {
 
     func networkTaskWillResume(_ task: URLSessionTask) {
         guard
+            task.state == .suspended,
             !DiagnosticSDKNetworkHooks.isTaskExcludedFromCapture(task),
             let pendingCapture = makePendingCapture(for: task)
         else { return }
