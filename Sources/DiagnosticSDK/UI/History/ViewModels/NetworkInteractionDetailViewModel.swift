@@ -4,9 +4,11 @@ import Combine
 struct NetworkInteractionDetailContent {
     let requestHeaders: FormattedHTTPHeaders
     let requestBody: FormattedHTTPBody
+    let requestBodyNotice: String?
     let requestTokens: [DecodedTokenItem]
     let responseHeaders: FormattedHTTPHeaders
     let responseBody: FormattedHTTPBody
+    let responseBodyNotice: String?
     let responseTokens: [DecodedTokenItem]
     let responseError: FormattedHTTPBody
     let timingRows: [NetworkTimingRow]
@@ -15,19 +17,58 @@ struct NetworkInteractionDetailContent {
         let request = interaction.request
         let response = interaction.response
         requestHeaders = HTTPPayloadFormatter.format(headers: request.headers)
-        requestBody = HTTPPayloadFormatter.format(bodyData: request.bodyData)
+        let requestContentType = NetworkContentType.contentTypeHeader(in: request.headers)
+        requestBody = Self.formattedBody(
+            data: request.bodyData,
+            contentType: requestContentType,
+            omission: request.bodyOmission,
+            sizeBytes: request.bodySizeBytes
+        )
+        requestBodyNotice = Self.truncationNotice(isTruncated: request.isBodyTruncated, sizeBytes: request.bodySizeBytes)
         requestTokens = DecodedTokenExtractor.extract(
             headers: request.headers,
             bodyData: request.bodyData,
             sourcePrefix: "Request"
         )
         responseHeaders = HTTPPayloadFormatter.format(headers: response?.headers)
-        responseBody = HTTPPayloadFormatter.format(bodyData: response?.bodyData)
+        responseBody = response.map {
+            Self.formattedBody(
+                data: $0.bodyData,
+                contentType: NetworkContentType.contentTypeHeader(in: $0.headers),
+                omission: $0.bodyOmission,
+                sizeBytes: $0.bodySizeBytes
+            )
+        } ?? .empty
+        responseBodyNotice = Self.truncationNotice(isTruncated: response?.isBodyTruncated, sizeBytes: response?.bodySizeBytes ?? 0)
         responseTokens = response.map {
             DecodedTokenExtractor.extract(headers: $0.headers, bodyData: $0.bodyData, sourcePrefix: "Response")
         } ?? []
         responseError = HTTPPayloadFormatter.format(text: response?.errorDescription)
         timingRows = NetworkTimingRowsBuilder.makeRows(for: interaction.timing)
+    }
+
+    private static func formattedBody(
+        data: Data?,
+        contentType: String?,
+        omission: CapturedBodyOmission?,
+        sizeBytes: Int
+    ) -> FormattedHTTPBody {
+        let formattedSize = ByteCountFormatter.string(fromByteCount: Int64(sizeBytes), countStyle: .file)
+        switch omission {
+        case .binaryContent:
+            return .notCaptured("Binary content not captured (\(contentType ?? "unknown type"), \(formattedSize)).")
+        case .memoryBudget:
+            return .notCaptured("Body of \(formattedSize) discarded to keep the session within its memory budget.")
+        case nil:
+            return HTTPPayloadFormatter.format(bodyData: data, contentType: contentType)
+        }
+    }
+
+    private static func truncationNotice(isTruncated: Bool?, sizeBytes: Int) -> String? {
+        guard isTruncated == true else { return nil }
+        let storedSize = ByteCountFormatter.string(fromByteCount: Int64(CapturedBody.maximumStoredByteCount), countStyle: .file)
+        let totalSize = ByteCountFormatter.string(fromByteCount: Int64(sizeBytes), countStyle: .file)
+        return "Showing the first \(storedSize) of \(totalSize)."
     }
 }
 

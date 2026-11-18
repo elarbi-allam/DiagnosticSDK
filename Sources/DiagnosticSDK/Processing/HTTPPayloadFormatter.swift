@@ -4,6 +4,7 @@ enum FormattedHTTPBody {
     case empty
     case json(DiagnosticJSONDocument)
     case plain(String)
+    case notCaptured(String)
 }
 
 enum FormattedHTTPHeaders {
@@ -15,7 +16,7 @@ enum FormattedHTTPHeaders {
 enum DiagnosticJSONFormatting {
     static func prettyString(fromJSONObject jsonObject: Any) -> String? {
         guard JSONSerialization.isValidJSONObject(jsonObject),
-              let prettyData = try? JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted, .sortedKeys]) else {
+              let prettyData = try? JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]) else {
             return nil
         }
         return String(data: prettyData, encoding: .utf8)
@@ -40,13 +41,30 @@ enum DiagnosticJSONFormatting {
 }
 
 enum HTTPPayloadFormatter {
-    static func format(bodyData: Data?) -> FormattedHTTPBody {
+    static func format(bodyData: Data?, contentType: String?) -> FormattedHTTPBody {
         guard let bodyData, !bodyData.isEmpty else { return .empty }
+        let contentKind = NetworkContentType.kind(ofContentType: contentType, sniffing: bodyData)
+        if contentKind == .multipart {
+            return StructuredBodyFormatter.multipartSummary(from: bodyData, contentType: contentType).map(FormattedHTTPBody.plain) ?? .empty
+        }
+        if contentKind == .xml, let indentedXML = StructuredBodyFormatter.indentedXML(from: bodyData) {
+            return .plain(indentedXML)
+        }
         if let prettyJSON = DiagnosticJSONFormatting.prettyString(from: bodyData) {
             return .json(DiagnosticJSONDocument(prettyJSON: prettyJSON))
         }
-        guard let text = String(data: bodyData, encoding: .utf8) else { return .empty }
-        return .plain(text)
+        let textEncoding = NetworkContentType.textEncoding(of: contentType) ?? .utf8
+        guard let text = String(data: bodyData, encoding: textEncoding) ?? String(data: bodyData, encoding: .utf8) else {
+            return .empty
+        }
+        switch contentKind {
+        case .formURLEncoded:
+            return .plain(StructuredBodyFormatter.formFields(from: text) ?? text)
+        case .jsonLines:
+            return StructuredBodyFormatter.jsonLinesArray(from: text).map { .json(DiagnosticJSONDocument(prettyJSON: $0)) } ?? .plain(text)
+        default:
+            return .plain(text)
+        }
     }
 
     static func format(text: String?) -> FormattedHTTPBody {

@@ -172,7 +172,7 @@ struct NetworkInteractionDetailView: View {
         Section("Request") {
             if let content {
                 headersBlock(title: "Headers", headers: content.requestHeaders)
-                bodyBlock(title: "Body", formattedBody: content.requestBody)
+                bodyBlock(title: "Body", formattedBody: content.requestBody, notice: content.requestBodyNotice)
                 tokenDecoderBlock(title: "Token Decoder", decodedTokens: content.requestTokens)
             } else {
                 contentFormattingRow
@@ -189,7 +189,7 @@ struct NetworkInteractionDetailView: View {
             case .received:
                 if let content {
                     headersBlock(title: "Headers", headers: content.responseHeaders)
-                    bodyBlock(title: "Body", formattedBody: content.responseBody)
+                    bodyBlock(title: "Body", formattedBody: content.responseBody, notice: content.responseBodyNotice)
                     tokenDecoderBlock(title: "Token Decoder", decodedTokens: content.responseTokens)
                     errorBlock(content.responseError)
                 } else {
@@ -213,7 +213,7 @@ struct NetworkInteractionDetailView: View {
             errorContainer {
                 DiagnosticJSONPreviewBlock(document: document, sheetTitle: "Error")
             }
-        case .plain(let errorText):
+        case .plain(let errorText), .notCaptured(let errorText):
             errorContainer {
                 DiagnosticReadableTextBlock(
                     text: errorText,
@@ -364,11 +364,17 @@ struct NetworkInteractionDetailView: View {
         .padding(.vertical, 4)
     }
     
-    private func bodyBlock(title: String, formattedBody: FormattedHTTPBody) -> some View {
+    private func bodyBlock(title: String, formattedBody: FormattedHTTPBody, notice: String?) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.subheadline.weight(.semibold))
                 .foregroundColor(.secondary)
+            
+            if let notice {
+                Label(notice, systemImage: "scissors")
+                    .font(.footnote)
+                    .foregroundColor(.orange)
+            }
             
             switch formattedBody {
             case .empty:
@@ -385,6 +391,10 @@ struct NetworkInteractionDetailView: View {
                     maxCharactersBeforeFull: Self.plainTextFullViewCharacterThreshold,
                     previewLineLimit: Self.plainTextPreviewLineLimit
                 )
+            case .notCaptured(let message):
+                Text(message)
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
             }
         }
         .padding(.vertical, 4)

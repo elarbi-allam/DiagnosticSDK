@@ -5,6 +5,7 @@ enum DiagnosticJSONTheme {
     static let fontSize: CGFloat = 12
     static let lineSpacing: CGFloat = 4
     static let indentationPerLeadingSpace: CGFloat = 3.5
+    static let maximumIndentedLeadingSpaceCount = 32
     static let keyUIColor = UIColor(red: 0.12, green: 0.38, blue: 0.72, alpha: 1)
 
     static var keyColor: Color {
@@ -20,6 +21,6 @@ enum DiagnosticJSONTheme {
     }
 
     static func indentation(for line: String) -> CGFloat {
-        CGFloat(DiagnosticJSONLineParser.leadingSpaceCount(of: line)) * indentationPerLeadingSpace
+        CGFloat(min(DiagnosticJSONLineParser.leadingSpaceCount(of: line), maximumIndentedLeadingSpaceCount)) * indentationPerLeadingSpace
     }
 }

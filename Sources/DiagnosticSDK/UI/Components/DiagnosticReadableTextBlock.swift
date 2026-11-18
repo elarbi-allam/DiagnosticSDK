@@ -20,7 +20,11 @@ struct DiagnosticReadableTextBlock: View {
     private let copyActionTextGutter: CGFloat = 32
     
     private var needsFullScreen: Bool {
-        !text.isEmpty && text.count >= maxCharactersBeforeFull
+        !text.isEmpty && text.utf8.count >= maxCharactersBeforeFull
+    }
+
+    private var previewText: String {
+        needsFullScreen ? String(text.prefix(maxCharactersBeforeFull)) : text
     }
 
     private var fullScreenContent: DiagnosticFullScreenContent {
@@ -121,7 +125,7 @@ struct DiagnosticReadableTextBlock: View {
     @ViewBuilder
     private var plainTextContent: some View {
         if needsFullScreen {
-            Text(text)
+            Text(previewText)
                 .font(.system(size: 12, design: .monospaced))
                 .foregroundColor(.primary)
                 .textSelection(.enabled)
