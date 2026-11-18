@@ -11,6 +11,7 @@ typedef NSURLSessionTask *_Nullable (*DiagnosticSDKTaskFactoryWithBody)(id, SEL,
 typedef NSURLSessionTask *_Nullable (*DiagnosticSDKTaskFactoryWithCompletion)(id, SEL, id, DiagnosticSDKTaskCompletionHandler _Nullable);
 typedef NSURLSessionTask *_Nullable (*DiagnosticSDKTaskFactoryWithBodyAndCompletion)(id, SEL, id, id, DiagnosticSDKTaskCompletionHandler _Nullable);
 typedef NSURLSession *(*DiagnosticSDKSessionFactory)(id, SEL, NSURLSessionConfiguration *, id _Nullable, NSOperationQueue *_Nullable);
+typedef id _Nullable (*DiagnosticSDKDelegateGetter)(id, SEL);
 
 @interface DiagnosticSDKWeakTaskReference : NSObject
 
@@ -146,6 +147,16 @@ static NSURLSessionTask *_Nullable DiagnosticSDKCreateObservedTask(NSURLSession 
                 [DiagnosticSDKNetworkHooks markSessionAsObservedByDelegateProxy:session];
             }
             return session;
+        };
+    }];
+
+    SEL delegateGetterSelector = @selector(delegate);
+    [self diagnosticSDK_hookSelector:delegateGetterSelector
+                           inClasses:[DiagnosticSDKMethodSwizzling classesInheritingFromClass:[NSURLSession class]]
+                    withBlockFactory:^id(IMP originalImplementation) {
+        return ^id _Nullable (NSURLSession *session) {
+            id delegate = ((DiagnosticSDKDelegateGetter)originalImplementation)(session, delegateGetterSelector);
+            return [DiagnosticSDKSessionDelegateProxy unwrappedDelegate:delegate];
         };
     }];
 }
