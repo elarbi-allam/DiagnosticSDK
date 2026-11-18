@@ -43,7 +43,6 @@
 		206E62952F8AD1A10011E974 /* TracerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E626D2F8AD1A10011E974 /* TracerModels.swift */; };
 		206E62962F8AD1A10011E974 /* TaskCaptureRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62622F8AD1A10011E974 /* TaskCaptureRegistry.swift */; };
 		206E62972F8AD1A10011E974 /* ReplayURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62672F8AD1A10011E974 /* ReplayURLProtocol.swift */; };
-		206E62982F8AD1A10011E974 /* SensitiveDataFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62712F8AD1A10011E974 /* SensitiveDataFilter.swift */; };
 		206E62992F8AD1A10011E974 /* NetworkStoreProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E62752F8AD1A10011E974 /* NetworkStoreProtocol.swift */; };
 		206E629A2F8AD1A10011E974 /* NetworkEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E626A2F8AD1A10011E974 /* NetworkEvent.swift */; };
 		206E629B2F8AD1A10011E974 /* ResponseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E626C2F8AD1A10011E974 /* ResponseModel.swift */; };
@@ -168,7 +167,6 @@
 		206E626C2F8AD1A10011E974 /* ResponseModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResponseModel.swift; sourceTree = "<group>"; };
 		206E626D2F8AD1A10011E974 /* TracerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracerModels.swift; sourceTree = "<group>"; };
 		206E62702F8AD1A10011E974 /* NetworkEventBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkEventBuilder.swift; sourceTree = "<group>"; };
-		206E62712F8AD1A10011E974 /* SensitiveDataFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensitiveDataFilter.swift; sourceTree = "<group>"; };
 		206E62752F8AD1A10011E974 /* NetworkStoreProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkStoreProtocol.swift; sourceTree = "<group>"; };
 		206E62772F8AD1A10011E974 /* .gitkeep */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitkeep; sourceTree = "<group>"; };
 		206E62792F8AD1A10011E974 /* DiagnosticSDK.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = DiagnosticSDK.docc; sourceTree = "<group>"; };
@@ -345,7 +343,6 @@
 			isa = PBXGroup;
 			children = (
 				206E62702F8AD1A10011E974 /* NetworkEventBuilder.swift */,
-				206E62712F8AD1A10011E974 /* SensitiveDataFilter.swift */,
 				204334772F9C392F006CE9D9 /* DiagnosticImageDataDecoder.swift */,
 				204334792F9C3955006CE9D9 /* NetworkImagePreviewEligibility.swift */,
 				75D2F7C718C7682A8722CDB5 /* NetworkContentType.swift */,
@@ -828,7 +825,6 @@
 				206E62972F8AD1A10011E974 /* ReplayURLProtocol.swift in Sources */,
 				206E630F2F8CEB690011E974 /* UIViewController+DiagnosticSDK.m in Sources */,
 				206E62A62F8AD2160011E974 /* Extensions.swift in Sources */,
-				206E62982F8AD1A10011E974 /* SensitiveDataFilter.swift in Sources */,
 				206E62992F8AD1A10011E974 /* NetworkStoreProtocol.swift in Sources */,
 				204334442F9B5E41006CE9D9 /* CopyToastModifier.swift in Sources */,
 				206E63E72F90F9B40011E974 /* DiagnosticRootTabView.swift in Sources */,
