@@ -14,6 +14,7 @@ final class LiveSessionViewModel: ObservableObject {
     @Published var methodFilter: TraceHTTPMethodFilter = .all
     @Published var shareItem: LiveSessionShareItem?
     @Published var exportErrorMessage: String?
+    @Published var historySaveResultMessage: String?
     
     private var lastSignature: Signature?
     private var updateCancellable: AnyCancellable?
@@ -58,6 +59,13 @@ final class LiveSessionViewModel: ObservableObject {
     func exportCurrentSession() {
         guard let exportedURL = store.exportSessionToDisk() else { return }
         shareItem = LiveSessionShareItem(url: exportedURL)
+    }
+    
+    func saveCurrentSessionToHistory() {
+        store.saveSessionToHistory { [weak self] savedURL in
+            self?.historySaveResultMessage = savedURL.map { "Session saved to history as \($0.lastPathComponent)." }
+                ?? "The session could not be saved to history."
+        }
     }
     
     func exportCurrentSessionSafely(password: String) {

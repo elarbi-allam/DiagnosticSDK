@@ -59,6 +59,9 @@ struct LiveSessionView: View {
             }
         }
         .confirmationDialog("Choose export type", isPresented: $isExportOptionsPresented, titleVisibility: .visible) {
+            Button("Save to History") {
+                viewModel.saveCurrentSessionToHistory()
+            }
             Button("Export") {
                 viewModel.exportCurrentSession()
             }
@@ -100,6 +103,21 @@ struct LiveSessionView: View {
             },
             message: {
                 Text(viewModel.exportErrorMessage ?? "")
+            }
+        )
+        .alert(
+            "Save to History",
+            isPresented: Binding(
+                get: { viewModel.historySaveResultMessage != nil },
+                set: { if !$0 { viewModel.historySaveResultMessage = nil } }
+            ),
+            actions: {
+                Button("OK", role: .cancel) {
+                    viewModel.historySaveResultMessage = nil
+                }
+            },
+            message: {
+                Text(viewModel.historySaveResultMessage ?? "")
             }
         )
     }

@@ -1,5 +1,4 @@
 import Foundation
-import UIKit
 
 /// A high-performance, thread-safe store that manages the diagnostic session in memory.
 public final class DiagnosticSessionStore: NetworkStoreProtocol {
@@ -20,7 +19,6 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
     private var mockedInteractionIds: Set<String> = []
     private var interactionLocationsById: [String: InteractionLocation] = [:]
     private var isUpdateNotificationScheduled = false
-    private var backgroundObserver: NSObjectProtocol?
     
     private static let updateNotificationCoalescingInterval: TimeInterval = 0.15
     
@@ -33,13 +31,6 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
     
     private init() {
         self.currentSession = SessionTrace()
-        self.setupAutoSave()
-    }
-    
-    deinit {
-        if let backgroundObserver {
-            NotificationCenter.default.removeObserver(backgroundObserver)
-        }
     }
     
     // MARK: - NetworkStoreProtocol Implementation
@@ -232,6 +223,15 @@ extension DiagnosticSessionStore {
         }
         return exportedURL
     }
+
+    func saveSessionToHistory(completion: @escaping (URL?) -> Void) {
+        isolationQueue.async { [weak self] in
+            let savedURL = self?.writeCurrentSessionToDocuments()
+            DispatchQueue.main.async {
+                completion(savedURL)
+            }
+        }
+    }
     
     /// Performs the standard export to Documents first, then creates an encrypted export in Temporary.
     /// The temporary encrypted file is intended for sharing and should not appear in session history listings.
@@ -286,17 +286,6 @@ extension DiagnosticSessionStore {
             print("❌ [DiagnosticSDK] Failed to export session to disk: \(error.localizedDescription)")
         }
         return nil
-    }
-    
-    /// Listens for the app going into the background to trigger a safety save.
-    private func setupAutoSave() {
-        backgroundObserver = NotificationCenter.default.addObserver(
-            forName: UIApplication.didEnterBackgroundNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.exportSessionToDisk()
-        }
     }
     
     /// Builds a deterministic export file name so one session always overwrites the same JSON file.
