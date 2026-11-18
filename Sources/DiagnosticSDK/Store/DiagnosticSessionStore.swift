@@ -19,8 +19,13 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
     private var mockedInteractionIds: Set<String> = []
     private var interactionLocationsById: [String: InteractionLocation] = [:]
     private var isUpdateNotificationScheduled = false
+    private let retainedBodyByteBudget: Int
+    private var retainedBodyByteCount = 0
+    private var interactionIdsInEvictionOrder: [String] = []
+    private var nextEvictionIndex = 0
     
     private static let updateNotificationCoalescingInterval: TimeInterval = 0.15
+    private static let defaultRetainedBodyByteBudget = 48 * 1024 * 1024
     
     private struct InteractionLocation {
         let screenIndex: Int
@@ -29,8 +34,9 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
     
     // MARK: - Initialization
     
-    private init() {
+    init(retainedBodyByteBudget: Int = DiagnosticSessionStore.defaultRetainedBodyByteBudget) {
         self.currentSession = SessionTrace()
+        self.retainedBodyByteBudget = retainedBodyByteBudget
     }
     
     // MARK: - NetworkStoreProtocol Implementation
@@ -53,6 +59,9 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
             self.screenIndexByVisitId.removeAll(keepingCapacity: false)
             self.mockedInteractionIds.removeAll(keepingCapacity: false)
             self.interactionLocationsById.removeAll(keepingCapacity: false)
+            self.interactionIdsInEvictionOrder.removeAll(keepingCapacity: false)
+            self.nextEvictionIndex = 0
+            self.retainedBodyByteCount = 0
             self.scheduleUpdateNotification()
         }
     }
@@ -128,7 +137,14 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
             mockedInteractionIds.insert(completedInteraction.id)
         }
         if let location = interactionLocationsById[completedInteraction.id] {
-            currentSession.screens[location.screenIndex].networkInteractions[location.interactionIndex] = completedInteraction
+            let screen = currentSession.screens[location.screenIndex]
+            let replacedInteraction = screen.networkInteractions[location.interactionIndex]
+            screen.networkInteractions[location.interactionIndex] = completedInteraction
+            retainedBodyByteCount += completedInteraction.retainedBodyByteCount - replacedInteraction.retainedBodyByteCount
+            if replacedInteraction.hasBodyDiscardedForMemoryBudget {
+                interactionIdsInEvictionOrder.append(completedInteraction.id)
+            }
+            discardOldestBodiesUntilWithinBudget()
             return
         }
         appendInteraction(completedInteraction, screenName: event.request.screenName, visitId: event.request.screenVisitId)
@@ -142,6 +158,21 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
             screenIndex: screenIndex,
             interactionIndex: screen.networkInteractions.count - 1
         )
+        interactionIdsInEvictionOrder.append(interaction.id)
+        retainedBodyByteCount += interaction.retainedBodyByteCount
+        discardOldestBodiesUntilWithinBudget()
+    }
+    
+    private func discardOldestBodiesUntilWithinBudget() {
+        while retainedBodyByteCount > retainedBodyByteBudget, nextEvictionIndex < interactionIdsInEvictionOrder.count {
+            let interactionId = interactionIdsInEvictionOrder[nextEvictionIndex]
+            nextEvictionIndex += 1
+            guard let location = interactionLocationsById[interactionId] else { continue }
+            let screen = currentSession.screens[location.screenIndex]
+            let interaction = screen.networkInteractions[location.interactionIndex]
+            retainedBodyByteCount -= interaction.retainedBodyByteCount
+            screen.networkInteractions[location.interactionIndex] = interaction.discardingStoredBodies()
+        }
     }
     
     private func screenIndexForAppending(screenName: String, visitId: Int?) -> Int {
@@ -402,5 +433,56 @@ extension DiagnosticSessionStore {
                 screens: screens
             )
         }
+    }
+}
+
+private extension NetworkInteraction {
+    var retainedBodyByteCount: Int {
+        (request.bodyBase64?.utf8.count ?? 0) + (response?.bodyBase64?.utf8.count ?? 0)
+    }
+
+    var hasBodyDiscardedForMemoryBudget: Bool {
+        request.bodyOmission == .memoryBudget || response?.bodyOmission == .memoryBudget
+    }
+
+    func discardingStoredBodies() -> NetworkInteraction {
+        var interaction = NetworkInteraction(
+            id: id,
+            request: request.discardingStoredBody(),
+            screenName: screenName,
+            startedAt: startedAt
+        )
+        interaction.durationMs = durationMs
+        interaction.response = response?.discardingStoredBody()
+        interaction.timing = timing
+        return interaction
+    }
+}
+
+private extension RequestDetails {
+    func discardingStoredBody() -> RequestDetails {
+        guard bodyBase64 != nil else { return self }
+        return RequestDetails(
+            url: url,
+            method: method,
+            headers: headers,
+            bodyBase64: nil,
+            bodySizeBytes: bodySizeBytes,
+            bodyOmission: .memoryBudget
+        )
+    }
+}
+
+private extension ResponseDetails {
+    func discardingStoredBody() -> ResponseDetails {
+        guard bodyBase64 != nil else { return self }
+        return ResponseDetails(
+            status: status,
+            headers: headers,
+            bodyBase64: nil,
+            bodySizeBytes: bodySizeBytes,
+            errorDescription: errorDescription,
+            bodyOmission: .memoryBudget
+        )
     }
 }
