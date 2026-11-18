@@ -47,6 +47,27 @@ final class NetworkTaskObserverTests: XCTestCase {
 
         XCTAssertEqual(recorder.startedCaptureCount, 1)
     }
+
+    func testCaptureRegistryDoesNotKeepAbandonedTasksAlive() {
+        let registry = TaskCaptureRegistry()
+        weak var abandonedTask: URLSessionTask?
+
+        autoreleasepool {
+            let task = session.dataTask(with: URL(string: "https://example.invalid/resource")!)
+            abandonedTask = task
+            let pendingCapture = PendingNetworkCapture(
+                id: UUID().uuidString,
+                request: URLRequest(url: URL(string: "https://example.invalid/resource")!),
+                startDate: Date(),
+                startUptime: 0,
+                screenName: nil,
+                screenVisitId: 0
+            )
+            XCTAssertTrue(registry.beginCapture(pendingCapture, of: task, through: .stateObservation))
+        }
+
+        XCTAssertNil(abandonedTask)
+    }
 }
 
 private final class NetworkTrafficRecorderSpy: NetworkTrafficRecording {

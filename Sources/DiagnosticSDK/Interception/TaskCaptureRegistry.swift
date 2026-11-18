@@ -1,4 +1,5 @@
 import Foundation
+import ObjectiveC
 
 #if canImport(DiagnosticSDKObjC)
 import DiagnosticSDKObjC
@@ -6,19 +7,24 @@ import DiagnosticSDKObjC
 
 final class TaskCaptureRegistry {
 
-    private struct Entry {
-        let task: URLSessionTask
+    private final class Entry {
         let pendingCapture: PendingNetworkCapture
         let channel: DiagnosticSDKTaskCaptureChannel
         var accumulatedResponseBody = Data()
         var stateObservation: NSKeyValueObservation?
         var transferEndUptime: TimeInterval?
         var metrics: TaskMetricsSnapshot?
+
+        init(pendingCapture: PendingNetworkCapture, channel: DiagnosticSDKTaskCaptureChannel) {
+            self.pendingCapture = pendingCapture
+            self.channel = channel
+        }
     }
 
+    private static let activeEntryKey = UnsafeRawPointer(UnsafeMutableRawPointer.allocate(byteCount: 1, alignment: 1))
+    private static let timingContextAwaitingMetricsKey = UnsafeRawPointer(UnsafeMutableRawPointer.allocate(byteCount: 1, alignment: 1))
+
     private let lock = NSLock()
-    private var entriesByTask: [ObjectIdentifier: Entry] = [:]
-    private let timingContextsAwaitingMetrics = NSMapTable<URLSessionTask, FinishedCaptureTimingContext>.weakToStrongObjects()
 
     func beginCapture(
         _ pendingCapture: PendingNetworkCapture,
@@ -28,17 +34,15 @@ final class TaskCaptureRegistry {
         lock.lock()
         defer { lock.unlock() }
 
-        let taskKey = ObjectIdentifier(task)
-        guard entriesByTask[taskKey] == nil else { return false }
-
-        entriesByTask[taskKey] = Entry(task: task, pendingCapture: pendingCapture, channel: channel)
+        guard activeEntry(of: task) == nil else { return false }
+        setActiveEntry(Entry(pendingCapture: pendingCapture, channel: channel), of: task)
         return true
     }
 
     func channel(of task: URLSessionTask) -> DiagnosticSDKTaskCaptureChannel? {
         lock.lock()
         defer { lock.unlock() }
-        return entriesByTask[ObjectIdentifier(task)]?.channel
+        return activeEntry(of: task)?.channel
     }
 
     func appendResponseData(_ data: Data, to task: URLSessionTask) {
@@ -47,18 +51,16 @@ final class TaskCaptureRegistry {
         lock.lock()
         defer { lock.unlock() }
 
-        let taskKey = ObjectIdentifier(task)
-        guard entriesByTask[taskKey]?.channel == .sessionDelegate else { return }
-        entriesByTask[taskKey]?.accumulatedResponseBody.append(data)
+        guard let entry = activeEntry(of: task), entry.channel == .sessionDelegate else { return }
+        entry.accumulatedResponseBody.append(data)
     }
 
     func attachStateObservation(_ stateObservation: NSKeyValueObservation, to task: URLSessionTask) -> Bool {
         lock.lock()
         defer { lock.unlock() }
 
-        let taskKey = ObjectIdentifier(task)
-        guard entriesByTask[taskKey] != nil else { return false }
-        entriesByTask[taskKey]?.stateObservation = stateObservation
+        guard let entry = activeEntry(of: task) else { return false }
+        entry.stateObservation = stateObservation
         return true
     }
 
@@ -66,28 +68,27 @@ final class TaskCaptureRegistry {
         lock.lock()
         defer { lock.unlock() }
 
-        let taskKey = ObjectIdentifier(task)
-        guard entriesByTask[taskKey] != nil, entriesByTask[taskKey]?.transferEndUptime == nil else { return }
-        entriesByTask[taskKey]?.transferEndUptime = uptime
+        guard let entry = activeEntry(of: task), entry.transferEndUptime == nil else { return }
+        entry.transferEndUptime = uptime
     }
 
     func attachMetrics(_ metrics: TaskMetricsSnapshot, to task: URLSessionTask) -> TaskMetricsAttachment {
         lock.lock()
         defer { lock.unlock() }
 
-        let taskKey = ObjectIdentifier(task)
-        if entriesByTask[taskKey] != nil {
-            entriesByTask[taskKey]?.metrics = metrics
+        if let entry = activeEntry(of: task) {
+            entry.metrics = metrics
             return .attachedToActiveCapture
         }
-        guard let timingContext = timingContextsAwaitingMetrics.object(forKey: task) else { return .ignored }
-        timingContextsAwaitingMetrics.removeObject(forKey: task)
+        guard let timingContext = timingContextAwaitingMetrics(of: task) else { return .ignored }
+        setTimingContextAwaitingMetrics(nil, of: task)
         return .receivedAfterCompletion(timingContext)
     }
 
     func finishCapture(of task: URLSessionTask, completedAt completionUptime: TimeInterval) -> CompletedNetworkCapture? {
         lock.lock()
-        let finishedEntry = entriesByTask.removeValue(forKey: ObjectIdentifier(task))
+        let finishedEntry = activeEntry(of: task)
+        setActiveEntry(nil, of: task)
         let transferEndUptime = finishedEntry?.transferEndUptime ?? completionUptime
         if let finishedEntry, finishedEntry.metrics == nil {
             let timingContext = FinishedCaptureTimingContext(
@@ -95,7 +96,7 @@ final class TaskCaptureRegistry {
                 startUptime: finishedEntry.pendingCapture.startUptime,
                 transferEndUptime: transferEndUptime
             )
-            timingContextsAwaitingMetrics.setObject(timingContext, forKey: task)
+            setTimingContextAwaitingMetrics(timingContext, of: task)
         }
         lock.unlock()
 
@@ -109,5 +110,21 @@ final class TaskCaptureRegistry {
             transferEndUptime: transferEndUptime,
             metrics: finishedEntry.metrics
         )
+    }
+
+    private func activeEntry(of task: URLSessionTask) -> Entry? {
+        objc_getAssociatedObject(task, Self.activeEntryKey) as? Entry
+    }
+
+    private func setActiveEntry(_ entry: Entry?, of task: URLSessionTask) {
+        objc_setAssociatedObject(task, Self.activeEntryKey, entry, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+    }
+
+    private func timingContextAwaitingMetrics(of task: URLSessionTask) -> FinishedCaptureTimingContext? {
+        objc_getAssociatedObject(task, Self.timingContextAwaitingMetricsKey) as? FinishedCaptureTimingContext
+    }
+
+    private func setTimingContextAwaitingMetrics(_ timingContext: FinishedCaptureTimingContext?, of task: URLSessionTask) {
+        objc_setAssociatedObject(task, Self.timingContextAwaitingMetricsKey, timingContext, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
     }
 }
