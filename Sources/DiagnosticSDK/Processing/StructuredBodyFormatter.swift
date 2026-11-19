@@ -90,8 +90,7 @@ enum StructuredBodyFormatter {
         if partKind.isTextual, let text = String(data: body, encoding: .utf8) {
             renderedBody = text
         } else {
-            let formattedSize = ByteCountFormatter.string(fromByteCount: Int64(body.count), countStyle: .file)
-            renderedBody = "[Binary content, \(formattedSize)]"
+            renderedBody = "[Binary content, \(CapturedBodyPresentation.formattedByteCount(body.count))]"
         }
         return "Part \(partNumber)\n\(headers)\n\n\(renderedBody)"
     }

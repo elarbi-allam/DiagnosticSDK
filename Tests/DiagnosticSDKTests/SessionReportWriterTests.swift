@@ -17,7 +17,7 @@ final class SessionReportWriterTests: XCTestCase {
         XCTAssertTrue(report.contains("Status 500"))
     }
 
-    func testHTMLReportEscapesContentAndHighlightsJSON() throws {
+    func testHTMLReportEscapesContentAndMarksJSONBodies() throws {
         let reportURL = try SessionReportWriter.writeReport(of: makeSession(), format: .html)
         defer { try? FileManager.default.removeItem(at: reportURL) }
 
@@ -27,7 +27,9 @@ final class SessionReportWriterTests: XCTestCase {
         XCTAssertTrue(report.hasPrefix("<!doctype html>"))
         XCTAssertTrue(report.contains("&lt;b&gt;bold&lt;/b&gt;"))
         XCTAssertFalse(report.contains("<b>bold</b>"))
-        XCTAssertTrue(report.contains("<span class=\"json-key\">&quot;name&quot;</span>"))
+        XCTAssertTrue(report.contains("data-language=\"json\""))
+        XCTAssertTrue(report.contains("\"name\" : \"Ada\""))
+        XCTAssertTrue(report.contains("500 Internal Server Error"))
         XCTAssertTrue(report.contains("status-server-error"))
         XCTAssertTrue(report.hasSuffix("</html>\n"))
     }
@@ -69,5 +71,41 @@ final class SessionReportWriterTests: XCTestCase {
         screen.networkInteractions = [tokenRequest, failingRequest]
         session.screens = [screen]
         return session
+    }
+}
+
+final class CurlCommandBuilderTests: XCTestCase {
+
+    func testCommandQuotesHeadersAndBody() {
+        let request = RequestDetails(
+            url: "https://example.com/token",
+            method: "post",
+            headers: ["Content-Type": "application/json", "Content-Length": "9"],
+            bodyBase64: #"{"a":"it's"}"#,
+            bodySizeBytes: 12,
+            bodyEncoding: .text
+        )
+
+        XCTAssertEqual(
+            CurlCommandBuilder.command(for: request),
+            #"curl -X POST 'https://example.com/token' -H 'Content-Type: application/json' --data-raw '{"a":"it'\''s"}'"#
+        )
+    }
+}
+
+final class LegacyBodyPresentationTests: XCTestCase {
+
+    func testLegacyPlaceholderIsShownAsNotCaptured() {
+        let request = RequestDetails(
+            url: "https://example.com/token",
+            method: "POST",
+            headers: ["Content-Type": "application/x-www-form-urlencoded"],
+            bodyBase64: "can't save this type of content: application/x-www-form-urlencoded",
+            bodySizeBytes: 66
+        )
+
+        guard case .notCaptured = request.formattedBody else {
+            return XCTFail("Expected the legacy placeholder to be reported as not captured")
+        }
     }
 }

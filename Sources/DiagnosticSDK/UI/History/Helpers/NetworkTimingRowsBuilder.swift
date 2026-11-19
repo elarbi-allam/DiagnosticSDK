@@ -35,7 +35,7 @@ enum NetworkTimingRowsBuilder {
         if let responseBytesReceived = timing.responseBytesReceived {
             rows.append(NetworkTimingRow(
                 title: "Bytes received",
-                value: ByteCountFormatter.string(fromByteCount: responseBytesReceived, countStyle: .file)
+                value: CapturedBodyPresentation.formattedByteCount(Int(responseBytesReceived))
             ))
         }
         return rows

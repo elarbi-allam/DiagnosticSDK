@@ -2,6 +2,14 @@ import Foundation
 
 enum CapturedBodyPresentation {
 
+    private static let legacyUnsupportedContentPrefix = "can't save this type of content:"
+
+    static func isLegacyUnsupportedContentPlaceholder(_ storedValue: String?, encoding: CapturedBodyEncoding?) -> Bool {
+        encoding == nil && storedValue?.hasPrefix(legacyUnsupportedContentPrefix) == true
+    }
+
+    static let legacyUnsupportedContentBody = FormattedHTTPBody.notCaptured("Not captured by the SDK version that recorded this session.")
+
     static func formattedBody(
         data: Data?,
         contentType: String?,
@@ -26,7 +34,14 @@ enum CapturedBodyPresentation {
     }
 
     static func formattedByteCount(_ byteCount: Int) -> String {
-        ByteCountFormatter.string(fromByteCount: Int64(byteCount), countStyle: .file)
+        switch byteCount {
+        case ..<1_000:
+            return byteCount == 1 ? "1 byte" : "\(byteCount) bytes"
+        case ..<1_000_000:
+            return String(format: "%.1f KB", locale: Locale(identifier: "en_US_POSIX"), Double(byteCount) / 1_000)
+        default:
+            return String(format: "%.1f MB", locale: Locale(identifier: "en_US_POSIX"), Double(byteCount) / 1_000_000)
+        }
     }
 }
 
@@ -36,7 +51,10 @@ extension RequestDetails {
     }
 
     var formattedBody: FormattedHTTPBody {
-        CapturedBodyPresentation.formattedBody(data: bodyData, contentType: contentType, omission: bodyOmission, sizeBytes: bodySizeBytes)
+        guard !CapturedBodyPresentation.isLegacyUnsupportedContentPlaceholder(bodyBase64, encoding: bodyEncoding) else {
+            return CapturedBodyPresentation.legacyUnsupportedContentBody
+        }
+        return CapturedBodyPresentation.formattedBody(data: bodyData, contentType: contentType, omission: bodyOmission, sizeBytes: bodySizeBytes)
     }
 
     var bodyTruncationNotice: String? {
@@ -50,7 +68,10 @@ extension ResponseDetails {
     }
 
     var formattedBody: FormattedHTTPBody {
-        CapturedBodyPresentation.formattedBody(data: bodyData, contentType: contentType, omission: bodyOmission, sizeBytes: bodySizeBytes)
+        guard !CapturedBodyPresentation.isLegacyUnsupportedContentPlaceholder(bodyBase64, encoding: bodyEncoding) else {
+            return CapturedBodyPresentation.legacyUnsupportedContentBody
+        }
+        return CapturedBodyPresentation.formattedBody(data: bodyData, contentType: contentType, omission: bodyOmission, sizeBytes: bodySizeBytes)
     }
 
     var bodyTruncationNotice: String? {

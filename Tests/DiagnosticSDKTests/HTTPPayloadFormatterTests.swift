@@ -43,7 +43,7 @@ final class HTTPPayloadFormatterTests: XCTestCase {
 
         XCTAssertTrue(summary?.contains("Part 1\nContent-Disposition: form-data; name=\"title\"\n\nHello") == true)
         XCTAssertTrue(summary?.contains("Part 2") == true)
-        XCTAssertTrue(summary?.contains("[Binary content, ") == true)
+        XCTAssertTrue(summary?.contains("[Binary content, 3 bytes]") == true)
         XCTAssertFalse(summary?.contains("\u{0}") == true)
     }
 

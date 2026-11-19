@@ -46,7 +46,7 @@ struct PlainTextSessionReportRenderer: SessionReportRendering {
         var lines = [
             "",
             "[#\(entry.number)] \(entry.method) \(entry.url)",
-            "      Status \(entry.status.text) · \(entry.durationText) · started \(entry.startedAtText)",
+            "      Status \(entry.status.label) · \(entry.durationText) · started \(entry.startedAtText)",
             String(repeating: "-", count: Self.lineWidth)
         ]
         lines += messageLines(title: "REQUEST", message: entry.request)
