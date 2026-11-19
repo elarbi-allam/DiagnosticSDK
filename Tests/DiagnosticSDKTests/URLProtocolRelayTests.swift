@@ -38,6 +38,17 @@ final class URLProtocolRelayTests: XCTestCase {
         XCTAssertTrue(captures.first?.metrics != nil || recorder.lateMetricsCount > 0)
     }
 
+    func testReplayedRelayMarksTheApplicationRequestAsReplayed() {
+        let session = makeSession(protocolClasses: [ReplayMarkingRelayURLProtocol.self])
+        defer { session.invalidateAndCancel() }
+
+        sendFormRequests(count: 1, through: session)
+
+        let captures = recorder.completedCapturesAfterSettling(expectedCount: 1, testCase: self)
+        XCTAssertEqual(captures.count, 1)
+        XCTAssertEqual(recorder.replayedCaptureCount, 1)
+    }
+
     func testConcurrentIdenticalRequestsThroughARelayAreNeverMerged() {
         let session = makeSession(protocolClasses: [SynchronousRelayURLProtocol.self])
         defer { session.invalidateAndCancel() }
@@ -113,6 +124,13 @@ private final class CompletedCaptureRecorderSpy: NetworkTrafficRecording {
     private var completedCaptures: [CompletedNetworkCapture] = []
     private var startedCaptures = 0
     private var lateMetrics = 0
+    private var replayedCaptures = 0
+
+    var replayedCaptureCount: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return replayedCaptures
+    }
 
     var startedCaptureCount: Int {
         lock.lock()
@@ -151,6 +169,7 @@ private final class CompletedCaptureRecorderSpy: NetworkTrafficRecording {
     ) {
         lock.lock()
         completedCaptures.append(completedCapture)
+        replayedCaptures += isMocked ? 1 : 0
         lock.unlock()
     }
 
@@ -200,9 +219,11 @@ private class SynchronousRelayURLProtocol: URLProtocol, URLSessionDataDelegate {
         relaySession?.invalidateAndCancel()
     }
 
+    var relayedProtocolClasses: [AnyClass] { [CannedBackendURLProtocol.self] }
+
     func relayRequest() {
         let configuration = URLSessionConfiguration.ephemeral
-        configuration.protocolClasses = [CannedBackendURLProtocol.self]
+        configuration.protocolClasses = relayedProtocolClasses
         let session = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
         relaySession = session
         session.dataTask(with: request).resume()
@@ -229,6 +250,21 @@ private class SynchronousRelayURLProtocol: URLProtocol, URLSessionDataDelegate {
             client?.urlProtocolDidFinishLoading(self)
         }
     }
+}
+
+private final class ReplayMarkingBackendURLProtocol: CannedBackendURLProtocol {
+
+    override func startLoading() {
+        if let task {
+            DiagnosticSDKNetworkHooks.markTaskAsReplayed(task)
+        }
+        super.startLoading()
+    }
+}
+
+private final class ReplayMarkingRelayURLProtocol: SynchronousRelayURLProtocol {
+
+    override var relayedProtocolClasses: [AnyClass] { [ReplayMarkingBackendURLProtocol.self] }
 }
 
 private final class AsynchronousRelayURLProtocol: SynchronousRelayURLProtocol {

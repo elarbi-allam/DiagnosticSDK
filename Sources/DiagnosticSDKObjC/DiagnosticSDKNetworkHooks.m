@@ -89,6 +89,10 @@ static BOOL DiagnosticSDKHasFlag(id object, const void *key) {
 
 + (void)markTaskAsReplayed:(NSURLSessionTask *)task {
     DiagnosticSDKSetFlag(task, DiagnosticSDKReplayedTaskKey);
+    NSURLSessionTask *relayOriginTask = [self relayOriginTaskForTask:task];
+    if (relayOriginTask) {
+        DiagnosticSDKSetFlag(relayOriginTask, DiagnosticSDKReplayedTaskKey);
+    }
 }
 
 + (BOOL)isTaskReplayed:(NSURLSessionTask *)task {
