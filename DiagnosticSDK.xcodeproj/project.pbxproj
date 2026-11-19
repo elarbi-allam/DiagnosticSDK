@@ -94,6 +94,7 @@
 		20D576549D9403D49F314187 /* DiagnosticRecordingIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20D587ADFF60554523E2158A /* DiagnosticRecordingIndicatorView.swift */; };
 		20F102E22F8014470096C884 /* DiagnosticSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20F102D62F8014470096C884 /* DiagnosticSDK.framework */; };
 		26AFA30A5DF1A341D92A6779 /* ResponseAvailabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D29051E39D1138B0972AAC /* ResponseAvailabilityTests.swift */; };
+		57D47B68AB67AEC8C5581CB0 /* URLProtocolRelayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C844210B97C0473C03CFD148 /* URLProtocolRelayTests.swift */; };
 		F50616078F5858972398F22E /* SessionReportWriterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA73B6246382E2559ACEA0F /* SessionReportWriterTests.swift */; };
 		22D7DB482D5627447A8BA1D6 /* ReplayResponseFactoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6D55388F6D72F6F495335B /* ReplayResponseFactoryTests.swift */; };
 		ED3B5A90B4EAC944F91A15D2 /* HTTPPayloadFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16A8FFFAF588DD6A737DA0CD /* HTTPPayloadFormatterTests.swift */; };
@@ -116,6 +117,7 @@
 		4EBE59E0377FADDBB4D20A0F /* DiagnosticJSONTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7AFF0B3AB816C3672605711 /* DiagnosticJSONTheme.swift */; };
 		547541314F91BFD42A5E050E /* OverlayWindowLevelPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 941977984F73FF2F1826B9FF /* OverlayWindowLevelPolicyTests.swift */; };
 		58CC76F6AAA59AA93A008BBD /* NSURLSessionTask+DiagnosticSDK.m in Sources */ = {isa = PBXBuildFile; fileRef = 8D1F9EDEB3676E125ED96761 /* NSURLSessionTask+DiagnosticSDK.m */; };
+		A7C691F1110C164F52226BFE /* NSURLProtocol+DiagnosticSDK.m in Sources */ = {isa = PBXBuildFile; fileRef = 91BE55723168E132A7504352 /* NSURLProtocol+DiagnosticSDK.m */; };
 		5D05732F35F2388456B09BAB /* PresentationHostWindowResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 695EFE8F336CC73B48A0E951 /* PresentationHostWindowResolver.swift */; };
 		713329E058F488285C226EE5 /* DiagnosticFullScreenTextSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADC45E4FF9C379CE8004173C /* DiagnosticFullScreenTextSheet.swift */; };
 		71571B8674B232850CEF8017 /* NetworkTimingRowsBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F407A5AFB7AF0A44D0A881A /* NetworkTimingRowsBuilder.swift */; };
@@ -266,6 +268,7 @@
 		7E4ABD2AAB8976808CF7EE57 /* TraceValuePlaceholder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TraceValuePlaceholder.swift; sourceTree = "<group>"; };
 		8CAA711BC6D782BC28D398AB /* DiagnosticAttributedTextBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticAttributedTextBuilder.swift; sourceTree = "<group>"; };
 		8D1F9EDEB3676E125ED96761 /* NSURLSessionTask+DiagnosticSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSURLSessionTask+DiagnosticSDK.m"; sourceTree = "<group>"; };
+		91BE55723168E132A7504352 /* NSURLProtocol+DiagnosticSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSURLProtocol+DiagnosticSDK.m"; sourceTree = "<group>"; };
 		929EBFA8E4848562BE1D5FD2 /* NetworkTimingBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkTimingBuilder.swift; sourceTree = "<group>"; };
 		941977984F73FF2F1826B9FF /* OverlayWindowLevelPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowLevelPolicyTests.swift; sourceTree = "<group>"; };
 		98D5792B316E7BC00E3FEC00 /* DiagnosticJSONDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticJSONDocument.swift; sourceTree = "<group>"; };
@@ -279,6 +282,7 @@
 		C7AFF0B3AB816C3672605711 /* DiagnosticJSONTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticJSONTheme.swift; sourceTree = "<group>"; };
 		CA692B444E3C2F393C79FC0F /* LockedValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockedValue.swift; sourceTree = "<group>"; };
 		D0D29051E39D1138B0972AAC /* ResponseAvailabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResponseAvailabilityTests.swift; sourceTree = "<group>"; };
+		C844210B97C0473C03CFD148 /* URLProtocolRelayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLProtocolRelayTests.swift; sourceTree = "<group>"; };
 		2BA73B6246382E2559ACEA0F /* SessionReportWriterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionReportWriterTests.swift; sourceTree = "<group>"; };
 		2F6D55388F6D72F6F495335B /* ReplayResponseFactoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayResponseFactoryTests.swift; sourceTree = "<group>"; };
 		16A8FFFAF588DD6A737DA0CD /* HTTPPayloadFormatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPPayloadFormatterTests.swift; sourceTree = "<group>"; };
@@ -470,6 +474,7 @@
 				FEEBCE80A4F6B5E50670314F /* DiagnosticSDKNetworkHooks.m */,
 				50D01E652197D3876576FDA2 /* DiagnosticSDKSessionDelegateProxy.m */,
 				8D1F9EDEB3676E125ED96761 /* NSURLSessionTask+DiagnosticSDK.m */,
+				91BE55723168E132A7504352 /* NSURLProtocol+DiagnosticSDK.m */,
 				7ABE61BF68A6110F72CAADC6 /* NSURLSession+DiagnosticSDK.m */,
 				D1A658DB598AABB879DE17EC /* DiagnosticSDKNetworkHooks+Internal.h */,
 				D1A602D851B570FEBF371612 /* DiagnosticSDKSessionDelegateProxy.h */,
@@ -505,6 +510,7 @@
 				941977984F73FF2F1826B9FF /* OverlayWindowLevelPolicyTests.swift */,
 				39EE16732C7D17B1F7F53D5A /* PresentationHostWindowResolverTests.swift */,
 				D0D29051E39D1138B0972AAC /* ResponseAvailabilityTests.swift */,
+				C844210B97C0473C03CFD148 /* URLProtocolRelayTests.swift */,
 				2BA73B6246382E2559ACEA0F /* SessionReportWriterTests.swift */,
 				2F6D55388F6D72F6F495335B /* ReplayResponseFactoryTests.swift */,
 				16A8FFFAF588DD6A737DA0CD /* HTTPPayloadFormatterTests.swift */,
@@ -905,6 +911,7 @@
 				7D47F2C5D824BFCF5944DD34 /* DiagnosticSDKNetworkHooks.m in Sources */,
 				8F9553E05245C16A129EFD75 /* DiagnosticSDKSessionDelegateProxy.m in Sources */,
 				58CC76F6AAA59AA93A008BBD /* NSURLSessionTask+DiagnosticSDK.m in Sources */,
+				A7C691F1110C164F52226BFE /* NSURLProtocol+DiagnosticSDK.m in Sources */,
 				B65F3906893FC0A85B1F7D41 /* NSURLSession+DiagnosticSDK.m in Sources */,
 				B1429E1789700D9DA7AF51BC /* DiagnosticRuntimeState.swift in Sources */,
 				40FCB50C6DDFB458A8930272 /* LockedValue.swift in Sources */,
@@ -953,6 +960,7 @@
 				547541314F91BFD42A5E050E /* OverlayWindowLevelPolicyTests.swift in Sources */,
 				9B6F039BD12AFC99B37E29F3 /* PresentationHostWindowResolverTests.swift in Sources */,
 				26AFA30A5DF1A341D92A6779 /* ResponseAvailabilityTests.swift in Sources */,
+				57D47B68AB67AEC8C5581CB0 /* URLProtocolRelayTests.swift in Sources */,
 				F50616078F5858972398F22E /* SessionReportWriterTests.swift in Sources */,
 				22D7DB482D5627447A8BA1D6 /* ReplayResponseFactoryTests.swift in Sources */,
 				ED3B5A90B4EAC944F91A15D2 /* HTTPPayloadFormatterTests.swift in Sources */,

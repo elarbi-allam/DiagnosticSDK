@@ -24,6 +24,7 @@ public struct NetworkTiming: Codable, Equatable, Sendable {
     public let networkProtocol: String?
     public let isConnectionReused: Bool?
     public let responseBytesReceived: Int64?
+    public let deliveringURLProtocolName: String?
 
     public var preferredDurationMs: Int {
         networkDurationMs ?? appPerceivedDurationMs

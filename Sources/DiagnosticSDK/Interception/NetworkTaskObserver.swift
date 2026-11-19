@@ -24,6 +24,7 @@ final class NetworkTaskObserver: NSObject, DiagnosticSDKNetworkEventObserving {
     func networkTaskWillResume(_ task: URLSessionTask) {
         guard
             task.state == .suspended,
+            DiagnosticSDKNetworkHooks.relayOriginTask(for: task) == nil,
             !DiagnosticSDKNetworkHooks.isTaskExcludedFromCapture(task),
             let pendingCapture = makePendingCapture(for: task)
         else { return }
@@ -55,11 +56,20 @@ final class NetworkTaskObserver: NSObject, DiagnosticSDKNetworkEventObserving {
     }
 
     func networkTask(_ task: URLSessionTask, didFinishCollectingMetrics metrics: URLSessionTaskMetrics) {
+        guard let capturedTask = taskOwningNetworkMetrics(of: task) else { return }
         let metricsSnapshot = TaskMetricsSnapshot(metrics: metrics)
-        guard case .receivedAfterCompletion(let timingContext) = registry.attachMetrics(metricsSnapshot, to: task) else {
+        guard case .receivedAfterCompletion(let timingContext) = registry.attachMetrics(metricsSnapshot, to: capturedTask) else {
             return
         }
         recorder.recordLateMetrics(metricsSnapshot, for: timingContext)
+    }
+
+    private func taskOwningNetworkMetrics(of task: URLSessionTask) -> URLSessionTask? {
+        if let relayOriginTask = DiagnosticSDKNetworkHooks.relayOriginTask(for: task) {
+            return relayOriginTask
+        }
+        let isDeliveredByURLProtocol = DiagnosticSDKNetworkHooks.deliveringURLProtocolName(for: task) != nil
+        return isDeliveredByURLProtocol ? nil : task
     }
 
     private var currentUptime: TimeInterval {

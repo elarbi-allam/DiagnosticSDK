@@ -8,6 +8,10 @@ static const void *DiagnosticSDKExcludedTaskKey = &DiagnosticSDKExcludedTaskKey;
 static const void *DiagnosticSDKReplayedTaskKey = &DiagnosticSDKReplayedTaskKey;
 static const void *DiagnosticSDKExcludedSessionKey = &DiagnosticSDKExcludedSessionKey;
 static const void *DiagnosticSDKProxiedSessionKey = &DiagnosticSDKProxiedSessionKey;
+static const void *DiagnosticSDKRelayOriginTaskKey = &DiagnosticSDKRelayOriginTaskKey;
+static const void *DiagnosticSDKDeliveringURLProtocolNameKey = &DiagnosticSDKDeliveringURLProtocolNameKey;
+static NSString *const DiagnosticSDKURLProtocolLoadingTasksThreadKey = @"com.diagnosticsdk.urlprotocol.loadingTasks";
+static const NSUInteger DiagnosticSDKMaximumRelayDepth = 8;
 
 static os_unfair_lock DiagnosticSDKEventObserverLock = OS_UNFAIR_LOCK_INIT;
 static id<DiagnosticSDKNetworkEventObserving> DiagnosticSDKCurrentEventObserver = nil;
@@ -43,6 +47,7 @@ static BOOL DiagnosticSDKHasFlag(id object, const void *key) {
         [NSURLSessionTask diagnosticSDK_installResumeHook];
         [NSURLSession diagnosticSDK_installTaskFactoryHooks];
         [NSURLSession diagnosticSDK_installDelegateProxyHook];
+        [NSURLProtocol diagnosticSDK_installStartLoadingHooks];
     });
 }
 
@@ -88,6 +93,57 @@ static BOOL DiagnosticSDKHasFlag(id object, const void *key) {
 
 + (BOOL)isTaskReplayed:(NSURLSessionTask *)task {
     return DiagnosticSDKHasFlag(task, DiagnosticSDKReplayedTaskKey);
+}
+
++ (void)markTask:(NSURLSessionTask *)task asDeliveredByURLProtocolClass:(Class)protocolClass {
+    objc_setAssociatedObject(task, DiagnosticSDKDeliveringURLProtocolNameKey, NSStringFromClass(protocolClass), OBJC_ASSOCIATION_COPY);
+}
+
++ (nullable NSString *)deliveringURLProtocolNameForTask:(NSURLSessionTask *)task {
+    return objc_getAssociatedObject(task, DiagnosticSDKDeliveringURLProtocolNameKey);
+}
+
++ (NSMutableArray *)urlProtocolLoadingTasksOfCurrentThread {
+    NSMutableDictionary *threadDictionary = NSThread.currentThread.threadDictionary;
+    NSMutableArray *loadingTasks = threadDictionary[DiagnosticSDKURLProtocolLoadingTasksThreadKey];
+    if (!loadingTasks) {
+        loadingTasks = [NSMutableArray array];
+        threadDictionary[DiagnosticSDKURLProtocolLoadingTasksThreadKey] = loadingTasks;
+    }
+    return loadingTasks;
+}
+
++ (void)beginLoadingOfTaskByURLProtocol:(nullable NSURLSessionTask *)task {
+    [[self urlProtocolLoadingTasksOfCurrentThread] addObject:task ?: (id)NSNull.null];
+}
+
++ (void)endLoadingOfTaskByURLProtocol {
+    [[self urlProtocolLoadingTasksOfCurrentThread] removeLastObject];
+}
+
++ (void)linkRelayTaskToLoadingURLProtocolTaskIfNeeded:(NSURLSessionTask *)task {
+    NSURLSessionTask *loadingTask = [[self urlProtocolLoadingTasksOfCurrentThread] lastObject];
+    if (![loadingTask isKindOfClass:[NSURLSessionTask class]] || loadingTask == task) {
+        return;
+    }
+    DiagnosticSDKWeakTaskReference *originReference = [DiagnosticSDKWeakTaskReference new];
+    originReference.task = loadingTask;
+    objc_setAssociatedObject(task, DiagnosticSDKRelayOriginTaskKey, originReference, OBJC_ASSOCIATION_RETAIN);
+}
+
++ (nullable NSURLSessionTask *)relayOriginTaskForTask:(NSURLSessionTask *)task {
+    NSURLSessionTask *originTask = nil;
+    NSURLSessionTask *currentTask = task;
+    for (NSUInteger depth = 0; depth < DiagnosticSDKMaximumRelayDepth; depth++) {
+        DiagnosticSDKWeakTaskReference *originReference = objc_getAssociatedObject(currentTask, DiagnosticSDKRelayOriginTaskKey);
+        NSURLSessionTask *nextOriginTask = originReference.task;
+        if (!nextOriginTask) {
+            break;
+        }
+        originTask = nextOriginTask;
+        currentTask = nextOriginTask;
+    }
+    return originTask;
 }
 
 + (void)markSessionAsObservedByDelegateProxy:(NSURLSession *)session {

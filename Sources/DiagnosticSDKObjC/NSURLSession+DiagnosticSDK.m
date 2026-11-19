@@ -13,12 +13,6 @@ typedef NSURLSessionTask *_Nullable (*DiagnosticSDKTaskFactoryWithBodyAndComplet
 typedef NSURLSession *(*DiagnosticSDKSessionFactory)(id, SEL, NSURLSessionConfiguration *, id _Nullable, NSOperationQueue *_Nullable);
 typedef id _Nullable (*DiagnosticSDKDelegateGetter)(id, SEL);
 
-@interface DiagnosticSDKWeakTaskReference : NSObject
-
-@property (nonatomic, weak, nullable) NSURLSessionTask *task;
-
-@end
-
 @implementation DiagnosticSDKWeakTaskReference
 @end
 

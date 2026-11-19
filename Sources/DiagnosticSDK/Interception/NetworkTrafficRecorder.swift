@@ -51,7 +51,8 @@ final class NetworkTrafficRecorder: NetworkTrafficRecording {
             let timing = NetworkTimingBuilder.makeTiming(
                 startUptime: pendingCapture.startUptime,
                 transferEndUptime: completedCapture.transferEndUptime,
-                metrics: completedCapture.metrics
+                metrics: completedCapture.metrics,
+                deliveringURLProtocolName: completedCapture.deliveringURLProtocolName
             )
             var event = NetworkEventBuilder.build(
                 request: pendingCapture.request,
@@ -77,7 +78,8 @@ final class NetworkTrafficRecorder: NetworkTrafficRecording {
             let timing = NetworkTimingBuilder.makeTiming(
                 startUptime: timingContext.startUptime,
                 transferEndUptime: timingContext.transferEndUptime,
-                metrics: metrics
+                metrics: metrics,
+                deliveringURLProtocolName: timingContext.deliveringURLProtocolName
             )
             sessionStore.updateTiming(timing, forInteractionId: timingContext.captureId)
         }

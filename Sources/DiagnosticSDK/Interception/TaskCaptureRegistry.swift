@@ -95,11 +95,13 @@ final class TaskCaptureRegistry {
         let finishedEntry = activeEntry(of: task)
         setActiveEntry(nil, of: task)
         let transferEndUptime = finishedEntry?.transferEndUptime ?? completionUptime
+        let deliveringURLProtocolName = DiagnosticSDKNetworkHooks.deliveringURLProtocolName(for: task)
         if let finishedEntry, finishedEntry.metrics == nil {
             let timingContext = FinishedCaptureTimingContext(
                 captureId: finishedEntry.pendingCapture.id,
                 startUptime: finishedEntry.pendingCapture.startUptime,
-                transferEndUptime: transferEndUptime
+                transferEndUptime: transferEndUptime,
+                deliveringURLProtocolName: deliveringURLProtocolName
             )
             setTimingContextAwaitingMetrics(timingContext, of: task)
         }
@@ -114,7 +116,8 @@ final class TaskCaptureRegistry {
             accumulatedResponseBody: responseBody.isEmpty ? nil : responseBody,
             receivedResponseByteCount: finishedEntry.receivedResponseByteCount,
             transferEndUptime: transferEndUptime,
-            metrics: finishedEntry.metrics
+            metrics: finishedEntry.metrics,
+            deliveringURLProtocolName: deliveringURLProtocolName
         )
     }
 

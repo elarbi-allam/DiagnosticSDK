@@ -29,6 +29,9 @@ enum NetworkTimingRowsBuilder {
             rows.append(NetworkTimingRow(title: "Reused connection", value: yesNoLabel(isConnectionReused)))
         }
         rows.append(NetworkTimingRow(title: "Served from cache", value: yesNoLabel(timing.isServedFromCache)))
+        if let deliveringURLProtocolName = timing.deliveringURLProtocolName {
+            rows.append(NetworkTimingRow(title: "Delivered by URLProtocol", value: deliveringURLProtocolName))
+        }
         if timing.redirectCount > 0 {
             rows.append(NetworkTimingRow(title: "Redirects", value: "\(timing.redirectCount)"))
         }

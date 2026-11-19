@@ -15,17 +15,20 @@ struct CompletedNetworkCapture {
     let receivedResponseByteCount: Int
     let transferEndUptime: TimeInterval
     let metrics: TaskMetricsSnapshot?
+    let deliveringURLProtocolName: String?
 }
 
 final class FinishedCaptureTimingContext {
     let captureId: String
     let startUptime: TimeInterval
     let transferEndUptime: TimeInterval
+    let deliveringURLProtocolName: String?
 
-    init(captureId: String, startUptime: TimeInterval, transferEndUptime: TimeInterval) {
+    init(captureId: String, startUptime: TimeInterval, transferEndUptime: TimeInterval, deliveringURLProtocolName: String?) {
         self.captureId = captureId
         self.startUptime = startUptime
         self.transferEndUptime = transferEndUptime
+        self.deliveringURLProtocolName = deliveringURLProtocolName
     }
 }
 
