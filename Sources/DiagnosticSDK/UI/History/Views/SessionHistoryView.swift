@@ -103,6 +103,16 @@ struct SessionHistoryView: View {
             Button("Safe Export") {
                 isSafeExportDialogPresented = true
             }
+            Button("Readable Report (Text)") {
+                guard let target = exportTargetFile else { return }
+                viewModel.prepareReadableReportShare(for: target, format: .plainText)
+                exportTargetFile = nil
+            }
+            Button("Readable Report (HTML)") {
+                guard let target = exportTargetFile else { return }
+                viewModel.prepareReadableReportShare(for: target, format: .html)
+                exportTargetFile = nil
+            }
             Button("Cancel", role: .cancel) {
                 exportTargetFile = nil
             }

@@ -70,6 +70,17 @@ final class LiveSessionViewModel: ObservableObject {
         }
     }
     
+    func exportReadableReport(format: SessionReportFormat) {
+        exportErrorMessage = nil
+        store.exportSessionReport(format: format) { [weak self] reportURL in
+            guard let reportURL else {
+                self?.exportErrorMessage = "The readable report could not be created."
+                return
+            }
+            self?.shareItem = LiveSessionShareItem(url: reportURL)
+        }
+    }
+    
     func exportCurrentSessionSafely(password: String) {
         exportErrorMessage = nil
         store.exportSessionSafely(password: password) { [weak self] exportedURL in

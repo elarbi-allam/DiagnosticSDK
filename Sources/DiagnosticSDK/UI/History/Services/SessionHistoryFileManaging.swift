@@ -5,6 +5,7 @@ protocol SessionHistoryFileManaging {
     func deleteTraceFile(at fileURL: URL) throws -> SessionHistoryFileService.DeletionReport
     func copyImportedTrace(from sourceURL: URL) throws -> URL
     func createSafeExportTemporaryFile(from traceFileURL: URL, password: String) throws -> URL
+    func createReadableReportTemporaryFile(from traceFileURL: URL, format: SessionReportFormat) throws -> URL
 }
 
 struct SessionHistoryFileManager: SessionHistoryFileManaging {
@@ -28,5 +29,9 @@ struct SessionHistoryFileManager: SessionHistoryFileManaging {
 
     func createSafeExportTemporaryFile(from traceFileURL: URL, password: String) throws -> URL {
         try fileService.createSafeExportTemporaryFile(from: traceFileURL, password: password)
+    }
+
+    func createReadableReportTemporaryFile(from traceFileURL: URL, format: SessionReportFormat) throws -> URL {
+        try fileService.createReadableReportTemporaryFile(from: traceFileURL, format: format)
     }
 }

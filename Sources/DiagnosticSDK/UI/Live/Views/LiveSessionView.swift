@@ -68,6 +68,12 @@ struct LiveSessionView: View {
             Button("Safe Export") {
                 isSafeExportDialogPresented = true
             }
+            Button("Readable Report (Text)") {
+                viewModel.exportReadableReport(format: .plainText)
+            }
+            Button("Readable Report (HTML)") {
+                viewModel.exportReadableReport(format: .html)
+            }
             Button("Cancel", role: .cancel) {}
         }
         .sheet(item: $viewModel.shareItem) { item in

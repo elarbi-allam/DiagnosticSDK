@@ -23,6 +23,20 @@ enum NetworkContentKind: Equatable {
     var isCapturable: Bool {
         isTextual || self == .multipart
     }
+
+    var displayName: String {
+        switch self {
+        case .json: return "JSON"
+        case .jsonLines: return "JSON Lines"
+        case .formURLEncoded: return "Form"
+        case .xml: return "XML"
+        case .html: return "HTML"
+        case .multipart: return "Multipart"
+        case .plainText: return "Text"
+        case .image: return "Image"
+        case .binary: return "Binary"
+        }
+    }
 }
 
 enum NetworkContentType {

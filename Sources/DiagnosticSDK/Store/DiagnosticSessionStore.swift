@@ -281,6 +281,15 @@ extension DiagnosticSessionStore {
         }
     }
 
+    func exportSessionReport(format: SessionReportFormat, completion: @escaping (URL?) -> Void) {
+        isolationQueue.async { [weak self] in
+            let reportURL = self.flatMap { try? SessionReportWriter.writeReport(of: $0.currentSession, format: format) }
+            DispatchQueue.main.async {
+                completion(reportURL)
+            }
+        }
+    }
+
     func exportSessionSafely(password: String, completion: @escaping (URL?) -> Void) {
         isolationQueue.async { [weak self] in
             let encryptedURL = self?.writeEncryptedCurrentSessionToTemporaryDirectory(password: password)

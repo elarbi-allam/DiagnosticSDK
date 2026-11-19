@@ -153,6 +153,10 @@ enum SessionHistoryFileService {
         return tempURL
     }
     
+    static func createReadableReportTemporaryFile(from traceFileURL: URL, format: SessionReportFormat) throws -> URL {
+        try SessionReportWriter.writeReport(of: SessionTraceJSONCodec.decodeFile(at: traceFileURL), format: format)
+    }
+    
     private static func isDiagnosticTraceFileName(_ name: String) -> Bool {
         name.hasPrefix(sessionTraceNamePrefix) || name.hasPrefix(importedTraceNamePrefix)
     }
