@@ -92,6 +92,21 @@ final class CapturedBodyTests: XCTestCase {
         XCTAssertEqual(body.storedValue?.utf8.count, CapturedBody.maximumStoredByteCount - 1)
     }
 
+    func testUnobservedTextualBodyKeepsItsSizeAndReason() {
+        let body = CapturedBody(data: nil, receivedByteCount: 2048, contentType: "application/json")
+
+        XCTAssertNil(body.storedValue)
+        XCTAssertEqual(body.sizeBytes, 2048)
+        XCTAssertEqual(body.omission, .notObservableForTaskType)
+    }
+
+    func testUnobservedBinaryBodyIsReportedAsBinary() {
+        let body = CapturedBody(data: nil, receivedByteCount: 2048, contentType: "application/octet-stream")
+
+        XCTAssertEqual(body.omission, .binaryContent)
+        XCTAssertEqual(body.sizeBytes, 2048)
+    }
+
     func testEmptyBodyStoresNothing() {
         let body = CapturedBody(data: nil, contentType: "application/json")
 

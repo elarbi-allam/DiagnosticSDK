@@ -7,5 +7,6 @@ public enum CapturedBodyEncoding: String, Codable, Sendable {
 
 public enum CapturedBodyOmission: String, Codable, Sendable {
     case binaryContent
+    case notObservableForTaskType
     case memoryBudget
 }

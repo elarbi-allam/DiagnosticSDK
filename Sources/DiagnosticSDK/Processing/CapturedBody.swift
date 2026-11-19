@@ -18,8 +18,12 @@ struct CapturedBody {
         }
 
         let kind = NetworkContentType.kind(ofContentType: contentType, sniffing: data)
-        guard let data, !data.isEmpty, kind.isCapturable else {
+        guard kind.isCapturable else {
             self.init(storedValue: nil, encoding: nil, sizeBytes: sizeBytes, isTruncated: false, omission: .binaryContent)
+            return
+        }
+        guard let data, !data.isEmpty else {
+            self.init(storedValue: nil, encoding: nil, sizeBytes: sizeBytes, isTruncated: false, omission: .notObservableForTaskType)
             return
         }
 

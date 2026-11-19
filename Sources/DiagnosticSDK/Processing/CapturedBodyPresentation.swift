@@ -20,6 +20,8 @@ enum CapturedBodyPresentation {
         switch omission {
         case .binaryContent:
             return .notCaptured("Binary content not captured (\(contentType ?? "unknown type"), \(formattedSize)).")
+        case .notObservableForTaskType:
+            return .notCaptured("Body of \(formattedSize) not observable for this request type (downloaded to a file or streamed).")
         case .memoryBudget:
             return .notCaptured("Body of \(formattedSize) discarded to keep the session within its memory budget.")
         case nil:
