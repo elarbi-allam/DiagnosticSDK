@@ -11,35 +11,45 @@ public struct ReplayMockPayload {
 }
 
 public final class ReplayResponseFactory {
+    private static let transportHeaderNames: Set<String> = [
+        "content-encoding", "content-length", "transfer-encoding", "connection", "keep-alive"
+    ]
+
     public init() {}
+
+    public static func canReplay(_ interaction: NetworkInteraction) -> Bool {
+        guard let response = interaction.response, let headers = response.headers, !headers.isEmpty else {
+            return false
+        }
+        guard response.bodyEncoding != nil || response.bodyBase64 == nil else {
+            return NetworkContentType.isJSON(NetworkContentType.contentTypeHeader(in: headers))
+        }
+        return response.isBodyTruncated != true && response.bodyOmission == nil
+    }
 
     public func makePayload(for request: URLRequest, from interaction: NetworkInteraction) -> ReplayMockPayload? {
         guard let requestURL = request.url else { return nil }
 
         let statusCode = interaction.response?.status ?? 200
-        let headers = interaction.response?.headers
+        let bodyData = interaction.response?.bodyData
         guard
             let response = HTTPURLResponse(
                 url: requestURL,
                 statusCode: statusCode,
                 httpVersion: "HTTP/1.1",
-                headerFields: headers
+                headerFields: Self.replayedHeaders(from: interaction.response?.headers, bodyByteCount: bodyData?.count ?? 0)
             )
         else {
             return nil
         }
 
-        let bodyData = decodeBody(from: interaction.response?.bodyBase64)
         return ReplayMockPayload(response: response, bodyData: bodyData)
     }
 
-    private func decodeBody(from bodyBase64: String?) -> Data? {
-        guard let bodyBase64 else { return nil }
-
-        if let decodedBody = Data(base64Encoded: bodyBase64) {
-            return decodedBody
-        }
-
-        return bodyBase64.data(using: .utf8)
+    private static func replayedHeaders(from recordedHeaders: [String: String]?, bodyByteCount: Int) -> [String: String]? {
+        guard let recordedHeaders else { return nil }
+        var headers = recordedHeaders.filter { !transportHeaderNames.contains($0.key.lowercased()) }
+        headers["Content-Length"] = String(bodyByteCount)
+        return headers
     }
 }

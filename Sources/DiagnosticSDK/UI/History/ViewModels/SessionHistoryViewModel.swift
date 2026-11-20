@@ -195,6 +195,23 @@ final class SessionHistoryViewModel: ObservableObject {
         shareItem = SessionHistoryShareItem(url: file.url)
     }
     
+    func prepareReadableReportShare(for file: DiagnosticTraceFileInfo, format: SessionReportFormat) {
+        exportErrorMessage = nil
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self else { return }
+            let result = Result { try self.fileManager.createReadableReportTemporaryFile(from: file.url, format: format) }
+            
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let reportURL):
+                    self.shareItem = SessionHistoryShareItem(url: reportURL)
+                case .failure(let error):
+                    self.exportErrorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+    
     func prepareSafeShare(for file: DiagnosticTraceFileInfo, password: String) {
         exportErrorMessage = nil
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in

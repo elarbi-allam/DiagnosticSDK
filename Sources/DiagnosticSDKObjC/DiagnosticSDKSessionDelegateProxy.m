@@ -12,6 +12,13 @@
     return proxy;
 }
 
++ (nullable id)unwrappedDelegate:(nullable id)delegate {
+    if (delegate && object_getClass(delegate) == self) {
+        return ((DiagnosticSDKSessionDelegateProxy *)delegate)->_target;
+    }
+    return delegate;
+}
+
 + (BOOL)isObservedSelector:(SEL)selector {
     return sel_isEqual(selector, @selector(URLSession:dataTask:didReceiveData:))
         || sel_isEqual(selector, @selector(URLSession:task:didFinishCollectingMetrics:))

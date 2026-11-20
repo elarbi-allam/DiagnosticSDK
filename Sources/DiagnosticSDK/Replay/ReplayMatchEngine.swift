@@ -59,7 +59,7 @@ public final class ReplayMatchEngine {
             .compactMap { interaction -> PreparedInteraction? in
                 guard
                     let components = URLComponents(string: interaction.request.url),
-                    storedResponseAllowsJSONMocking(interaction)
+                    ReplayResponseFactory.canReplay(interaction)
                 else {
                     return nil
                 }
@@ -117,30 +117,6 @@ public final class ReplayMatchEngine {
         case .ignore:
             return true
         }
-    }
-
-    private func storedResponseAllowsJSONMocking(_ interaction: NetworkInteraction) -> Bool {
-        guard let headers = interaction.response?.headers, !headers.isEmpty else {
-            return false
-        }
-
-        guard let rawContentType = headers.first(where: { key, _ in
-            key.caseInsensitiveCompare("Content-Type") == .orderedSame
-        })?.value else {
-            return false
-        }
-
-        let primaryMediaType = rawContentType
-            .split(separator: ";", maxSplits: 1, omittingEmptySubsequences: true)
-            .first?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .lowercased() ?? ""
-
-        if primaryMediaType.isEmpty {
-            return false
-        }
-
-        return primaryMediaType.contains("json")
     }
 }
 

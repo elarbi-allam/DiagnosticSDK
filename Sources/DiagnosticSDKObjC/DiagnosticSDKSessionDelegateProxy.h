@@ -6,6 +6,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (instancetype)proxyWithTarget:(id<NSURLSessionDelegate>)target;
 
++ (nullable id)unwrappedDelegate:(nullable id)delegate;
+
 @end
 
 NS_ASSUME_NONNULL_END

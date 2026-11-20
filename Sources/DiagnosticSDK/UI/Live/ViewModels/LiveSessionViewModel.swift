@@ -14,6 +14,7 @@ final class LiveSessionViewModel: ObservableObject {
     @Published var methodFilter: TraceHTTPMethodFilter = .all
     @Published var shareItem: LiveSessionShareItem?
     @Published var exportErrorMessage: String?
+    @Published var historySaveResultMessage: String?
     
     private var lastSignature: Signature?
     private var updateCancellable: AnyCancellable?
@@ -56,17 +57,39 @@ final class LiveSessionViewModel: ObservableObject {
     }
     
     func exportCurrentSession() {
-        guard let exportedURL = store.exportSessionToDisk() else { return }
-        shareItem = LiveSessionShareItem(url: exportedURL)
+        store.saveSessionToHistory { [weak self] exportedURL in
+            guard let exportedURL else { return }
+            self?.shareItem = LiveSessionShareItem(url: exportedURL)
+        }
+    }
+    
+    func saveCurrentSessionToHistory() {
+        store.saveSessionToHistory { [weak self] savedURL in
+            self?.historySaveResultMessage = savedURL.map { "Session saved to history as \($0.lastPathComponent)." }
+                ?? "The session could not be saved to history."
+        }
+    }
+    
+    func exportReadableReport(format: SessionReportFormat) {
+        exportErrorMessage = nil
+        store.exportSessionReport(format: format) { [weak self] reportURL in
+            guard let reportURL else {
+                self?.exportErrorMessage = "The readable report could not be created."
+                return
+            }
+            self?.shareItem = LiveSessionShareItem(url: reportURL)
+        }
     }
     
     func exportCurrentSessionSafely(password: String) {
         exportErrorMessage = nil
-        guard let exportedURL = store.exportSessionSafelyToTemporary(password: password) else {
-            exportErrorMessage = "Safe export failed. Check password and try again."
-            return
+        store.exportSessionSafely(password: password) { [weak self] exportedURL in
+            guard let exportedURL else {
+                self?.exportErrorMessage = "Safe export failed. Check password and try again."
+                return
+            }
+            self?.shareItem = LiveSessionShareItem(url: exportedURL)
         }
-        shareItem = LiveSessionShareItem(url: exportedURL)
     }
     
     func clearCurrentSession() {

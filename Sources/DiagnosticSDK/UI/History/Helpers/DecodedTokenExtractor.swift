@@ -1,11 +1,13 @@
 import Foundation
 
 enum DecodedTokenExtractor {
-    private static let jwtPattern = #"[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+"#
+    private static let jwtRegularExpression = try? NSRegularExpression(
+        pattern: #"(?<![A-Za-z0-9_-])[A-Za-z0-9_-]++\.[A-Za-z0-9_-]++\.[A-Za-z0-9_-]++"#
+    )
 
     static func extract(
         headers: [String: String]?,
-        bodyRawValue: String?,
+        bodyData: Data?,
         sourcePrefix: String
     ) -> [DecodedTokenItem] {
         var orderedResults: [DecodedTokenItem] = []
@@ -23,7 +25,7 @@ enum DecodedTokenExtractor {
             }
         }
 
-        if let bodyData = normalizedBodyData(from: bodyRawValue) {
+        if let bodyData, !bodyData.isEmpty {
             if let jsonObject = try? JSONSerialization.jsonObject(with: bodyData, options: [.fragmentsAllowed]) {
                 traverseJSONObject(jsonObject, path: "\(sourcePrefix) Body") { nodePath, key, value in
                     guard let key, key.lowercased().contains("token") else { return }
@@ -132,7 +134,7 @@ enum DecodedTokenExtractor {
     }
 
     private static func jwtCandidate(in text: String) -> String? {
-        guard let regex = try? NSRegularExpression(pattern: jwtPattern) else {
+        guard let regex = jwtRegularExpression else {
             return nil
         }
         let nsRange = NSRange(text.startIndex..<text.endIndex, in: text)
@@ -142,14 +144,6 @@ enum DecodedTokenExtractor {
             return nil
         }
         return String(text[range])
-    }
-
-    private static func normalizedBodyData(from rawValue: String?) -> Data? {
-        guard let rawValue, !rawValue.isEmpty else { return nil }
-        if let data = Data(base64Encoded: rawValue) {
-            return data
-        }
-        return rawValue.data(using: .utf8)
     }
 
     private static func stringifyTokenCandidate(_ value: Any) -> String {

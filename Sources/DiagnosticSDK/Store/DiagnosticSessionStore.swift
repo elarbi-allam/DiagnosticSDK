@@ -1,5 +1,4 @@
 import Foundation
-import UIKit
 
 /// A high-performance, thread-safe store that manages the diagnostic session in memory.
 public final class DiagnosticSessionStore: NetworkStoreProtocol {
@@ -10,7 +9,7 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
     // MARK: - State
     
     /// The current hierarchical session trace held entirely in RAM.
-    private(set) var currentSession: SessionTrace
+    private var currentSession: SessionTrace
     
     /// A concurrent dispatch queue acting as a read-write lock to prevent race conditions.
     private let isolationQueue = DispatchQueue(label: "com.diagnosticsdk.sessionstore.isolation", attributes: .concurrent)
@@ -20,9 +19,13 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
     private var mockedInteractionIds: Set<String> = []
     private var interactionLocationsById: [String: InteractionLocation] = [:]
     private var isUpdateNotificationScheduled = false
-    private var backgroundObserver: NSObjectProtocol?
+    private let retainedBodyByteBudget: Int
+    private var retainedBodyByteCount = 0
+    private var interactionIdsInEvictionOrder: [String] = []
+    private var nextEvictionIndex = 0
     
     private static let updateNotificationCoalescingInterval: TimeInterval = 0.15
+    private static let defaultRetainedBodyByteBudget = 48 * 1024 * 1024
     
     private struct InteractionLocation {
         let screenIndex: Int
@@ -31,15 +34,9 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
     
     // MARK: - Initialization
     
-    private init() {
+    init(retainedBodyByteBudget: Int = DiagnosticSessionStore.defaultRetainedBodyByteBudget) {
         self.currentSession = SessionTrace()
-        self.setupAutoSave()
-    }
-    
-    deinit {
-        if let backgroundObserver {
-            NotificationCenter.default.removeObserver(backgroundObserver)
-        }
+        self.retainedBodyByteBudget = retainedBodyByteBudget
     }
     
     // MARK: - NetworkStoreProtocol Implementation
@@ -62,6 +59,9 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
             self.screenIndexByVisitId.removeAll(keepingCapacity: false)
             self.mockedInteractionIds.removeAll(keepingCapacity: false)
             self.interactionLocationsById.removeAll(keepingCapacity: false)
+            self.interactionIdsInEvictionOrder.removeAll(keepingCapacity: false)
+            self.nextEvictionIndex = 0
+            self.retainedBodyByteCount = 0
             self.scheduleUpdateNotification()
         }
     }
@@ -137,7 +137,14 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
             mockedInteractionIds.insert(completedInteraction.id)
         }
         if let location = interactionLocationsById[completedInteraction.id] {
-            currentSession.screens[location.screenIndex].networkInteractions[location.interactionIndex] = completedInteraction
+            let screen = currentSession.screens[location.screenIndex]
+            let replacedInteraction = screen.networkInteractions[location.interactionIndex]
+            screen.networkInteractions[location.interactionIndex] = completedInteraction
+            retainedBodyByteCount += completedInteraction.retainedBodyByteCount - replacedInteraction.retainedBodyByteCount
+            if replacedInteraction.hasBodyDiscardedForMemoryBudget {
+                interactionIdsInEvictionOrder.append(completedInteraction.id)
+            }
+            discardOldestBodiesUntilWithinBudget()
             return
         }
         appendInteraction(completedInteraction, screenName: event.request.screenName, visitId: event.request.screenVisitId)
@@ -151,6 +158,21 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
             screenIndex: screenIndex,
             interactionIndex: screen.networkInteractions.count - 1
         )
+        interactionIdsInEvictionOrder.append(interaction.id)
+        retainedBodyByteCount += interaction.retainedBodyByteCount
+        discardOldestBodiesUntilWithinBudget()
+    }
+    
+    private func discardOldestBodiesUntilWithinBudget() {
+        while retainedBodyByteCount > retainedBodyByteBudget, nextEvictionIndex < interactionIdsInEvictionOrder.count {
+            let interactionId = interactionIdsInEvictionOrder[nextEvictionIndex]
+            nextEvictionIndex += 1
+            guard let location = interactionLocationsById[interactionId] else { continue }
+            let screen = currentSession.screens[location.screenIndex]
+            let interaction = screen.networkInteractions[location.interactionIndex]
+            retainedBodyByteCount -= interaction.retainedBodyByteCount
+            screen.networkInteractions[location.interactionIndex] = interaction.discardingStoredBodies()
+        }
     }
     
     private func screenIndexForAppending(screenName: String, visitId: Int?) -> Int {
@@ -192,7 +214,10 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
                 headers: response.headers,
                 bodyBase64: response.bodyBase64,
                 bodySizeBytes: response.bodySizeBytes,
-                errorDescription: response.errorDescription
+                errorDescription: response.errorDescription,
+                bodyEncoding: response.bodyEncoding,
+                isBodyTruncated: response.isBodyTruncated,
+                bodyOmission: response.bodyOmission
             )
             
             interaction.durationMs = event.durationMs
@@ -207,7 +232,10 @@ public final class DiagnosticSessionStore: NetworkStoreProtocol {
             method: request.method,
             headers: request.headers,
             bodyBase64: request.body,
-            bodySizeBytes: request.body?.utf8.count ?? 0
+            bodySizeBytes: request.bodySizeBytes ?? request.body?.utf8.count ?? 0,
+            bodyEncoding: request.bodyEncoding,
+            isBodyTruncated: request.isBodyTruncated,
+            bodyOmission: request.bodyOmission
         )
     }
 }
@@ -232,43 +260,62 @@ extension DiagnosticSessionStore {
         }
         return exportedURL
     }
+
+    func saveSessionToHistory(completion: @escaping (URL?) -> Void) {
+        isolationQueue.async { [weak self] in
+            let savedURL = self?.writeCurrentSessionToDocuments()
+            DispatchQueue.main.async {
+                completion(savedURL)
+            }
+        }
+    }
     
-    /// Performs the standard export to Documents first, then creates an encrypted export in Temporary.
+    /// Creates an encrypted export in Temporary without writing a plain copy to Documents.
     /// The temporary encrypted file is intended for sharing and should not appear in session history listings.
     /// - Parameter password: User-provided password used to derive the encryption key.
     /// - Returns: The URL of the encrypted temporary file, or `nil` if any step fails.
     @discardableResult
     public func exportSessionSafelyToTemporary(password: String) -> URL? {
-        var encryptedURL: URL?
         isolationQueue.sync {
-            guard let (_, jsonData) = self.writeCurrentSessionToDocumentsReturningData() else {
-                print("❌ [DiagnosticSDK] Safe export aborted: normal export failed.")
-                return
-            }
-            do {
-                let wrapped = try TraceEncryptionService.encryptTraceJSON(jsonData, password: password)
-                let wrapperData = try JSONEncoder().encode(wrapped)
-                let fileName = self.safeExportFileName(for: self.currentSession)
-                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
-                try wrapperData.write(to: tempURL, options: .atomic)
-                encryptedURL = tempURL
-                print("✅ [DiagnosticSDK] Safe export created in temporary directory: \(tempURL.path)")
-            } catch let error as TraceEncryptionServiceError {
-                print("❌ [DiagnosticSDK] Safe export failed: \(error.localizedDescription)")
-            } catch {
-                print("❌ [DiagnosticSDK] Safe export failed: \(error.localizedDescription)")
+            writeEncryptedCurrentSessionToTemporaryDirectory(password: password)
+        }
+    }
+
+    func exportSessionReport(format: SessionReportFormat, completion: @escaping (URL?) -> Void) {
+        isolationQueue.async { [weak self] in
+            let reportURL = self.flatMap { try? SessionReportWriter.writeReport(of: $0.currentSession, format: format) }
+            DispatchQueue.main.async {
+                completion(reportURL)
             }
         }
-        return encryptedURL
+    }
+
+    func exportSessionSafely(password: String, completion: @escaping (URL?) -> Void) {
+        isolationQueue.async { [weak self] in
+            let encryptedURL = self?.writeEncryptedCurrentSessionToTemporaryDirectory(password: password)
+            DispatchQueue.main.async {
+                completion(encryptedURL)
+            }
+        }
+    }
+
+    private func writeEncryptedCurrentSessionToTemporaryDirectory(password: String) -> URL? {
+        do {
+            let jsonData = try SessionTraceJSONCodec.encode(currentSession)
+            let wrapped = try TraceEncryptionService.encryptTraceJSON(jsonData, password: password)
+            let wrapperData = try JSONEncoder().encode(wrapped)
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(safeExportFileName(for: currentSession))
+            try wrapperData.write(to: tempURL, options: .atomic)
+            print("✅ [DiagnosticSDK] Safe export created in temporary directory: \(tempURL.path)")
+            return tempURL
+        } catch {
+            print("❌ [DiagnosticSDK] Safe export failed: \(error.localizedDescription)")
+            return nil
+        }
     }
     
     /// Single encode + write to Documents. Call only on `isolationQueue`.
     private func writeCurrentSessionToDocuments() -> URL? {
-        guard let (url, _) = writeCurrentSessionToDocumentsReturningData() else { return nil }
-        return url
-    }
-    
-    private func writeCurrentSessionToDocumentsReturningData() -> (url: URL, data: Data)? {
         do {
             let jsonData = try SessionTraceJSONCodec.encode(self.currentSession)
             let fileName = self.exportFileName(for: self.currentSession)
@@ -279,24 +326,13 @@ extension DiagnosticSessionStore {
             let filePath = documentsPath.appendingPathComponent(fileName)
             try jsonData.write(to: filePath, options: .atomic)
             print("✅ [DiagnosticSDK] Session exported successfully to: \(filePath.path)")
-            return (filePath, jsonData)
+            return filePath
         } catch let error as SessionTraceJSONCodecError {
             print("❌ [DiagnosticSDK] Failed to export session to disk: \(error.localizedDescription)")
         } catch {
             print("❌ [DiagnosticSDK] Failed to export session to disk: \(error.localizedDescription)")
         }
         return nil
-    }
-    
-    /// Listens for the app going into the background to trigger a safety save.
-    private func setupAutoSave() {
-        backgroundObserver = NotificationCenter.default.addObserver(
-            forName: UIApplication.didEnterBackgroundNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.exportSessionToDisk()
-        }
     }
     
     /// Builds a deterministic export file name so one session always overwrites the same JSON file.
@@ -407,5 +443,56 @@ extension DiagnosticSessionStore {
                 screens: screens
             )
         }
+    }
+}
+
+private extension NetworkInteraction {
+    var retainedBodyByteCount: Int {
+        (request.bodyBase64?.utf8.count ?? 0) + (response?.bodyBase64?.utf8.count ?? 0)
+    }
+
+    var hasBodyDiscardedForMemoryBudget: Bool {
+        request.bodyOmission == .memoryBudget || response?.bodyOmission == .memoryBudget
+    }
+
+    func discardingStoredBodies() -> NetworkInteraction {
+        var interaction = NetworkInteraction(
+            id: id,
+            request: request.discardingStoredBody(),
+            screenName: screenName,
+            startedAt: startedAt
+        )
+        interaction.durationMs = durationMs
+        interaction.response = response?.discardingStoredBody()
+        interaction.timing = timing
+        return interaction
+    }
+}
+
+private extension RequestDetails {
+    func discardingStoredBody() -> RequestDetails {
+        guard bodyBase64 != nil else { return self }
+        return RequestDetails(
+            url: url,
+            method: method,
+            headers: headers,
+            bodyBase64: nil,
+            bodySizeBytes: bodySizeBytes,
+            bodyOmission: .memoryBudget
+        )
+    }
+}
+
+private extension ResponseDetails {
+    func discardingStoredBody() -> ResponseDetails {
+        guard bodyBase64 != nil else { return self }
+        return ResponseDetails(
+            status: status,
+            headers: headers,
+            bodyBase64: nil,
+            bodySizeBytes: bodySizeBytes,
+            errorDescription: errorDescription,
+            bodyOmission: .memoryBudget
+        )
     }
 }

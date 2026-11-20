@@ -4,14 +4,19 @@ enum NetworkTimingBuilder {
     static func makeTiming(
         startUptime: TimeInterval,
         transferEndUptime: TimeInterval,
-        metrics: TaskMetricsSnapshot?
+        metrics: TaskMetricsSnapshot?,
+        deliveringURLProtocolName: String?
     ) -> NetworkTiming {
         let appPerceivedDurationMs = milliseconds(transferEndUptime - startUptime)
         guard let metrics, let finalTransaction = metrics.transactions.last else {
-            return makeClockTiming(appPerceivedDurationMs: appPerceivedDurationMs)
+            return makeClockTiming(appPerceivedDurationMs: appPerceivedDurationMs, deliveringURLProtocolName: deliveringURLProtocolName)
         }
         if finalTransaction.isServedFromCache {
-            return makeCacheTiming(appPerceivedDurationMs: appPerceivedDurationMs, redirectCount: metrics.redirectCount)
+            return makeCacheTiming(
+                appPerceivedDurationMs: appPerceivedDurationMs,
+                redirectCount: metrics.redirectCount,
+                deliveringURLProtocolName: deliveringURLProtocolName
+            )
         }
 
         let networkTransactions = metrics.transactions.filter(\.isNetworkLoad)
@@ -22,7 +27,7 @@ enum NetworkTimingBuilder {
                 to: finalNetworkTransaction.responseEndDate
             )
         else {
-            return makeClockTiming(appPerceivedDurationMs: appPerceivedDurationMs)
+            return makeClockTiming(appPerceivedDurationMs: appPerceivedDurationMs, deliveringURLProtocolName: deliveringURLProtocolName)
         }
 
         return NetworkTiming(
@@ -34,7 +39,8 @@ enum NetworkTimingBuilder {
             isServedFromCache: false,
             networkProtocol: finalNetworkTransaction.networkProtocolName,
             isConnectionReused: finalNetworkTransaction.isReusedConnection,
-            responseBytesReceived: finalNetworkTransaction.responseBodyBytesReceived
+            responseBytesReceived: finalNetworkTransaction.responseBodyBytesReceived,
+            deliveringURLProtocolName: deliveringURLProtocolName
         )
     }
 
@@ -52,7 +58,7 @@ enum NetworkTimingBuilder {
         )
     }
 
-    private static func makeClockTiming(appPerceivedDurationMs: Int) -> NetworkTiming {
+    private static func makeClockTiming(appPerceivedDurationMs: Int, deliveringURLProtocolName: String?) -> NetworkTiming {
         NetworkTiming(
             source: .clock,
             networkDurationMs: nil,
@@ -62,11 +68,12 @@ enum NetworkTimingBuilder {
             isServedFromCache: false,
             networkProtocol: nil,
             isConnectionReused: nil,
-            responseBytesReceived: nil
+            responseBytesReceived: nil,
+            deliveringURLProtocolName: deliveringURLProtocolName
         )
     }
 
-    private static func makeCacheTiming(appPerceivedDurationMs: Int, redirectCount: Int) -> NetworkTiming {
+    private static func makeCacheTiming(appPerceivedDurationMs: Int, redirectCount: Int, deliveringURLProtocolName: String?) -> NetworkTiming {
         NetworkTiming(
             source: .systemMetrics,
             networkDurationMs: nil,
@@ -76,7 +83,8 @@ enum NetworkTimingBuilder {
             isServedFromCache: true,
             networkProtocol: nil,
             isConnectionReused: nil,
-            responseBytesReceived: nil
+            responseBytesReceived: nil,
+            deliveringURLProtocolName: deliveringURLProtocolName
         )
     }
 

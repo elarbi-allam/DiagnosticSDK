@@ -20,4 +20,12 @@ final class LockedValue<Value>: @unchecked Sendable {
         storedValue = newValue
         lock.unlock()
     }
+
+    func exchange(with newValue: Value) -> Value {
+        lock.lock()
+        defer { lock.unlock() }
+        let previousValue = storedValue
+        storedValue = newValue
+        return previousValue
+    }
 }

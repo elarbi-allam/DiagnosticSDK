@@ -17,6 +17,7 @@ typedef void (*DiagnosticSDKResumeImplementation)(id, SEL);
                                                     ofClass:taskClass
                                            withBlockFactory:^id(IMP originalImplementation) {
             return ^(NSURLSessionTask *task) {
+                [DiagnosticSDKNetworkHooks linkRelayTaskToLoadingURLProtocolTaskIfNeeded:task];
                 [DiagnosticSDKNetworkHooks.eventObserver networkTaskWillResume:task];
                 ((DiagnosticSDKResumeImplementation)originalImplementation)(task, resumeSelector);
             };

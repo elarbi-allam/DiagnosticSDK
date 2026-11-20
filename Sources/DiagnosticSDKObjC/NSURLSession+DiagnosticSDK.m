@@ -11,12 +11,11 @@ typedef NSURLSessionTask *_Nullable (*DiagnosticSDKTaskFactoryWithBody)(id, SEL,
 typedef NSURLSessionTask *_Nullable (*DiagnosticSDKTaskFactoryWithCompletion)(id, SEL, id, DiagnosticSDKTaskCompletionHandler _Nullable);
 typedef NSURLSessionTask *_Nullable (*DiagnosticSDKTaskFactoryWithBodyAndCompletion)(id, SEL, id, id, DiagnosticSDKTaskCompletionHandler _Nullable);
 typedef NSURLSession *(*DiagnosticSDKSessionFactory)(id, SEL, NSURLSessionConfiguration *, id _Nullable, NSOperationQueue *_Nullable);
+typedef id _Nullable (*DiagnosticSDKDelegateGetter)(id, SEL);
+typedef NSURLSessionTask *_Nullable (*DiagnosticSDKTaskFactoryWithDelegateAndCompletion)(id, SEL, id, id _Nullable, DiagnosticSDKTaskCompletionHandler _Nullable);
+typedef NSURLSessionTask *_Nullable (*DiagnosticSDKTaskFactoryWithBodyDelegateAndCompletion)(id, SEL, id, id, id _Nullable, DiagnosticSDKTaskCompletionHandler _Nullable);
 
-@interface DiagnosticSDKWeakTaskReference : NSObject
-
-@property (nonatomic, weak, nullable) NSURLSessionTask *task;
-
-@end
+static __thread NSUInteger DiagnosticSDKTaskFactoryNestingDepth = 0;
 
 @implementation DiagnosticSDKWeakTaskReference
 @end
@@ -55,12 +54,22 @@ static NSURLSessionTask *_Nullable DiagnosticSDKCreateObservedTask(NSURLSession 
                                                                    DiagnosticSDKTaskCompletionHandler _Nullable completionHandler,
                                                                    NSData *_Nullable uploadBody,
                                                                    DiagnosticSDKTaskCreation createTask) {
+    if (DiagnosticSDKTaskFactoryNestingDepth > 0) {
+        return createTask(completionHandler);
+    }
+
     BOOL isObservable = completionHandler && ![DiagnosticSDKNetworkHooks isSessionExcludedFromCapture:session];
     DiagnosticSDKWeakTaskReference *taskReference = [DiagnosticSDKWeakTaskReference new];
 
-    NSURLSessionTask *task = createTask(isObservable
-                                        ? DiagnosticSDKObservingCompletionHandler(completionHandler, taskReference)
-                                        : completionHandler);
+    NSURLSessionTask *task = nil;
+    DiagnosticSDKTaskFactoryNestingDepth += 1;
+    @try {
+        task = createTask(isObservable
+                          ? DiagnosticSDKObservingCompletionHandler(completionHandler, taskReference)
+                          : completionHandler);
+    } @finally {
+        DiagnosticSDKTaskFactoryNestingDepth -= 1;
+    }
     if (!task) {
         return nil;
     }
@@ -114,6 +123,25 @@ static NSURLSessionTask *_Nullable DiagnosticSDKCreateObservedTask(NSURLSession 
         [self diagnosticSDK_hookTaskFactoryWithCompletion:taskFactoryWithCompletionSelectors[index] inClasses:sessionClasses];
     }
 
+    NSArray<NSString *> *taskFactoryWithDelegateAndCompletionSelectorNames = @[
+        @"_dataTaskWithRequest:delegate:completionHandler:",
+        @"_dataTaskWithURL:delegate:completionHandler:",
+        @"_downloadTaskWithRequest:delegate:completionHandler:",
+        @"_downloadTaskWithURL:delegate:completionHandler:",
+        @"_downloadTaskWithResumeData:delegate:completionHandler:",
+    ];
+    for (NSString *selectorName in taskFactoryWithDelegateAndCompletionSelectorNames) {
+        [self diagnosticSDK_hookTaskFactoryWithDelegateAndCompletion:NSSelectorFromString(selectorName) inClasses:sessionClasses];
+    }
+
+    NSArray<NSString *> *taskFactoryWithBodyDelegateAndCompletionSelectorNames = @[
+        @"_uploadTaskWithRequest:fromData:delegate:completionHandler:",
+        @"_uploadTaskWithRequest:fromFile:delegate:completionHandler:",
+    ];
+    for (NSString *selectorName in taskFactoryWithBodyDelegateAndCompletionSelectorNames) {
+        [self diagnosticSDK_hookTaskFactoryWithBodyDelegateAndCompletion:NSSelectorFromString(selectorName) inClasses:sessionClasses];
+    }
+
     SEL taskFactoryWithBodyAndCompletionSelectors[] = {
         @selector(uploadTaskWithRequest:fromData:completionHandler:),
         @selector(uploadTaskWithRequest:fromFile:completionHandler:),
@@ -146,6 +174,16 @@ static NSURLSessionTask *_Nullable DiagnosticSDKCreateObservedTask(NSURLSession 
                 [DiagnosticSDKNetworkHooks markSessionAsObservedByDelegateProxy:session];
             }
             return session;
+        };
+    }];
+
+    SEL delegateGetterSelector = @selector(delegate);
+    [self diagnosticSDK_hookSelector:delegateGetterSelector
+                           inClasses:[DiagnosticSDKMethodSwizzling classesInheritingFromClass:[NSURLSession class]]
+                    withBlockFactory:^id(IMP originalImplementation) {
+        return ^id _Nullable (NSURLSession *session) {
+            id delegate = ((DiagnosticSDKDelegateGetter)originalImplementation)(session, delegateGetterSelector);
+            return [DiagnosticSDKSessionDelegateProxy unwrappedDelegate:delegate];
         };
     }];
 }
@@ -185,6 +223,26 @@ static NSURLSessionTask *_Nullable DiagnosticSDKCreateObservedTask(NSURLSession 
         return ^NSURLSessionTask *_Nullable (NSURLSession *session, id argument, DiagnosticSDKTaskCompletionHandler _Nullable originalCompletionHandler) {
             return DiagnosticSDKCreateObservedTask(session, originalCompletionHandler, nil, ^NSURLSessionTask *_Nullable (DiagnosticSDKTaskCompletionHandler _Nullable completionHandler) {
                 return ((DiagnosticSDKTaskFactoryWithCompletion)originalImplementation)(session, selector, argument, completionHandler);
+            });
+        };
+    }];
+}
+
++ (void)diagnosticSDK_hookTaskFactoryWithDelegateAndCompletion:(SEL)selector inClasses:(NSArray<Class> *)sessionClasses {
+    [self diagnosticSDK_hookSelector:selector inClasses:sessionClasses withBlockFactory:^id(IMP originalImplementation) {
+        return ^NSURLSessionTask *_Nullable (NSURLSession *session, id argument, id _Nullable taskDelegate, DiagnosticSDKTaskCompletionHandler _Nullable originalCompletionHandler) {
+            return DiagnosticSDKCreateObservedTask(session, originalCompletionHandler, nil, ^NSURLSessionTask *_Nullable (DiagnosticSDKTaskCompletionHandler _Nullable completionHandler) {
+                return ((DiagnosticSDKTaskFactoryWithDelegateAndCompletion)originalImplementation)(session, selector, argument, taskDelegate, completionHandler);
+            });
+        };
+    }];
+}
+
++ (void)diagnosticSDK_hookTaskFactoryWithBodyDelegateAndCompletion:(SEL)selector inClasses:(NSArray<Class> *)sessionClasses {
+    [self diagnosticSDK_hookSelector:selector inClasses:sessionClasses withBlockFactory:^id(IMP originalImplementation) {
+        return ^NSURLSessionTask *_Nullable (NSURLSession *session, id request, id bodyOrFileURL, id _Nullable taskDelegate, DiagnosticSDKTaskCompletionHandler _Nullable originalCompletionHandler) {
+            return DiagnosticSDKCreateObservedTask(session, originalCompletionHandler, DiagnosticSDKUploadBodyFromArgument(bodyOrFileURL), ^NSURLSessionTask *_Nullable (DiagnosticSDKTaskCompletionHandler _Nullable completionHandler) {
+                return ((DiagnosticSDKTaskFactoryWithBodyDelegateAndCompletion)originalImplementation)(session, selector, request, bodyOrFileURL, taskDelegate, completionHandler);
             });
         };
     }];

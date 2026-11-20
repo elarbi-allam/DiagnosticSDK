@@ -4,7 +4,7 @@ enum SessionTraceJSONCodec {
     
     static func encode(_ session: SessionTrace) throws -> Data {
         let encoder = JSONEncoder()
-        encoder.outputFormatting = .prettyPrinted
+        encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
         encoder.dateEncodingStrategy = .iso8601
         
         do {

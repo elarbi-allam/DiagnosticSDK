@@ -5,6 +5,7 @@ protocol SessionHistoryFileServicing {
     func deleteFile(at fileURL: URL) throws -> SessionHistoryFileService.DeletionReport
     func copyImportedJSONToDocuments(from sourceURL: URL) throws -> URL
     func createSafeExportTemporaryFile(from traceFileURL: URL, password: String) throws -> URL
+    func createReadableReportTemporaryFile(from traceFileURL: URL, format: SessionReportFormat) throws -> URL
 }
 
 struct LiveSessionHistoryFileService: SessionHistoryFileServicing {
@@ -22,5 +23,9 @@ struct LiveSessionHistoryFileService: SessionHistoryFileServicing {
 
     func createSafeExportTemporaryFile(from traceFileURL: URL, password: String) throws -> URL {
         try SessionHistoryFileService.createSafeExportTemporaryFile(from: traceFileURL, password: password)
+    }
+
+    func createReadableReportTemporaryFile(from traceFileURL: URL, format: SessionReportFormat) throws -> URL {
+        try SessionHistoryFileService.createReadableReportTemporaryFile(from: traceFileURL, format: format)
     }
 }

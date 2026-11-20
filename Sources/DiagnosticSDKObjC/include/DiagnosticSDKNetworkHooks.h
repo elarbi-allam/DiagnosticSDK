@@ -56,6 +56,12 @@ typedef NS_ENUM(NSInteger, DiagnosticSDKTaskCaptureChannel) {
 + (BOOL)isTaskReplayed:(NSURLSessionTask *)task
     NS_SWIFT_NAME(isTaskReplayed(_:));
 
++ (nullable NSURLSessionTask *)relayOriginTaskForTask:(NSURLSessionTask *)task
+    NS_SWIFT_NAME(relayOriginTask(for:));
+
++ (nullable NSString *)deliveringURLProtocolNameForTask:(NSURLSessionTask *)task
+    NS_SWIFT_NAME(deliveringURLProtocolName(for:));
+
 - (instancetype)init NS_UNAVAILABLE;
 
 @end

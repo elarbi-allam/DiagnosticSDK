@@ -1,11 +1,12 @@
 import Foundation
 
 enum NetworkEventBuilder {
-    
+
     static func build(
         request: URLRequest,
         response: URLResponse?,
         data: Data?,
+        receivedByteCount: Int? = nil,
         captureId: String,
         startedAt: Date,
         timing: NetworkTiming,
@@ -14,31 +15,26 @@ enum NetworkEventBuilder {
         error: Error? = nil
     ) -> NetworkEvent {
         let requestModel = makeRequestModel(from: request, screenName: screenName, screenVisitId: screenVisitId)
-        
+
         let httpResponse = response as? HTTPURLResponse
         let responseHeaders = httpResponse?.allHeaderFields as? [String: String] ?? [:]
-        
-        let bodyBase64: String?
-        let bodySize = data?.count ?? 0
-        
-        if let responseData = data, !responseData.isEmpty {
-            if NetworkContentType.isJSON(contentType(from: responseHeaders)) {
-                bodyBase64 = responseData.base64EncodedString()
-            } else {
-                bodyBase64 = unsupportedContentTypeMessage(from: responseHeaders)
-            }
-        } else {
-            bodyBase64 = nil
-        }
-        
+        let responseBody = CapturedBody(
+            data: data,
+            receivedByteCount: receivedByteCount,
+            contentType: NetworkContentType.contentTypeHeader(in: responseHeaders) ?? response?.mimeType
+        )
+
         let responseModel = ResponseModel(
             statusCode: httpResponse?.statusCode ?? 0,
             headers: responseHeaders,
-            bodyBase64: bodyBase64,
-            bodySizeBytes: bodySize,
-            errorDescription: error?.localizedDescription
+            bodyBase64: responseBody.storedValue,
+            bodySizeBytes: responseBody.sizeBytes,
+            errorDescription: error?.localizedDescription,
+            bodyEncoding: responseBody.encoding,
+            isBodyTruncated: responseBody.isTruncated ? true : nil,
+            bodyOmission: responseBody.omission
         )
-        
+
         return NetworkEvent(
             request: requestModel,
             response: responseModel,
@@ -49,41 +45,25 @@ enum NetworkEventBuilder {
             timing: timing
         )
     }
-    
+
     static func makeRequestModel(from request: URLRequest, screenName: String?, screenVisitId: Int?) -> RequestModel {
         let requestHeaders = request.allHTTPHeaderFields ?? [:]
-        let requestBody: String?
-        if let bodyData = request.httpBody, !bodyData.isEmpty {
-            if NetworkContentType.isJSON(contentType(from: requestHeaders)) {
-                requestBody = String(data: bodyData, encoding: .utf8)
-            } else {
-                requestBody = unsupportedContentTypeMessage(from: requestHeaders)
-            }
-        } else {
-            requestBody = nil
-        }
-        
+        let requestBody = CapturedBody(
+            data: request.httpBody,
+            contentType: NetworkContentType.contentTypeHeader(in: requestHeaders)
+        )
+
         return RequestModel(
             url: request.url?.absoluteString ?? "",
             method: request.httpMethod ?? "UNKNOWN",
             headers: requestHeaders,
-            body: requestBody,
+            body: requestBody.storedValue,
             screenName: screenName,
-            screenVisitId: screenVisitId
+            screenVisitId: screenVisitId,
+            bodySizeBytes: requestBody.sizeBytes,
+            bodyEncoding: requestBody.encoding,
+            isBodyTruncated: requestBody.isTruncated ? true : nil,
+            bodyOmission: requestBody.omission
         )
-    }
-    
-    private static func contentType(from headers: [String: String]?) -> String? {
-        guard let headers = headers else { return nil }
-        let contentTypeKey = headers.keys.first { $0.caseInsensitiveCompare("Content-Type") == .orderedSame }
-        guard let key = contentTypeKey else { return nil }
-        let rawContentType = headers[key]?.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let contentType = rawContentType, !contentType.isEmpty else { return nil }
-        return contentType
-    }
-    
-    private static func unsupportedContentTypeMessage(from headers: [String: String]?) -> String {
-        let resolvedContentType = contentType(from: headers) ?? "unknown"
-        return "can't save this type of content: \(resolvedContentType)"
     }
 }
